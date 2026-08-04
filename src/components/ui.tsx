@@ -31,10 +31,9 @@ const sidebarLinks = [
 ];
 
 const topActions = [
-  { href: "/parts", label: "Search", primary: true },
-  { href: "/upload", label: "Upload" },
-  { href: "/categories/swerve-covers", label: "Categories" },
-  { href: "/report", label: "Report" },
+  { href: "/parts", label: "Search", icon: "search", mobileIconOnly: true },
+  { href: "/upload", label: "Upload", icon: "upload", mobileIconOnly: true },
+  { href: "/report", label: "Report", icon: "report", mobileIconOnly: true },
   { href: "/login", label: "Login", primary: true }
 ];
 
@@ -71,21 +70,51 @@ export function SiteChrome({ children }: { children: ReactNode }) {
       </aside>
       <div className="main-shell">
         <header className="topbar">
-          <Link href="/" className="brand">
-            <span className="brand-mark">FRC</span>
-            <span className="brand-copy">
-              <strong>Centralized Add-on Repository</strong>
-              <small>robot accessories, sheet metal, and reusable hardware</small>
-            </span>
-          </Link>
+          <div className="topbar-leading">
+            <details className="mobile-nav">
+              <summary className="menu-toggle" aria-label="Open site navigation">
+                <span className="menu-bars" aria-hidden="true">
+                  <span />
+                  <span />
+                  <span />
+                </span>
+              </summary>
+              <div className="mobile-nav-panel">
+                <nav className="mobile-nav-links">
+                  {sidebarLinks.map((link) => (
+                    <Link key={`mobile-${link.href}`} href={link.href} className="mobile-nav-link">
+                      {link.label}
+                    </Link>
+                  ))}
+                </nav>
+                <section className="mobile-nav-note">
+                  <p className="eyebrow">V1 Scope</p>
+                  <strong>Prints, sheet metal, and source CAD first.</strong>
+                  <p>PCB boards, fixtures, and smarter AI-assisted search can layer in next.</p>
+                </section>
+              </div>
+            </details>
+            <Link href="/" className="brand">
+              <span className="brand-mark">FRC</span>
+              <span className="brand-copy">
+                <strong>
+                  <span className="brand-title-long">Centralized Add-on Repository</span>
+                  <span className="brand-title-short">FRC Repository</span>
+                </strong>
+                <small>robot accessories, sheet metal, and reusable hardware</small>
+              </span>
+            </Link>
+          </div>
           <nav className="top-actions">
             {topActions.map((action) => (
               <Link
                 key={action.href + action.label}
                 href={action.href}
-                className={`action-link${action.primary ? " primary" : ""}`}
+                className={`action-link${action.primary ? " primary" : ""}${action.mobileIconOnly ? " mobile-icon-only" : ""}`}
+                aria-label={action.label}
               >
-                {action.label}
+                {action.icon ? <span className={`action-icon action-icon-${action.icon}`} aria-hidden="true" /> : null}
+                <span className="action-label">{action.label}</span>
               </Link>
             ))}
           </nav>
