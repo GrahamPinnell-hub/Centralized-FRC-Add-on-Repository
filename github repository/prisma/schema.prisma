@@ -1,0 +1,248 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+enum TeamRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum PartStatus {
+  DRAFT
+  PUBLISHED
+  HIDDEN
+}
+
+enum AssetKind {
+  IMAGE
+  VIDEO
+  DOWNLOAD
+  SOURCE_LINK
+}
+
+enum ReportStatus {
+  OPEN
+  REVIEWED
+  RESOLVED
+}
+
+model User {
+  id           String           @id @default(cuid())
+  email        String           @unique
+  passwordHash String?
+  handle       String           @unique
+  displayName  String
+  bio          String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  parts        Part[]           @relation("UserParts")
+  memberships  TeamMembership[]
+  reports      PartReport[]
+}
+
+model Team {
+  id          String           @id @default(cuid())
+  slug        String           @unique
+  number      Int?
+  name        String
+  shortName   String?
+  city        String?
+  state       String?
+  country     String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  parts       Part[]           @relation("TeamParts")
+  memberships TeamMembership[]
+}
+
+model TeamMembership {
+  id        String   @id @default(cuid())
+  role      TeamRole @default(MEMBER)
+  userId    String
+  teamId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, teamId])
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  label       String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  parts       Part[]
+}
+
+model License {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  name      String
+  url       String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  parts     Part[]
+}
+
+model Vendor {
+  id        String        @id @default(cuid())
+  slug      String        @unique
+  name      String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  products  Product[]
+  parts     PartVendor[]
+}
+
+model Product {
+  id        String        @id @default(cuid())
+  vendorId  String
+  slug      String
+  name      String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  vendor    Vendor        @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  parts     PartProduct[]
+
+  @@unique([vendorId, slug])
+}
+
+model Season {
+  id        String       @id @default(cuid())
+  year      Int
+  label     String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  parts     PartSeason[]
+
+  @@unique([year, label])
+}
+
+model Tag {
+  id        String    @id @default(cuid())
+  slug      String    @unique
+  label     String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  parts     PartTag[]
+}
+
+model Part {
+  id             String         @id @default(cuid())
+  slug           String         @unique
+  title          String
+  summary        String
+  subsystem      String
+  material       String?
+  installNotes   String?
+  printSettings  String?
+  status         PartStatus     @default(PUBLISHED)
+  featured       Boolean        @default(false)
+  categoryId     String
+  licenseId      String
+  ownerUserId    String?
+  ownerTeamId    String?
+  remixedFromId  String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  category       Category       @relation(fields: [categoryId], references: [id])
+  license        License        @relation(fields: [licenseId], references: [id])
+  ownerUser      User?          @relation("UserParts", fields: [ownerUserId], references: [id])
+  ownerTeam      Team?          @relation("TeamParts", fields: [ownerTeamId], references: [id])
+  remixedFrom    Part?          @relation("PartRemix", fields: [remixedFromId], references: [id])
+  remixes        Part[]         @relation("PartRemix")
+  versions       PartVersion[]
+  assets         Asset[]
+  tags           PartTag[]
+  vendors        PartVendor[]
+  products       PartProduct[]
+  seasons        PartSeason[]
+  reports        PartReport[]
+}
+
+model PartVersion {
+  id          String   @id @default(cuid())
+  partId       String
+  versionLabel String
+  changelog    String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  part         Part     @relation(fields: [partId], references: [id], onDelete: Cascade)
+  assets       Asset[]
+}
+
+model Asset {
+  id            String       @id @default(cuid())
+  partId         String
+  versionId      String?
+  kind           AssetKind
+  label          String
+  fileType       String
+  url            String
+  previewUrl     String?
+  position       Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  part           Part         @relation(fields: [partId], references: [id], onDelete: Cascade)
+  version        PartVersion? @relation(fields: [versionId], references: [id], onDelete: SetNull)
+}
+
+model PartTag {
+  partId String
+  tagId  String
+  part   Part @relation(fields: [partId], references: [id], onDelete: Cascade)
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([partId, tagId])
+}
+
+model PartVendor {
+  partId   String
+  vendorId String
+  part     Part   @relation(fields: [partId], references: [id], onDelete: Cascade)
+  vendor   Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@id([partId, vendorId])
+}
+
+model PartProduct {
+  partId    String
+  productId String
+  part      Part    @relation(fields: [partId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([partId, productId])
+}
+
+model PartSeason {
+  partId   String
+  seasonId String
+  part     Part   @relation(fields: [partId], references: [id], onDelete: Cascade)
+  season   Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  @@id([partId, seasonId])
+}
+
+model PartReport {
+  id           String       @id @default(cuid())
+  partId        String
+  reporterId    String?
+  reporterEmail String?
+  reason        String
+  notes         String?
+  status        ReportStatus @default(OPEN)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  part          Part         @relation(fields: [partId], references: [id], onDelete: Cascade)
+  reporter      User?        @relation(fields: [reporterId], references: [id], onDelete: SetNull)
+}
