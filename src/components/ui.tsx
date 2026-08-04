@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import type { CatalogPart, Creator, SearchFilters } from "@/lib/catalog";
 
@@ -11,41 +11,94 @@ type FilterOptions = {
   materials: string[];
 };
 
+const previewThemes: Record<string, { accent: string; glow: string; deep: string }> = {
+  "swerve-covers": { accent: "#d4a54e", glow: "#bf9045", deep: "#241c0e" },
+  "vision-mounts": { accent: "#dce1e7", glow: "#a8b0bb", deep: "#2b313a" },
+  "electronics-mounts": { accent: "#ab813d", glow: "#9e7735", deep: "#241c0e" },
+  "battery-hardware": { accent: "#c4b896", glow: "#9ea5ad", deep: "#2b313a" },
+  "driver-station": { accent: "#bf9045", glow: "#ab813d", deep: "#241c0e" },
+  default: { accent: "#d4a54e", glow: "#bf9045", deep: "#241c0e" }
+};
+
+const sidebarLinks = [
+  { href: "/", label: "Home" },
+  { href: "/parts", label: "Browse" },
+  { href: "/upload", label: "Upload" },
+  { href: "/categories/swerve-covers", label: "Categories" },
+  { href: "/u/team-31", label: "Teams" },
+  { href: "/report", label: "Report" },
+  { href: "/login", label: "Log in" }
+];
+
+const topActions = [
+  { href: "/parts", label: "Search", primary: true },
+  { href: "/upload", label: "Upload" },
+  { href: "/categories/swerve-covers", label: "Categories" },
+  { href: "/report", label: "Report" },
+  { href: "/login", label: "Login", primary: true }
+];
+
+function previewStyle(key: string): CSSProperties {
+  const theme = previewThemes[key] ?? previewThemes.default;
+
+  return {
+    ["--preview-accent" as string]: theme.accent,
+    ["--preview-glow" as string]: theme.glow,
+    ["--preview-deep" as string]: theme.deep
+  };
+}
+
+function creatorLabel(handle: string) {
+  return handle.replace("team-", "Team ");
+}
+
 export function SiteChrome({ children }: { children: ReactNode }) {
   return (
-    <div className="site-shell">
-      <header className="topbar">
-        <Link href="/" className="brand">
-          <span className="brand-mark">FRC</span>
-          <span>
-            <strong>Centralized Add-on Repository</strong>
-            <small>robot accessories, sheet metal, and reusable hardware</small>
-          </span>
-        </Link>
-        <nav className="nav-links">
-          <Link href="/parts">Browse</Link>
-          <Link href="/upload">Upload</Link>
-          <Link href="/u/team-31">Teams</Link>
-          <Link href="/login">Log in</Link>
+    <div className="app-shell">
+      <aside className="sidebar">
+        <nav className="sidebar-nav">
+          {sidebarLinks.map((link) => (
+            <Link key={link.href} href={link.href} className="sidebar-link">
+              {link.label}
+            </Link>
+          ))}
         </nav>
-      </header>
-      <main className="page-stack">{children}</main>
-      <footer className="footer">
-        <div>
-          <strong>Why this exists</strong>
+        <section className="sidebar-note">
+          <p className="eyebrow">V1 Scope</p>
+          <strong>Prints, sheet metal, and source CAD first.</strong>
+          <p>PCB boards, fixtures, and smarter AI-assisted search can layer in next.</p>
+        </section>
+      </aside>
+      <div className="main-shell">
+        <header className="topbar">
+          <Link href="/" className="brand">
+            <span className="brand-mark">FRC</span>
+            <span className="brand-copy">
+              <strong>Centralized Add-on Repository</strong>
+              <small>robot accessories, sheet metal, and reusable hardware</small>
+            </span>
+          </Link>
+          <nav className="top-actions">
+            {topActions.map((action) => (
+              <Link
+                key={action.href + action.label}
+                href={action.href}
+                className={`action-link${action.primary ? " primary" : ""}`}
+              >
+                {action.label}
+              </Link>
+            ))}
+          </nav>
+        </header>
+        <main className="content-shell page-stack">{children}</main>
+        <footer className="footer">
           <p>
-            Teams should be able to find proven robot add-ons instead of redrawing the same
-            mounts, guards, trays, and service tools every build season.
+            Centralized FRC Add-on Repository exists so teams stop redrawing the same mounts,
+            covers, trays, guards, and pit accessories every season.
           </p>
-        </div>
-        <div>
-          <strong>What comes next</strong>
-          <p>
-            V1 starts with prints and sheet metal, then expands toward PCB resources, board
-            mounting standards, and code-related robot support assets.
-          </p>
-        </div>
-      </footer>
+          <p>V1 keeps the library simple: immediate publishing, better metadata, and searchable CAD.</p>
+        </footer>
+      </div>
     </div>
   );
 }
@@ -88,25 +141,63 @@ export function StatStrip({
 
 export function PartCard({ part }: { part: CatalogPart }) {
   return (
-    <article className="panel card">
-      <div className="card-topline">
-        <span className="chip chip-accent">{part.categoryLabel}</span>
-        <span className="muted">{part.subsystem}</span>
+    <article className="panel card" style={previewStyle(part.category)}>
+      <div className="card-preview">
+        <div className="card-preview-meta">
+          <span className="preview-badge">{part.categoryLabel}</span>
+          <span className="preview-owner">{creatorLabel(part.creatorHandle)}</span>
+        </div>
+        <div className="preview-title">
+          {part.products.slice(0, 2).join(" / ") || part.subsystem}
+        </div>
       </div>
-      <h3>
-        <Link href={`/parts/${part.slug}`}>{part.title}</Link>
-      </h3>
-      <p>{part.summary}</p>
-      <div className="chip-row">
-        {part.products.slice(0, 3).map((product) => (
-          <span key={product} className="chip">
-            {product}
-          </span>
-        ))}
+      <div className="card-body">
+        <div className="card-topline">
+          <span className="muted">{part.subsystem}</span>
+          <span className="muted">{part.updatedAt}</span>
+        </div>
+        <h3>
+          <Link href={`/parts/${part.slug}`}>{part.title}</Link>
+        </h3>
+        <p>{part.summary}</p>
+        <div className="chip-row">
+          {part.products.slice(0, 3).map((product) => (
+            <span key={product} className="chip">
+              {product}
+            </span>
+          ))}
+        </div>
+        <div className="card-meta">
+          <span>{part.files.length} files</span>
+          <span>{part.seasons.join(", ")}</span>
+        </div>
       </div>
-      <div className="card-meta">
-        <span>{part.files.map((file) => file.fileType).join(" / ")}</span>
-        <span>{part.seasons.join(", ")}</span>
+    </article>
+  );
+}
+
+export function CategoryCard({
+  category
+}: {
+  category: { slug: string; label: string; description: string; count: number };
+}) {
+  return (
+    <article className="panel card" style={previewStyle(category.slug)}>
+      <div className="card-preview">
+        <div className="card-preview-meta">
+          <span className="preview-badge">Category</span>
+          <span className="preview-owner">{category.count} listings</span>
+        </div>
+        <div className="preview-title">{category.label}</div>
+      </div>
+      <div className="card-body">
+        <p>{category.description}</p>
+        <div className="card-meta">
+          <span>{category.count} shared parts</span>
+          <Link href={`/categories/${category.slug}`} className="ghost-link">
+            Open lane
+          </Link>
+        </div>
       </div>
     </article>
   );
@@ -192,7 +283,7 @@ export function FilterPanel({
 
 export function ViewerShell({ part }: { part: CatalogPart }) {
   return (
-    <section className="panel viewer-shell">
+    <section className="panel viewer-shell" style={previewStyle(part.category)}>
       <div className="viewer-head">
         <span className="chip chip-accent">Built-in Viewer</span>
         <span className="muted">{part.files.map((file) => file.fileType).join(" / ")}</span>
@@ -235,8 +326,16 @@ export function MediaGallery({ part }: { part: CatalogPart }) {
       <h3>Gallery</h3>
       <div className="media-grid">
         {part.media.map((item) => (
-          <article key={`${part.slug}-${item.title}`} className="media-card">
-            <div className="media-poster" style={{ background: `linear-gradient(135deg, ${item.accent}, #0f172a)` }}>
+          <article
+            key={`${part.slug}-${item.title}`}
+            className="media-card"
+            style={{
+              ["--preview-accent" as string]: item.accent,
+              ["--preview-glow" as string]: item.accent,
+              ["--preview-deep" as string]: "#1f2121"
+            }}
+          >
+            <div className="media-poster">
               <span>{item.kind === "video" ? "Video slot" : "Photo slot"}</span>
             </div>
             <strong>{item.title}</strong>
