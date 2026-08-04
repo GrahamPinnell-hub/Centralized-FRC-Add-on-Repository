@@ -17,6 +17,11 @@ export default function HomePage() {
             <h1 className="feed-title">
               Trending <span className="feed-arrow" aria-hidden="true">&rarr;</span>
             </h1>
+          </div>
+          <div className="feed-pager" aria-label="Trending page controls">
+            <span className="feed-page-indicator" aria-current="page">
+              Page 1
+            </span>
             <span className="feed-next-button">Next</span>
           </div>
         </div>
@@ -33,6 +38,11 @@ export default function HomePage() {
             <h2 className="feed-title">
               Latest <span className="feed-arrow" aria-hidden="true">&rarr;</span>
             </h2>
+          </div>
+          <div className="feed-pager" aria-label="Latest page controls">
+            <span className="feed-page-indicator" aria-current="page">
+              Page 1
+            </span>
             <span className="feed-next-button">Next</span>
           </div>
         </div>
