@@ -346,6 +346,10 @@ export const parts: CatalogPart[] = [
   }
 ];
 
+export const categorySlugs = categoryMeta.map((category) => category.slug);
+export const creatorHandles = creators.map((creator) => creator.handle);
+export const partSlugs = parts.map((part) => part.slug);
+
 function normalize(value: string) {
   return value.trim().toLowerCase();
 }

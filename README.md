@@ -24,25 +24,40 @@ This is the clean V1 scaffold for a searchable FRC resource repository focused o
 - Auto-approved upload flow with report-based moderation
 - Team-friendly creator profiles
 
-## Upload-friendly structure
+## GitHub Pages deployment
 
-This folder is intentionally kept small so you can use GitHub's web uploader if you need to.
+This repository is meant to be the source repo, not a manual upload folder.
 
-Recommended upload order:
+- Push code to `main`
+- GitHub Actions builds the static export
+- GitHub Pages deploys the generated `out/` directory automatically
 
-1. Root files
-2. `app/`
-3. `src/`
-4. `prisma/`
+The build automatically infers the correct GitHub Pages base path for project repos such as `/Centralized-FRC-Add-on-Repository`.
 
-Every file in this scaffold is far below the 25 MB per-file limit, and the total file count is kept low enough to avoid the previous CreateMod import problem.
+The deployment workflow lives in `.github/workflows/deploy-pages.yml`.
 
 ## Run locally
 
 ```bash
 npm install
+npx prisma generate
 npx prisma db push
 npm run dev
+```
+
+## Build locally
+
+```bash
+npm install
+npx prisma generate
+npm run build:pages
+```
+
+If you want to test a project-repo path locally, set `BASE_PATH` before the build. Example:
+
+```powershell
+$env:BASE_PATH='/Centralized-FRC-Add-on-Repository'
+npm run build:pages
 ```
 
 ## Design intent

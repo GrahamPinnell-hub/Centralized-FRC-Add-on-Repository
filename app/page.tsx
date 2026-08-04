@@ -30,7 +30,7 @@ export default function HomePage() {
         </div>
         <div className="hero-facts">
           <div>
-            <strong>{stats.supportedTypes.join(" · ")}</strong>
+            <strong>{stats.supportedTypes.join(" / ")}</strong>
             <span>supported asset lanes in V1</span>
           </div>
           <div>

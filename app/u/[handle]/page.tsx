@@ -1,7 +1,11 @@
 import { notFound } from "next/navigation";
 
 import { CreatorBanner, PartCard } from "@/components/ui";
-import { getCreatorProfile } from "@/lib/catalog";
+import { creatorHandles, getCreatorProfile } from "@/lib/catalog";
+
+export function generateStaticParams() {
+  return creatorHandles.map((handle) => ({ handle }));
+}
 
 export default async function CreatorPage({
   params

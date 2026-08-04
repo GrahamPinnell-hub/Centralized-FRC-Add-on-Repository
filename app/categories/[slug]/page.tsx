@@ -1,7 +1,11 @@
 import { notFound } from "next/navigation";
 
 import { PartCard, SectionTitle } from "@/components/ui";
-import { getCategory } from "@/lib/catalog";
+import { categorySlugs, getCategory } from "@/lib/catalog";
+
+export function generateStaticParams() {
+  return categorySlugs.map((slug) => ({ slug }));
+}
 
 export default async function CategoryPage({
   params

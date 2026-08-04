@@ -260,7 +260,7 @@ export function CreatorBanner({
       <div>
         <p className="eyebrow">Team Profile</p>
         <h1>
-          {creator.teamNumber} · {creator.teamName}
+          {creator.teamNumber} / {creator.teamName}
         </h1>
         <p>{creator.bio}</p>
       </div>

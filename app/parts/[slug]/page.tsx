@@ -2,7 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { FileTable, MediaGallery, ViewerShell } from "@/components/ui";
-import { getPart, parts } from "@/lib/catalog";
+import { getPart, parts, partSlugs } from "@/lib/catalog";
+
+export function generateStaticParams() {
+  return partSlugs.map((slug) => ({ slug }));
+}
 
 export default async function PartDetailPage({
   params
