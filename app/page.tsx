@@ -13,17 +13,11 @@ export default function HomePage() {
     <>
       <section className="page-stack feed-section">
         <div className="feed-header">
-          <div>
+          <div className="feed-title-row">
             <h1 className="feed-title">
               Trending <span className="feed-arrow" aria-hidden="true">→</span>
             </h1>
-            <p className="feed-caption">
-              Competition-tested prints, trays, covers, and mounts getting the most saves right now.
-            </p>
-          </div>
-          <div className="feed-pager">
-            <span className="pager-pill muted">Page 1</span>
-            <span className="pager-pill">Next</span>
+            <span className="feed-next-button">Next</span>
           </div>
         </div>
         <div className="card-grid listing-grid">
@@ -35,17 +29,11 @@ export default function HomePage() {
 
       <section className="page-stack">
         <div className="feed-header">
-          <div>
+          <div className="feed-title-row">
             <h2 className="feed-title">
               Latest <span className="feed-arrow" aria-hidden="true">→</span>
             </h2>
-            <p className="feed-caption">
-              Fresh uploads and recent revisions from teams publishing new robot hardware.
-            </p>
-          </div>
-          <div className="feed-pager">
-            <span className="pager-pill muted">Page 1</span>
-            <span className="pager-pill">Next</span>
+            <span className="feed-next-button">Next</span>
           </div>
         </div>
         <div className="card-grid listing-grid">

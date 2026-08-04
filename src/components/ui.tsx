@@ -29,6 +29,17 @@ const sidebarLinks = [
   { href: "/login", label: "Log in" }
 ];
 
+const languageOptions = [
+  "English",
+  "Español",
+  "Français",
+  "Polski",
+  "Português (Brasil)",
+  "Português (Portugal)",
+  "Русский",
+  "简体中文"
+] as const;
+
 type TopAction = {
   href: string;
   icon?: string;
@@ -38,12 +49,10 @@ type TopAction = {
   primary?: boolean;
 };
 
-const topActions = [
+const topActions: TopAction[] = [
   { href: "/parts", label: "Search", icon: "search", mobileIconOnly: true },
-  { href: "/upload", label: "Upload", icon: "upload", mobileIconOnly: true },
-  { href: "/language", label: "Language", icon: "language", iconOnly: true, mobileIconOnly: true },
-  { href: "/login", label: "Login", primary: true }
-] satisfies TopAction[];
+  { href: "/upload", label: "Upload", icon: "upload", mobileIconOnly: true }
+];
 
 function previewStyle(key: string): CSSProperties {
   const theme = previewThemes[key] ?? previewThemes.default;
@@ -126,13 +135,36 @@ export function SiteChrome({ children }: { children: ReactNode }) {
               <Link
                 key={action.href + action.label}
                 href={action.href}
-                className={`action-link ${actionClassName(action.label)}${action.primary ? " primary" : ""}${action.mobileIconOnly ? " mobile-icon-only" : ""}${action.iconOnly ? " icon-only" : ""}`}
+                className={`action-link ${actionClassName(action.label)}${action.mobileIconOnly ? " mobile-icon-only" : ""}${action.iconOnly ? " icon-only" : ""}`}
                 aria-label={action.label}
               >
                 {action.icon ? <span className={`action-icon action-icon-${action.icon}`} aria-hidden="true" /> : null}
                 <span className="action-label">{action.label}</span>
               </Link>
             ))}
+            <details className="language-menu action-language-menu">
+              <summary
+                className="action-link action-language language-toggle mobile-icon-only icon-only"
+                aria-label="Language options"
+              >
+                <span className="action-icon action-icon-language" aria-hidden="true" />
+                <span className="action-label">Language</span>
+              </summary>
+              <div className="language-panel">
+                {languageOptions.map((language) => (
+                  <button key={language} type="button" className="language-option">
+                    {language}
+                  </button>
+                ))}
+              </div>
+            </details>
+            <Link
+              href="/login"
+              className={`action-link ${actionClassName("Login")} primary`}
+              aria-label="Login"
+            >
+              <span className="action-label">Login</span>
+            </Link>
           </nav>
         </header>
         <main className="content-shell page-stack">{children}</main>
