@@ -19,6 +19,7 @@ export type MediaCard = {
   title: string;
   note: string;
   accent: string;
+  src?: string;
 };
 
 export type PartVersion = {
@@ -165,9 +166,27 @@ export const parts: CatalogPart[] = [
       { label: "Onshape source", fileType: "SOURCE", href: "https://cad.onshape.com/", note: "Reference slot for the editable source document." }
     ],
     media: [
-      { kind: "image", title: "Installed on a module", note: "Shows cable path clearance around the top plate and wheel guard.", accent: "#f97316" },
-      { kind: "image", title: "Pit service angle", note: "Demonstrates how the cover can be removed without disturbing the module.", accent: "#14b8a6" },
-      { kind: "video", title: "Quick install clip", note: "Thirty-second install video placeholder for the listing page.", accent: "#22c55e" }
+      {
+        kind: "image",
+        title: "Installed on a module",
+        note: "Shows cable path clearance around the top plate and wheel guard.",
+        accent: "#f97316",
+        src: "https://images.unsplash.com/photo-1741517669003-94a4cb80f793?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000"
+      },
+      {
+        kind: "image",
+        title: "Pit service angle",
+        note: "Demonstrates how the cover can be removed without disturbing the module.",
+        accent: "#14b8a6",
+        src: "https://images.unsplash.com/photo-1756723902363-25de2ac0ffae?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000"
+      },
+      {
+        kind: "video",
+        title: "Quick install clip",
+        note: "Thirty-second install video placeholder for the listing page.",
+        accent: "#22c55e",
+        src: "https://images.unsplash.com/photo-1756723902363-25de2ac0ffae?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000"
+      }
     ],
     versions: [
       { label: "v1.2", date: "2026-07-21", summary: "Opened up clearance for bolt heads and added a cable relief notch." },
@@ -216,8 +235,20 @@ export const parts: CatalogPart[] = [
       { label: "CAD source", fileType: "SOURCE", href: "https://cad.onshape.com/", note: "Reference slot for editable source geometry." }
     ],
     media: [
-      { kind: "image", title: "Mount at intake edge", note: "A front rail camera placement intended for wide field-of-view use.", accent: "#0f766e" },
-      { kind: "image", title: "Slot adjustment detail", note: "Shows the angle slot and screw capture geometry.", accent: "#f59e0b" }
+      {
+        kind: "image",
+        title: "Mount at intake edge",
+        note: "A front rail camera placement intended for wide field-of-view use.",
+        accent: "#0f766e",
+        src: "https://images.unsplash.com/photo-1776294435314-53c9dcdedf6a?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000"
+      },
+      {
+        kind: "image",
+        title: "Slot adjustment detail",
+        note: "Shows the angle slot and screw capture geometry.",
+        accent: "#f59e0b",
+        src: "https://images.unsplash.com/photo-1776294435314-53c9dcdedf6a?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000"
+      }
     ],
     versions: [
       { label: "v2.0", date: "2026-06-30", summary: "Expanded angle slot range and improved nut trap retention." }
@@ -264,8 +295,20 @@ export const parts: CatalogPart[] = [
       { label: "Fabrication bundle", fileType: "ZIP", href: "#", note: "Contains bend notes, hole callouts, and sponsor-facing fabrication instructions." }
     ],
     media: [
-      { kind: "image", title: "Flat pattern overview", note: "Tab structure and bend callouts are placed for easy sponsor communication.", accent: "#38bdf8" },
-      { kind: "image", title: "Installed tray", note: "Shows compact electronics packaging with service loops and radio airflow.", accent: "#0ea5e9" }
+      {
+        kind: "image",
+        title: "Flat pattern overview",
+        note: "Tab structure and bend callouts are placed for easy sponsor communication.",
+        accent: "#38bdf8",
+        src: "https://images.unsplash.com/photo-1740209475472-aa7d280f7452?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000"
+      },
+      {
+        kind: "image",
+        title: "Installed tray",
+        note: "Shows compact electronics packaging with service loops and radio airflow.",
+        accent: "#0ea5e9",
+        src: "https://images.unsplash.com/photo-1650530415027-dc9199f473ec?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000"
+      }
     ],
     versions: [
       { label: "v1.1", date: "2026-07-05", summary: "Moved radio holes for stronger antenna clearance and better cable exits." }
@@ -303,8 +346,20 @@ export const parts: CatalogPart[] = [
       { label: "CAD reference", fileType: "STEP", href: "#", note: "Editable geometry for custom frame rail spacing." }
     ],
     media: [
-      { kind: "image", title: "Battery in frame", note: "Shows how the pull tab remains reachable with bumper brackets nearby.", accent: "#f43f5e" },
-      { kind: "video", title: "Swap sequence", note: "Short clip placeholder showing the battery removal motion.", accent: "#fb7185" }
+      {
+        kind: "image",
+        title: "Battery in frame",
+        note: "Shows how the pull tab remains reachable with bumper brackets nearby.",
+        accent: "#f43f5e",
+        src: "https://images.unsplash.com/photo-1741517669003-94a4cb80f793?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000"
+      },
+      {
+        kind: "video",
+        title: "Swap sequence",
+        note: "Short clip placeholder showing the battery removal motion.",
+        accent: "#fb7185",
+        src: "https://images.unsplash.com/photo-1650530415027-dc9199f473ec?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000"
+      }
     ],
     versions: [
       { label: "v1.0", date: "2026-04-22", summary: "Initial release for low-profile battery pockets." }
@@ -351,8 +406,20 @@ export const parts: CatalogPart[] = [
       { label: "Source CAD", fileType: "SOURCE", href: "https://cad.onshape.com/", note: "Editable source slot for personalized layouts." }
     ],
     media: [
-      { kind: "image", title: "Cable lanes", note: "Shows dedicated routing lanes for USB and charge leads.", accent: "#8b5cf6" },
-      { kind: "image", title: "Driver station view", note: "Demonstrates a cleaner front edge during match setup.", accent: "#6366f1" }
+      {
+        kind: "image",
+        title: "Cable lanes",
+        note: "Shows dedicated routing lanes for USB and charge leads.",
+        accent: "#8b5cf6",
+        src: "https://images.unsplash.com/photo-1775457480933-a9ca6953ef69?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000"
+      },
+      {
+        kind: "image",
+        title: "Driver station view",
+        note: "Demonstrates a cleaner front edge during match setup.",
+        accent: "#6366f1",
+        src: "https://images.unsplash.com/photo-1756723902363-25de2ac0ffae?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000"
+      }
     ],
     versions: [
       { label: "v1.3", date: "2026-07-14", summary: "Added larger hub pocket and a removable label insert." }

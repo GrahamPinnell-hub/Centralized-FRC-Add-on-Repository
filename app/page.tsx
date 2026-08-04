@@ -15,7 +15,7 @@ export default function HomePage() {
         <div className="feed-header">
           <div className="feed-title-row">
             <h1 className="feed-title">
-              Trending <span className="feed-arrow" aria-hidden="true">→</span>
+              Trending <span className="feed-arrow" aria-hidden="true">&rarr;</span>
             </h1>
             <span className="feed-next-button">Next</span>
           </div>
@@ -31,7 +31,7 @@ export default function HomePage() {
         <div className="feed-header">
           <div className="feed-title-row">
             <h2 className="feed-title">
-              Latest <span className="feed-arrow" aria-hidden="true">→</span>
+              Latest <span className="feed-arrow" aria-hidden="true">&rarr;</span>
             </h2>
             <span className="feed-next-button">Next</span>
           </div>

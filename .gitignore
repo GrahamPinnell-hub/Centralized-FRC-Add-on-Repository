@@ -8,3 +8,5 @@ coverage
 .env.local
 prisma/dev.db
 prisma/dev.db-journal
+devserver*.log
+tmp-home-*.png

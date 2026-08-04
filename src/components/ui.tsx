@@ -31,13 +31,13 @@ const sidebarLinks = [
 
 const languageOptions = [
   "English",
-  "Español",
-  "Français",
+  "Espa\u00F1ol",
+  "Fran\u00E7ais",
   "Polski",
-  "Português (Brasil)",
-  "Português (Portugal)",
-  "Русский",
-  "简体中文"
+  "Portugu\u00EAs (Brasil)",
+  "Portugu\u00EAs (Portugal)",
+  "\u0420\u0443\u0441\u0441\u043A\u0438\u0439",
+  "\u7B80\u4F53\u4E2D\u6587"
 ] as const;
 
 type TopAction = {
@@ -45,13 +45,11 @@ type TopAction = {
   icon?: string;
   iconOnly?: boolean;
   label: string;
-  mobileIconOnly?: boolean;
-  primary?: boolean;
 };
 
 const topActions: TopAction[] = [
-  { href: "/parts", label: "Search", icon: "search", mobileIconOnly: true },
-  { href: "/upload", label: "Upload", icon: "upload", mobileIconOnly: true }
+  { href: "/parts", label: "Search", icon: "search", iconOnly: true },
+  { href: "/upload", label: "Upload", icon: "upload", iconOnly: true }
 ];
 
 function previewStyle(key: string): CSSProperties {
@@ -74,6 +72,10 @@ function formatMetric(value: number) {
 
 function actionClassName(label: string) {
   return `action-${label.toLowerCase().replace(/\s+/g, "-")}`;
+}
+
+function getLeadMedia(part: CatalogPart) {
+  return part.media.find((item) => item.src) ?? null;
 }
 
 export function SiteChrome({ children }: { children: ReactNode }) {
@@ -123,8 +125,8 @@ export function SiteChrome({ children }: { children: ReactNode }) {
               <span className="brand-mark">FRC</span>
               <span className="brand-copy">
                 <strong>
-                  <span className="brand-title-long">Centralized Add-on Repository</span>
-                  <span className="brand-title-short">FRC Repository</span>
+                  <span className="brand-title-long">Centralized FRC Repository</span>
+                  <span className="brand-title-short">FRC Add-ons</span>
                 </strong>
                 <small>robot accessories, sheet metal, and reusable hardware</small>
               </span>
@@ -135,7 +137,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
               <Link
                 key={action.href + action.label}
                 href={action.href}
-                className={`action-link ${actionClassName(action.label)}${action.mobileIconOnly ? " mobile-icon-only" : ""}${action.iconOnly ? " icon-only" : ""}`}
+                className={`action-link ${actionClassName(action.label)}${action.iconOnly ? " icon-only" : ""}`}
                 aria-label={action.label}
               >
                 {action.icon ? <span className={`action-icon action-icon-${action.icon}`} aria-hidden="true" /> : null}
@@ -144,7 +146,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
             ))}
             <details className="language-menu action-language-menu">
               <summary
-                className="action-link action-language language-toggle mobile-icon-only icon-only"
+                className="action-link action-language language-toggle icon-only"
                 aria-label="Language options"
               >
                 <span className="action-icon action-icon-language" aria-hidden="true" />
@@ -217,15 +219,21 @@ export function StatStrip({
 }
 
 export function PartCard({ part }: { part: CatalogPart }) {
+  const leadMedia = getLeadMedia(part);
+
   return (
     <article className="panel card listing-card" style={previewStyle(part.category)}>
       <Link href={`/parts/${part.slug}`} className="card-media">
-        <div className="card-preview">
+        <div className={`card-preview${leadMedia ? " has-media" : ""}`}>
+          {leadMedia?.src ? (
+            <div className="card-preview-image" aria-hidden="true">
+              <img src={leadMedia.src} alt="" loading="lazy" />
+            </div>
+          ) : null}
           <div className="card-preview-meta">
             <span className="preview-badge">{part.categoryLabel}</span>
             <span className="preview-owner">{part.products[0] ?? part.subsystem}</span>
           </div>
-          <div className="preview-title">{part.media[0]?.title ?? part.title}</div>
           <div className="card-art-footer">
             <span className="card-art-metric">{part.files.map((file) => file.fileType).slice(0, 2).join(" / ")}</span>
             <span className="card-art-metric">{part.materials[0]}</span>
@@ -373,15 +381,22 @@ export function FilterPanel({
 }
 
 export function ViewerShell({ part }: { part: CatalogPart }) {
+  const leadMedia = getLeadMedia(part);
+
   return (
     <section className="panel viewer-shell" id="viewer" style={previewStyle(part.category)}>
       <div className="viewer-head">
         <span className="chip chip-accent">Built-in 3D Viewer</span>
         <span className="muted">{part.files.map((file) => file.fileType).join(" / ")}</span>
       </div>
-      <div className="viewer-stage">
+      <div className={`viewer-stage${leadMedia ? " has-media" : ""}`}>
+        {leadMedia?.src ? (
+          <div className="viewer-stage-image" aria-hidden="true">
+            <img src={leadMedia.src} alt="" loading="lazy" />
+          </div>
+        ) : null}
         <div className="viewer-mesh">
-          <span>3D / 2D preview slot</span>
+          <span>{leadMedia ? "Interactive 3D preview layer" : "3D / 2D preview slot"}</span>
         </div>
       </div>
       <p>{part.viewerNote}</p>
@@ -426,8 +441,10 @@ export function MediaGallery({ part }: { part: CatalogPart }) {
               ["--preview-deep" as string]: "#1f2121"
             }}
           >
-            <div className="media-poster">
-              <span>{item.kind === "video" ? "Video slot" : "Photo slot"}</span>
+            <div className={`media-poster${item.src ? " has-media" : ""}`}>
+              {item.src ? <img src={item.src} alt={item.title} loading="lazy" /> : null}
+              <span className="media-kind-badge">{item.kind === "video" ? "Video" : "Photo"}</span>
+              <span className="media-slot-note">{item.kind === "video" ? "Install clip" : "Installed view"}</span>
             </div>
             <strong>{item.title}</strong>
             <p>{item.note}</p>
