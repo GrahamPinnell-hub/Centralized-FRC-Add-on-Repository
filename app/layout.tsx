@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
+import { IBM_Plex_Mono, Manrope } from "next/font/google";
 import type { ReactNode } from "react";
 
 import { SiteChrome } from "@/components/ui";
 
 import "./globals.css";
 
-const display = Space_Grotesk({
+const body = Manrope({
   subsets: ["latin"],
-  variable: "--font-display"
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-body"
 });
 
 const mono = IBM_Plex_Mono({
@@ -30,7 +31,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${display.variable} ${mono.variable}`}>
+      <body className={`${body.variable} ${mono.variable}`}>
         <SiteChrome>{children}</SiteChrome>
       </body>
     </html>

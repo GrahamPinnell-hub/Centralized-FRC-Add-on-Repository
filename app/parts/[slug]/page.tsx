@@ -25,12 +25,71 @@ export default async function PartDetailPage({
     .slice(0, 3);
 
   return (
-    <div className="page-stack">
-      <section className="hero-banner">
-        <div>
+    <div className="page-stack detail-page">
+      <nav className="breadcrumbs">
+        <Link href="/">Home</Link>
+        <span>/</span>
+        <Link href="/parts">Listings</Link>
+        <span>/</span>
+        <span>{part.title}</span>
+      </nav>
+
+      <section className="detail-titlebar">
+        <div className="page-stack">
           <p className="eyebrow">{part.categoryLabel}</p>
           <h1>{part.title}</h1>
-          <p>{part.summary}</p>
+          <div className="detail-meta-row">
+            <span className="detail-author">by {part.creatorHandle.replace("team-", "Team ")}</span>
+            <span>Uploaded {part.uploadedAgo}</span>
+            <span>{part.rating.toFixed(1)} rating</span>
+          </div>
+        </div>
+      </section>
+
+      <div className="detail-grid">
+        <section className="panel detail-primary-panel">
+          <ViewerShell part={part} />
+          <div className="detail-action-bar">
+            <a href="#files" className="button-link">
+              Download
+            </a>
+            {part.validated ? <span className="status-pill">Validated</span> : null}
+            <a href="#viewer" className="action-link">
+              View in 3D
+            </a>
+            <a href="#related" className="action-link">
+              Similar by shape
+            </a>
+            <Link href={`/report?part=${part.slug}`} className="action-link">
+              Report listing
+            </Link>
+          </div>
+          <div className="detail-summary-copy">
+            <p>{part.summary}</p>
+            <p>
+              Built around {part.products.join(", ")} with fitment for {part.vendors.join(", ")}{" "}
+              hardware and intended for {part.subsystem.toLowerCase()} packaging.
+            </p>
+          </div>
+        </section>
+        <section className="panel detail-side-panel">
+          <h3>Schematic-style stats</h3>
+          <div className="detail-stat-block">
+            <strong>{part.views}</strong>
+            <span>views</span>
+          </div>
+          <div className="detail-stat-block">
+            <strong>{part.downloads}</strong>
+            <span>downloads</span>
+          </div>
+          <div className="detail-stat-block">
+            <strong>{part.files.length}</strong>
+            <span>download and source slots</span>
+          </div>
+          <div className="detail-stat-block">
+            <strong>{part.versions[0]?.label ?? "v1.0"}</strong>
+            <span>current release</span>
+          </div>
           <div className="chip-row">
             {part.products.map((product) => (
               <span key={product} className="chip">
@@ -44,29 +103,10 @@ export default async function PartDetailPage({
             ))}
             <span className="chip chip-accent">{part.license}</span>
           </div>
-        </div>
-        <div className="hero-facts">
-          <div>
-            <strong>{part.materials.join(" / ")}</strong>
-            <span>recommended materials</span>
-          </div>
-          <div>
-            <strong>{part.files.length}</strong>
-            <span>download and source slots</span>
-          </div>
-          <div>
-            <strong>{part.versions[0]?.label ?? "v1.0"}</strong>
-            <span>current release</span>
-          </div>
-          <div>
-            <strong>{part.subsystem}</strong>
-            <span>robot area</span>
-          </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
       <div className="detail-grid">
-        <ViewerShell part={part} />
         <section className="panel">
           <h3>Compatibility and install notes</h3>
           <div className="chip-row">
@@ -87,20 +127,30 @@ export default async function PartDetailPage({
             ))}
           </ul>
           <p>
-            Owner profile:{" "}
+            Owner profile:
+            {" "}
             <Link href={`/u/${part.creatorHandle}`} className="ghost-link">
               {part.creatorHandle}
             </Link>
           </p>
+        </section>
+        <section className="panel">
+          <h3>Materials and fabrication</h3>
+          <div className="chip-row">
+            {part.materials.map((material) => (
+              <span key={material} className="chip">
+                {material}
+              </span>
+            ))}
+          </div>
           <p>
-            <Link href={`/report?part=${part.slug}`} className="button-link">
-              Report this listing
-            </Link>
+            This listing supports {part.files.map((file) => file.fileType).join(", ")} deliverables
+            with source links and install guidance intended for another team to reuse directly.
           </p>
         </section>
       </div>
 
-      <div className="two-column">
+      <div className="two-column" id="files">
         <FileTable part={part} />
         <section className="panel">
           <h3>Print and fabrication notes</h3>
@@ -136,7 +186,7 @@ export default async function PartDetailPage({
 
       <MediaGallery part={part} />
 
-      <div className="two-column">
+      <div className="two-column" id="related">
         <section className="panel">
           <h3>Version history</h3>
           <div className="file-table">
@@ -155,7 +205,7 @@ export default async function PartDetailPage({
           <h3>Related parts</h3>
           <div className="card-grid">
             {related.map((candidate) => (
-              <article key={candidate.slug} className="card">
+              <article key={candidate.slug} className="panel card">
                 <strong>
                   <Link href={`/parts/${candidate.slug}`}>{candidate.title}</Link>
                 </strong>

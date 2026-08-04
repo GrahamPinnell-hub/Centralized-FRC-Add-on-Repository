@@ -1,70 +1,55 @@
 import Link from "next/link";
 
-import { getCatalogStats, getCategorySummaries, getFeaturedParts, getLatestParts } from "@/lib/catalog";
+import { getCatalogStats, getCategorySummaries, getLatestParts, getTrendingParts } from "@/lib/catalog";
 import { CategoryCard, PartCard, SectionTitle } from "@/components/ui";
 
 export default function HomePage() {
   const stats = getCatalogStats();
   const categories = getCategorySummaries();
-  const featured = getFeaturedParts();
+  const trending = getTrendingParts();
   const latest = getLatestParts();
-  const boardFeed = [...featured, ...latest.filter((part) => !featured.some((entry) => entry.slug === part.slug))];
 
   return (
     <>
-      <section className="panel board-hero">
-        <div>
-          <p className="eyebrow">FRC Repository</p>
-          <h1>Competition-proven robot add-ons in one searchable library.</h1>
-          <p>
-            Built for teams that are tired of hunting through Chief Delphi threads, Onshape tabs,
-            screenshots, dead CAD links, and random cloud drives for the same mount, guard, tray,
-            or service tool every season.
-          </p>
-          <div className="hero-actions">
-            <Link href="/parts" className="button-link">
-              Browse listings
-            </Link>
-            <Link href="/upload" className="action-link">
-              Upload a part
-            </Link>
+      <section className="page-stack feed-section">
+        <div className="feed-header">
+          <div>
+            <h1 className="feed-title">
+              Trending <span className="feed-arrow" aria-hidden="true">→</span>
+            </h1>
+            <p className="feed-caption">
+              Competition-tested prints, trays, covers, and mounts getting the most saves right now.
+            </p>
           </div>
-          <div className="chip-row">
-            <span className="chip">MK4i</span>
-            <span className="chip">Limelight 4</span>
-            <span className="chip">PDH</span>
-            <span className="chip">Kraken X60</span>
-            <span className="chip">DXF</span>
+          <div className="feed-pager">
+            <span className="pager-pill muted">Page 1</span>
+            <span className="pager-pill">Next</span>
           </div>
         </div>
-        <div className="hero-facts">
-          <div>
-            <strong>{stats.supportedTypes.join(" / ")}</strong>
-            <span>searchable asset formats in V1</span>
-          </div>
-          <div>
-            <strong>{stats.creatorCount} teams</strong>
-            <span>seeded profile pages and reusable hardware libraries</span>
-          </div>
-          <div>
-            <strong>auto-approved</strong>
-            <span>report-driven moderation instead of a heavy queue</span>
-          </div>
-          <div>
-            <strong>future lanes</strong>
-            <span>PCB boards, fixtures, and code-adjacent resources later</span>
-          </div>
+        <div className="card-grid listing-grid">
+          {trending.map((part) => (
+            <PartCard key={part.slug} part={part} />
+          ))}
         </div>
       </section>
 
       <section className="page-stack">
-        <SectionTitle
-          eyebrow="Featured"
-          title="Trending repository uploads"
-          body="The first screen should feel like a library, not a marketing page. Start with the parts teams are most likely to reuse, print, bend, or remix."
-        />
-        <div className="card-grid">
-          {boardFeed.map((part) => (
+        <div className="feed-header">
+          <div>
+            <h2 className="feed-title">
+              Latest <span className="feed-arrow" aria-hidden="true">→</span>
+            </h2>
+            <p className="feed-caption">
+              Fresh uploads and recent revisions from teams publishing new robot hardware.
+            </p>
+          </div>
+          <div className="feed-pager">
+            <span className="pager-pill muted">Page 1</span>
+            <span className="pager-pill">Next</span>
+          </div>
+        </div>
+        <div className="card-grid listing-grid">
+          {latest.map((part) => (
             <PartCard key={part.slug} part={part} />
           ))}
         </div>
@@ -84,25 +69,35 @@ export default function HomePage() {
       </section>
 
       <section className="home-columns">
-        <div className="page-stack">
-          <SectionTitle
-            eyebrow="Latest"
-            title="Recent updates"
-            body="Version history matters for community hardware. Teams need a reason to come back for fitment fixes, revised DXFs, and better documentation instead of downloading stale files once and never checking again."
-          />
-          <div className="card-grid">
-            {latest.map((part) => (
-              <PartCard key={part.slug} part={part} />
-            ))}
+        <section className="panel compact-panel homepage-note">
+          <p className="eyebrow">Repository</p>
+          <h3>Find reusable hardware before you redraw it.</h3>
+          <p>
+            Centralizing 3D prints, sheet metal, and source CAD saves teams from spending another
+            half hour digging through forum posts and scattered cloud drives for the same mount or
+            tray every season.
+          </p>
+          <div className="chip-row">
+            <span className="chip">{stats.supportedTypes.join(" / ")}</span>
+            <span className="chip">{stats.creatorCount} teams</span>
+            <span className="chip">Auto-approved</span>
           </div>
-        </div>
+          <div className="hero-actions">
+            <Link href="/parts" className="button-link">
+              Browse listings
+            </Link>
+            <Link href="/upload" className="action-link">
+              Upload a part
+            </Link>
+          </div>
+        </section>
         <aside className="page-stack">
           <section className="panel compact-panel">
-            <p className="eyebrow">Repository Value</p>
-            <h3>Less duplicated CAD work for every team.</h3>
+            <p className="eyebrow">Coverage</p>
+            <h3>{stats.partCount} seeded listings across {stats.categoryCount} categories.</h3>
             <p>
-              Centralizing prints, sheet metal, and source CAD gives teams a better starting point
-              than scavenging across five different sites for the same accessory.
+              Enough sample content to validate browse, upload, detail views, and the team-based
+              ownership model before the first real community imports land.
             </p>
           </section>
           <section className="panel compact-panel">
@@ -111,14 +106,6 @@ export default function HomePage() {
             <p>
               V1 focuses on core hardware files now, while leaving room for board layouts, fixture
               plates, richer 3D preview, and smarter search later.
-            </p>
-          </section>
-          <section className="panel compact-panel">
-            <p className="eyebrow">Coverage</p>
-            <h3>{stats.partCount} seeded listings across {stats.categoryCount} categories.</h3>
-            <p>
-              Enough sample content to validate browse, upload, detail views, and the team-based
-              ownership model before the first real community imports land.
             </p>
           </section>
         </aside>

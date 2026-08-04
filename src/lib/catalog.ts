@@ -42,6 +42,11 @@ export type CatalogPart = {
   seasons: string[];
   tags: string[];
   license: string;
+  rating: number;
+  views: number;
+  downloads: number;
+  uploadedAgo: string;
+  validated?: boolean;
   files: CatalogFile[];
   media: MediaCard[];
   versions: PartVersion[];
@@ -148,6 +153,11 @@ export const parts: CatalogPart[] = [
     seasons: ["2025", "2026"],
     tags: ["swerve", "wire management", "encoder guard", "service access"],
     license: "CC BY-NC 4.0",
+    rating: 4.9,
+    views: 1642,
+    downloads: 418,
+    uploadedAgo: "14 days ago",
+    validated: true,
     files: [
       { label: "Print-ready body", fileType: "STL", href: "#", note: "Primary printable geometry for fast pit replacements." },
       { label: "High-strength profile", fileType: "3MF", href: "#", note: "Tuned slicer profile with support blockers and wall count notes." },
@@ -195,6 +205,11 @@ export const parts: CatalogPart[] = [
     seasons: ["2026", "General"],
     tags: ["vision", "limelight", "adjustable mount"],
     license: "CERN-OHL-S",
+    rating: 4.8,
+    views: 1285,
+    downloads: 366,
+    uploadedAgo: "23 days ago",
+    validated: true,
     files: [
       { label: "Bracket body", fileType: "STL", href: "#", note: "Main printable body for rapid prototyping and fit checks." },
       { label: "Assembly reference", fileType: "STEP", href: "#", note: "Used for checking bumper cutouts and rail interference." },
@@ -238,6 +253,11 @@ export const parts: CatalogPart[] = [
     seasons: ["2026", "General"],
     tags: ["sheet metal", "electronics", "bellypan", "dxf"],
     license: "CC BY 4.0",
+    rating: 5.0,
+    views: 1118,
+    downloads: 297,
+    uploadedAgo: "18 days ago",
+    validated: true,
     files: [
       { label: "Flat pattern", fileType: "DXF", href: "#", note: "Primary manufacturing output for sheet metal sponsors or in-house waterjet." },
       { label: "Assembly CAD", fileType: "STEP", href: "#", note: "Reference for packaging and cable routing in robot CAD." },
@@ -273,6 +293,10 @@ export const parts: CatalogPart[] = [
     seasons: ["2025", "2026", "General"],
     tags: ["battery", "retainer", "pit workflow"],
     license: "MIT",
+    rating: 4.7,
+    views: 907,
+    downloads: 254,
+    uploadedAgo: "35 days ago",
     files: [
       { label: "Retainer body", fileType: "STL", href: "#", note: "Primary printable retainer component." },
       { label: "Pit-ready profile", fileType: "3MF", href: "#", note: "Slicer profile tuned for stronger pull-tab layers." },
@@ -316,6 +340,11 @@ export const parts: CatalogPart[] = [
     seasons: ["General"],
     tags: ["driver station", "cable management", "labels"],
     license: "CC BY-NC-SA 4.0",
+    rating: 4.8,
+    views: 1384,
+    downloads: 412,
+    uploadedAgo: "21 days ago",
+    validated: true,
     files: [
       { label: "Tray body", fileType: "STL", href: "#", note: "Main printable tray with cable slots and label strip." },
       { label: "Assembly CAD", fileType: "STEP", href: "#", note: "Reference for matching tray width to your shelf or board." },
@@ -376,6 +405,12 @@ export function getCreatorProfile(handle: string) {
 
 export function getFeaturedParts() {
   return parts.filter((part) => part.featured).slice(0, 3);
+}
+
+export function getTrendingParts() {
+  return [...parts]
+    .sort((a, b) => b.downloads - a.downloads || b.views - a.views)
+    .slice(0, 6);
 }
 
 export function getLatestParts() {

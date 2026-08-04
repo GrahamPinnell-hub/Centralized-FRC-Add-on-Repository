@@ -26,16 +26,24 @@ const sidebarLinks = [
   { href: "/upload", label: "Upload" },
   { href: "/categories/swerve-covers", label: "Categories" },
   { href: "/u/team-31", label: "Teams" },
-  { href: "/report", label: "Report" },
   { href: "/login", label: "Log in" }
 ];
+
+type TopAction = {
+  href: string;
+  icon?: string;
+  iconOnly?: boolean;
+  label: string;
+  mobileIconOnly?: boolean;
+  primary?: boolean;
+};
 
 const topActions = [
   { href: "/parts", label: "Search", icon: "search", mobileIconOnly: true },
   { href: "/upload", label: "Upload", icon: "upload", mobileIconOnly: true },
-  { href: "/report", label: "Report", icon: "report", mobileIconOnly: true },
+  { href: "/language", label: "Language", icon: "language", iconOnly: true, mobileIconOnly: true },
   { href: "/login", label: "Login", primary: true }
-];
+] satisfies TopAction[];
 
 function previewStyle(key: string): CSSProperties {
   const theme = previewThemes[key] ?? previewThemes.default;
@@ -49,6 +57,14 @@ function previewStyle(key: string): CSSProperties {
 
 function creatorLabel(handle: string) {
   return handle.replace("team-", "Team ");
+}
+
+function formatMetric(value: number) {
+  return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(value);
+}
+
+function actionClassName(label: string) {
+  return `action-${label.toLowerCase().replace(/\s+/g, "-")}`;
 }
 
 export function SiteChrome({ children }: { children: ReactNode }) {
@@ -110,7 +126,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
               <Link
                 key={action.href + action.label}
                 href={action.href}
-                className={`action-link${action.primary ? " primary" : ""}${action.mobileIconOnly ? " mobile-icon-only" : ""}`}
+                className={`action-link ${actionClassName(action.label)}${action.primary ? " primary" : ""}${action.mobileIconOnly ? " mobile-icon-only" : ""}${action.iconOnly ? " icon-only" : ""}`}
                 aria-label={action.label}
               >
                 {action.icon ? <span className={`action-icon action-icon-${action.icon}`} aria-hidden="true" /> : null}
@@ -170,35 +186,49 @@ export function StatStrip({
 
 export function PartCard({ part }: { part: CatalogPart }) {
   return (
-    <article className="panel card" style={previewStyle(part.category)}>
-      <div className="card-preview">
-        <div className="card-preview-meta">
-          <span className="preview-badge">{part.categoryLabel}</span>
-          <span className="preview-owner">{creatorLabel(part.creatorHandle)}</span>
+    <article className="panel card listing-card" style={previewStyle(part.category)}>
+      <Link href={`/parts/${part.slug}`} className="card-media">
+        <div className="card-preview">
+          <div className="card-preview-meta">
+            <span className="preview-badge">{part.categoryLabel}</span>
+            <span className="preview-owner">{part.products[0] ?? part.subsystem}</span>
+          </div>
+          <div className="preview-title">{part.media[0]?.title ?? part.title}</div>
+          <div className="card-art-footer">
+            <span className="card-art-metric">{part.files.map((file) => file.fileType).slice(0, 2).join(" / ")}</span>
+            <span className="card-art-metric">{part.materials[0]}</span>
+          </div>
         </div>
-        <div className="preview-title">
-          {part.products.slice(0, 2).join(" / ") || part.subsystem}
-        </div>
-      </div>
+      </Link>
       <div className="card-body">
-        <div className="card-topline">
-          <span className="muted">{part.subsystem}</span>
-          <span className="muted">{part.updatedAt}</span>
-        </div>
         <h3>
           <Link href={`/parts/${part.slug}`}>{part.title}</Link>
         </h3>
-        <p>{part.summary}</p>
+        <div className="card-stats">
+          <span className="metric-pill">
+            <span className="metric-icon metric-icon-star" aria-hidden="true" />
+            {part.rating.toFixed(1)}
+          </span>
+          <span className="metric-pill">
+            <span className="metric-icon metric-icon-eye" aria-hidden="true" />
+            {formatMetric(part.views)}
+          </span>
+          <span className="metric-pill">
+            <span className="metric-icon metric-icon-download" aria-hidden="true" />
+            {formatMetric(part.downloads)}
+          </span>
+          <span className="card-byline">by {creatorLabel(part.creatorHandle)}</span>
+        </div>
         <div className="chip-row">
-          {part.products.slice(0, 3).map((product) => (
-            <span key={product} className="chip">
-              {product}
+          {part.tags.slice(0, 3).map((tag, index) => (
+            <span key={tag} className={`chip${index === 0 ? " chip-accent" : ""}`}>
+              {tag}
             </span>
           ))}
         </div>
         <div className="card-meta">
-          <span>{part.files.length} files</span>
-          <span>{part.seasons.join(", ")}</span>
+          <span>{part.uploadedAgo}</span>
+          <span>{part.validated ? "Validated" : part.seasons.join(", ")}</span>
         </div>
       </div>
     </article>
@@ -312,9 +342,9 @@ export function FilterPanel({
 
 export function ViewerShell({ part }: { part: CatalogPart }) {
   return (
-    <section className="panel viewer-shell" style={previewStyle(part.category)}>
+    <section className="panel viewer-shell" id="viewer" style={previewStyle(part.category)}>
       <div className="viewer-head">
-        <span className="chip chip-accent">Built-in Viewer</span>
+        <span className="chip chip-accent">Built-in 3D Viewer</span>
         <span className="muted">{part.files.map((file) => file.fileType).join(" / ")}</span>
       </div>
       <div className="viewer-stage">
