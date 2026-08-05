@@ -450,6 +450,7 @@ export function ViewerShell({ part }: { part: CatalogPart }) {
   const leadMedia = getLeadMedia(part);
   const primaryDownload = getPrimaryDownload(part);
   const sourceFile = getSourceFile(part);
+  const galleryPreview = part.media.slice(0, 4);
   const viewerModes = [
     primaryDownload ? `3D / ${primaryDownload.fileType}` : null,
     part.media.some((item) => item.kind === "image") ? "Photos" : null,
@@ -474,6 +475,11 @@ export function ViewerShell({ part }: { part: CatalogPart }) {
         ))}
       </div>
       <div className={`viewer-stage${leadMedia ? " has-media" : ""}`}>
+        <div className="viewer-stage-tools">
+          {primaryDownload ? <span className="chip chip-accent">Primary {primaryDownload.fileType}</span> : null}
+          {sourceFile ? <span className="chip">Source CAD</span> : null}
+          <span className="chip">{part.subsystem}</span>
+        </div>
         {leadMedia?.src ? (
           <div className="viewer-stage-image" aria-hidden="true">
             <img src={leadMedia.src} alt="" loading="lazy" />
@@ -481,6 +487,7 @@ export function ViewerShell({ part }: { part: CatalogPart }) {
         ) : null}
         <div className="viewer-mesh">
           <span>{leadMedia ? "Interactive preview layer" : "3D / 2D preview slot"}</span>
+          <small>Viewer shell for STL, STEP, DXF, media, and source CAD.</small>
         </div>
         <div className="viewer-stage-note">
           <strong>{leadMedia?.title ?? part.title}</strong>
@@ -490,6 +497,19 @@ export function ViewerShell({ part }: { part: CatalogPart }) {
           </span>
         </div>
       </div>
+      {galleryPreview.length > 0 ? (
+        <div className="viewer-thumb-strip">
+          {galleryPreview.map((item) => (
+            <article key={`${part.slug}-${item.title}`} className="viewer-thumb">
+              <div className="viewer-thumb-media">
+                {item.src ? <img src={item.src} alt={item.title} loading="lazy" /> : null}
+                <span className="viewer-thumb-kind">{item.kind === "video" ? "Video" : "Photo"}</span>
+              </div>
+              <strong>{item.title}</strong>
+            </article>
+          ))}
+        </div>
+      ) : null}
       <div className="viewer-callouts">
         {primaryDownload ? <span className="chip">Primary file: {primaryDownload.fileType}</span> : null}
         {sourceFile ? <span className="chip">Source available</span> : null}
@@ -503,7 +523,11 @@ export function ViewerShell({ part }: { part: CatalogPart }) {
 export function FileTable({ part }: { part: CatalogPart }) {
   return (
     <section className="panel">
-      <h3>Files and source links</h3>
+      <div className="section-title detail-section-title">
+        <p className="eyebrow">Downloads</p>
+        <h2>Files and source links</h2>
+        <p>Primary print files, fabrication outputs, source CAD, and sponsor-ready bundles.</p>
+      </div>
       <div className="file-table">
         {part.files.map((file) => (
           <article key={`${part.slug}-${file.label}`} className="file-row">
@@ -517,7 +541,7 @@ export function FileTable({ part }: { part: CatalogPart }) {
             </div>
             <div className="file-actions">
               <a href={file.href} target="_blank" rel="noreferrer">
-                {file.fileType === "SOURCE" ? "Open source" : `Open ${file.fileType}`}
+                {file.fileType === "SOURCE" ? "Open source" : `Download ${file.fileType}`}
               </a>
             </div>
           </article>
@@ -530,7 +554,11 @@ export function FileTable({ part }: { part: CatalogPart }) {
 export function MediaGallery({ part }: { part: CatalogPart }) {
   return (
     <section className="panel">
-      <h3>Gallery</h3>
+      <div className="section-title detail-section-title">
+        <p className="eyebrow">Media</p>
+        <h2>Gallery</h2>
+        <p>Installed photos, sponsor-facing fabrication shots, and short setup clips.</p>
+      </div>
       <div className="media-grid">
         {part.media.map((item) => (
           <article

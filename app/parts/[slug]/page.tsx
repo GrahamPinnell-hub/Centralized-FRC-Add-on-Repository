@@ -2,10 +2,27 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { FileTable, MediaGallery, ViewerShell } from "@/components/ui";
-import { getPartData, getPartSlugsData, getRelatedPartsData } from "@/lib/repository";
+import {
+  getCreatorProfileData,
+  getPartData,
+  getPartSlugsData,
+  getRelatedPartsData
+} from "@/lib/repository";
 
 function creatorLabel(handle: string) {
   return handle.replace("team-", "Team ");
+}
+
+function formatDateLabel(value: string) {
+  const date = new Date(value);
+
+  return Number.isNaN(date.getTime())
+    ? value
+    : date.toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric"
+      });
 }
 
 function getPrimaryDownloadHref(
@@ -37,9 +54,18 @@ export default async function PartDetailPage({
     notFound();
   }
 
-  const related = await getRelatedPartsData(part.slug, part.category);
+  const [related, creatorProfile] = await Promise.all([
+    getRelatedPartsData(part.slug, part.category),
+    getCreatorProfileData(part.creatorHandle)
+  ]);
   const primaryDownload = getPrimaryDownloadHref(part);
   const sourceFile = getSourceHref(part);
+  const creatorName = creatorProfile
+    ? `${creatorProfile.creator.teamNumber} / ${creatorProfile.creator.teamName}`
+    : creatorLabel(part.creatorHandle);
+  const creatorLocation = creatorProfile?.creator.location ?? "Community-maintained listing";
+  const creatorParts = creatorProfile?.parts.length ?? 1;
+  const deliverableTypes = Array.from(new Set(part.files.map((file) => file.fileType)));
 
   return (
     <div className="page-stack detail-page">
@@ -53,17 +79,21 @@ export default async function PartDetailPage({
         <span>{part.title}</span>
       </nav>
 
-      <section className="detail-titlebar">
-        <div className="page-stack">
-          <p className="eyebrow">{part.categoryLabel}</p>
+      <section className="detail-hero-shell">
+        <div className="page-stack detail-hero-copy">
+          <div className="detail-hero-topline">
+            <p className="eyebrow">{part.categoryLabel}</p>
+            {part.validated ? <span className="status-pill">Validated</span> : null}
+          </div>
           <h1>{part.title}</h1>
           <p className="detail-summary-intro">{part.summary}</p>
           <div className="detail-meta-row">
             <Link href={`/u/${part.creatorHandle}`} className="detail-author">
-              by {creatorLabel(part.creatorHandle)}
+              by {creatorName}
             </Link>
+            <span>{creatorLocation}</span>
             <span>Uploaded {part.uploadedAgo}</span>
-            <span>Updated {part.updatedAt}</span>
+            <span>Updated {formatDateLabel(part.updatedAt)}</span>
             <span>{part.rating.toFixed(1)} rating</span>
           </div>
           <div className="chip-row">
@@ -80,12 +110,22 @@ export default async function PartDetailPage({
             <span className="chip chip-accent">{part.license}</span>
           </div>
         </div>
-      </section>
-
-      <div className="detail-grid">
-        <section className="panel detail-primary-panel">
-          <ViewerShell part={part} />
-          <div className="detail-action-bar">
+        <aside className="panel detail-hero-aside">
+          <div className="detail-stat-inline-grid">
+            <div className="detail-stat-inline">
+              <strong>{part.rating.toFixed(1)}</strong>
+              <span>rating</span>
+            </div>
+            <div className="detail-stat-inline">
+              <strong>{part.views}</strong>
+              <span>views</span>
+            </div>
+            <div className="detail-stat-inline">
+              <strong>{part.downloads}</strong>
+              <span>downloads</span>
+            </div>
+          </div>
+          <div className="detail-action-stack">
             {primaryDownload ? (
               <a href={primaryDownload.href} className="button-link" target="_blank" rel="noreferrer">
                 Download {primaryDownload.fileType}
@@ -95,7 +135,9 @@ export default async function PartDetailPage({
                 View files
               </a>
             )}
-            {part.validated ? <span className="status-pill">Validated</span> : null}
+            <a href="#viewer" className="action-link">
+              View in 3D
+            </a>
             {sourceFile ? (
               <a href={sourceFile.href} className="action-link" target="_blank" rel="noreferrer">
                 Open source CAD
@@ -112,30 +154,50 @@ export default async function PartDetailPage({
               Report listing
             </Link>
           </div>
+          <div className="detail-hero-facts">
+            <div className="detail-inline-block">
+              <strong>Compatible with</strong>
+              <span>{part.products.join(", ")}</span>
+            </div>
+            <div className="detail-inline-block">
+              <strong>Deliverables</strong>
+              <span>{deliverableTypes.join(" / ")}</span>
+            </div>
+            <div className="detail-inline-block">
+              <strong>Repository owner</strong>
+              <span>{creatorName}</span>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <div className="detail-stage-grid">
+        <section className="detail-stage-panel">
+          <ViewerShell part={part} />
           <div className="detail-summary-copy">
             <p>
               Built around {part.products.join(", ")} with fitment for {part.vendors.join(", ")}{" "}
               hardware and intended for {part.subsystem.toLowerCase()} packaging.
             </p>
             <p>
-              This listing is tagged for {part.tags.join(", ")} and is meant to be reusable without
-              another team rebuilding the same mount, cover, tray, or guard from scratch.
+              This listing is tagged for {part.tags.join(", ")} and is meant to save another team
+              from rebuilding the same mount, cover, tray, or guard from scratch.
             </p>
           </div>
         </section>
-        <section className="panel detail-side-panel">
-          <h3>Repository stats</h3>
-          <div className="detail-stat-block">
-            <strong>{part.views}</strong>
-            <span>views</span>
+        <aside className="panel detail-team-panel">
+          <div className="section-title detail-section-title">
+            <p className="eyebrow">Publisher</p>
+            <h2>{creatorName}</h2>
+            <p>{creatorProfile?.creator.bio ?? "Community-maintained team library."}</p>
           </div>
           <div className="detail-stat-block">
-            <strong>{part.downloads}</strong>
-            <span>downloads</span>
+            <strong>{creatorParts}</strong>
+            <span>published listings</span>
           </div>
           <div className="detail-stat-block">
             <strong>{part.files.length}</strong>
-            <span>download and source slots</span>
+            <span>download and source files</span>
           </div>
           <div className="detail-stat-block">
             <strong>{part.versions[0]?.label ?? "v1.0"}</strong>
@@ -145,6 +207,10 @@ export default async function PartDetailPage({
             <strong>{part.materials.join(" / ")}</strong>
             <span>material lane</span>
           </div>
+          <div className="detail-stat-block">
+            <strong>{part.subsystem}</strong>
+            <span>robot subsystem</span>
+          </div>
           <div className="chip-row">
             {part.vendors.map((vendor) => (
               <span key={vendor} className="chip">
@@ -152,12 +218,19 @@ export default async function PartDetailPage({
               </span>
             ))}
           </div>
-        </section>
+          <Link href={`/u/${part.creatorHandle}`} className="ghost-link">
+            Open team profile
+          </Link>
+        </aside>
       </div>
 
-      <div className="detail-grid">
+      <div className="detail-overview-grid">
         <section className="panel">
-          <h3>Compatibility and install notes</h3>
+          <div className="section-title detail-section-title">
+            <p className="eyebrow">Install</p>
+            <h2>Compatibility and install notes</h2>
+            <p>What another team needs to know before dropping this into robot CAD or fabrication.</p>
+          </div>
           <div className="chip-row">
             {part.vendors.map((vendor) => (
               <span key={vendor} className="chip">
@@ -175,19 +248,22 @@ export default async function PartDetailPage({
               <li key={note}>{note}</li>
             ))}
           </ul>
-          <p>
-            Owner profile:{" "}
-            <Link href={`/u/${part.creatorHandle}`} className="ghost-link">
-              {part.creatorHandle}
-            </Link>
-          </p>
         </section>
         <section className="panel">
-          <h3>Materials and fabrication</h3>
+          <div className="section-title detail-section-title">
+            <p className="eyebrow">Metadata</p>
+            <h2>Materials and fabrication</h2>
+            <p>Search tags, supported seasons, and fabrication expectations for this listing.</p>
+          </div>
           <div className="chip-row">
             {part.materials.map((material) => (
               <span key={material} className="chip">
                 {material}
+              </span>
+            ))}
+            {part.seasons.map((season) => (
+              <span key={season} className="chip">
+                {season}
               </span>
             ))}
           </div>
@@ -195,16 +271,27 @@ export default async function PartDetailPage({
             This listing supports {part.files.map((file) => file.fileType).join(", ")} deliverables
             with source links and install guidance intended for another team to reuse directly.
           </p>
+          <div className="detail-tag-cloud">
+            {part.tags.map((tag) => (
+              <span key={tag} className="chip">
+                {tag}
+              </span>
+            ))}
+          </div>
           <Link href={`/report?part=${part.slug}`} className="ghost-link">
             Report broken files or metadata
           </Link>
         </section>
       </div>
 
-      <div className="two-column" id="files">
+      <div className="detail-assets-grid" id="files">
         <FileTable part={part} />
         <section className="panel">
-          <h3>Print and fabrication notes</h3>
+          <div className="section-title detail-section-title">
+            <p className="eyebrow">Fabrication</p>
+            <h2>Print and fabrication notes</h2>
+            <p>Machine setup, print profile, and sponsor-facing fabrication guidance for reuse.</p>
+          </div>
           {part.printProfile ? (
             <ul className="detail-list">
               <li>
@@ -237,9 +324,13 @@ export default async function PartDetailPage({
 
       <MediaGallery part={part} />
 
-      <div className="two-column" id="related">
+      <div className="detail-bottom-grid" id="related">
         <section className="panel">
-          <h3>Version history</h3>
+          <div className="section-title detail-section-title">
+            <p className="eyebrow">Changelog</p>
+            <h2>Version history</h2>
+            <p>Track fitment updates, geometry changes, and release notes over time.</p>
+          </div>
           <div className="file-table">
             {part.versions.map((version) => (
               <article key={`${part.slug}-${version.label}`} className="file-row">
@@ -253,14 +344,20 @@ export default async function PartDetailPage({
           </div>
         </section>
         <section className="panel">
-          <h3>Related parts</h3>
-          <div className="card-grid">
+          <div className="section-title detail-section-title">
+            <p className="eyebrow">More Like This</p>
+            <h2>Related parts</h2>
+            <p>Listings from the same category that solve similar packaging or service problems.</p>
+          </div>
+          <div className="detail-related-grid">
             {related.map((candidate) => (
-              <article key={candidate.slug} className="panel card">
+              <article key={candidate.slug} className="detail-related-card">
+                <span className="chip">{candidate.categoryLabel}</span>
                 <strong>
                   <Link href={`/parts/${candidate.slug}`}>{candidate.title}</Link>
                 </strong>
                 <p>{candidate.summary}</p>
+                <span className="muted">by {creatorLabel(candidate.creatorHandle)}</span>
               </article>
             ))}
           </div>
