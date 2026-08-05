@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { FormEvent, ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const primarySidebarLinks = [
   { href: "/", label: "Home", icon: "home" },
@@ -405,8 +405,40 @@ function FooterLink({ href, label, external = false }: FooterLinkItem) {
 export function SiteChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [newsletterMessage, setNewsletterMessage] = useState<string | null>(null);
+  const languageMenuRef = useRef<HTMLDetailsElement | null>(null);
+
+  useEffect(() => {
+    setIsLanguageMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!isLanguageMenuOpen) {
+      return;
+    }
+
+    function handlePointerDown(event: PointerEvent) {
+      if (!languageMenuRef.current?.contains(event.target as Node)) {
+        setIsLanguageMenuOpen(false);
+      }
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsLanguageMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isLanguageMenuOpen]);
 
   function submitNewsletter(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -523,22 +555,36 @@ export function SiteChrome({ children }: { children: ReactNode }) {
                 href={action.href}
                 className={`action-link ${actionClassName(action.label)}${action.iconOnly ? " icon-only" : ""}`}
                 aria-label={action.label}
+                onClick={() => setIsLanguageMenuOpen(false)}
               >
                 {action.icon ? <span className={`action-icon action-icon-${action.icon}`} aria-hidden="true" /> : null}
                 <span className="action-label">{action.label}</span>
               </Link>
             ))}
-            <details className="language-menu action-language-menu">
+            <details
+              ref={languageMenuRef}
+              className="language-menu action-language-menu"
+              open={isLanguageMenuOpen}
+            >
               <summary
                 className="action-link action-language language-toggle icon-only"
                 aria-label="Language options"
+                onClick={(event) => {
+                  event.preventDefault();
+                  setIsLanguageMenuOpen((current) => !current);
+                }}
               >
                 <span className="action-icon action-icon-language" aria-hidden="true" />
                 <span className="action-label">Language</span>
               </summary>
               <div className="language-panel">
                 {languageOptions.map((language) => (
-                  <button key={language} type="button" className="language-option">
+                  <button
+                    key={language}
+                    type="button"
+                    className="language-option"
+                    onClick={() => setIsLanguageMenuOpen(false)}
+                  >
                     {language}
                   </button>
                 ))}
@@ -548,6 +594,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
               href="/login"
               className={`action-link ${actionClassName("Login")} primary`}
               aria-label="Login"
+              onClick={() => setIsLanguageMenuOpen(false)}
             >
               <span className="action-label">Login</span>
             </Link>

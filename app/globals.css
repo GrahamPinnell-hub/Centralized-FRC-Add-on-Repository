@@ -992,6 +992,64 @@ textarea {
   grid-template-columns: 1.12fr 0.88fr;
 }
 
+.account-grid {
+  align-items: start;
+}
+
+.account-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.account-panel > .page-stack {
+  gap: 0.45rem;
+}
+
+.account-inline-note {
+  margin: 0;
+  font-weight: 600;
+}
+
+.account-inline-note.is-error {
+  color: #f4a69b;
+}
+
+.account-inline-note.is-success {
+  color: var(--accent-soft);
+}
+
+.account-session-card,
+.account-team-row {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(31, 33, 33, 0.28);
+}
+
+.account-session-card strong,
+.account-team-list strong,
+.account-code-list strong,
+.account-team-row strong {
+  color: #fff;
+}
+
+.account-session-card span,
+.account-team-row span {
+  color: var(--muted);
+}
+
+.account-session-card small {
+  color: rgba(220, 225, 231, 0.58);
+}
+
+.account-code-list,
+.account-team-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
 .upload-workbench {
   grid-template-columns: minmax(0, 1.12fr) minmax(320px, 0.88fr);
   align-items: start;
@@ -2056,6 +2114,26 @@ textarea {
 .upload-owner-note {
   margin: 0;
   color: var(--muted);
+}
+
+.upload-import-grid {
+  gap: 0.85rem;
+}
+
+.upload-link-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.upload-link-row input {
+  flex: 1 1 auto;
+}
+
+.upload-import-button {
+  min-height: 3rem;
+  min-width: 8.25rem;
+  white-space: nowrap;
 }
 
 .upload-owner-card {
@@ -3667,6 +3745,16 @@ textarea {
 
   .upload-dropzone-frame {
     min-height: 14rem;
+  }
+
+  .upload-link-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .upload-import-button {
+    width: 100%;
+    justify-content: center;
   }
 
   .upload-photo-tile,

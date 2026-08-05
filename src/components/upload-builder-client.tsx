@@ -12,6 +12,11 @@ import {
 
 import { PartCard, UploadChecklist } from "@/components/ui";
 import { resolveAssetUrl } from "@/lib/assets";
+import {
+  parsePreviewSession,
+  previewSessionStorageKey,
+  type PreviewJoinedTeam
+} from "@/lib/account-preview";
 import type { CatalogPart, CatalogFile, Creator } from "@/lib/catalog";
 
 type SearchOptions = {
@@ -52,6 +57,7 @@ type SavedDraftSnapshot = {
   id: string;
   savedAt: string;
   ownerHandle: string;
+  sourceUrl: string;
   title: string;
   summary: string;
   category: string;
@@ -83,6 +89,21 @@ type OwnerChoice = {
 };
 
 const draftsStorageKey = "frc-addon-upload-drafts-v2";
+const defaultDraftTitle = "Mk4 Swerve Cover";
+const defaultDraftSummary =
+  "A quick-swap cover that protects wires and encoder routing without slowing down module service.";
+const defaultPrintNotes =
+  "PETG or ABS, 0.4 mm nozzle, 0.24 mm layers, four walls recommended.";
+const defaultInstallNotes =
+  "Snaps around the module top plate. Check cable exit clearance before tightening hardware.";
+
+const supportedImportSources = [
+  { hostnames: ["printables.com"], label: "Printables" },
+  { hostnames: ["thingiverse.com"], label: "Thingiverse" },
+  { hostnames: ["grabcad.com"], label: "GrabCAD" },
+  { hostnames: ["cad.onshape.com", "onshape.com"], label: "Onshape" },
+  { hostnames: ["github.com"], label: "GitHub" }
+] as const;
 
 const defaultFiles: DraftFile[] = [
   {
@@ -121,6 +142,16 @@ const fallbackLicenses = [
   "MIT",
   "CERN-OHL-S"
 ] as const;
+
+function humanizeImportSegment(value: string) {
+  return value
+    .replace(/\.[^.]+$/, "")
+    .replace(/^thing:?/i, "")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
 
 function splitList(value: string) {
   return value
@@ -258,6 +289,56 @@ function replaceTrailingTag(tags: string, nextTag: string) {
   return [...existing, nextTag].join(", ") + ", ";
 }
 
+function detectImportSource(url: URL) {
+  return supportedImportSources.find((source) =>
+    source.hostnames.some((hostname) => url.hostname === hostname || url.hostname.endsWith(`.${hostname}`))
+  );
+}
+
+function inferTitleFromImportUrl(url: URL) {
+  const segments = url.pathname
+    .split("/")
+    .map((segment) => segment.trim())
+    .filter(Boolean)
+    .map((segment) => {
+      try {
+        return decodeURIComponent(segment);
+      } catch {
+        return segment;
+      }
+    });
+
+  const ignoredSegments = new Set([
+    "model",
+    "models",
+    "library",
+    "cad-library",
+    "files",
+    "file",
+    "download",
+    "downloads",
+    "documents",
+    "document",
+    "w",
+    "e",
+    "u"
+  ]);
+
+  for (const segment of [...segments].reverse()) {
+    if (ignoredSegments.has(segment.toLowerCase()) || !/[a-z]/i.test(segment)) {
+      continue;
+    }
+
+    const candidate = humanizeImportSegment(segment);
+
+    if (candidate.length >= 4) {
+      return candidate;
+    }
+  }
+
+  return "";
+}
+
 export function UploadBuilderClient({
   options,
   creators,
@@ -267,11 +348,12 @@ export function UploadBuilderClient({
   creators: Creator[];
   parts: CatalogPart[];
 }) {
+  const [joinedTeams, setJoinedTeams] = useState<PreviewJoinedTeam[]>([]);
   const ownerChoices = useMemo<OwnerChoice[]>(
     () => {
       const team31 = creators.find((creator) => creator.handle === "team-31");
 
-      return [
+      const baseChoices: OwnerChoice[] = [
         {
           handle: "graham-pinnell",
           title: "Publish personally",
@@ -285,8 +367,21 @@ export function UploadBuilderClient({
           badge: "Team"
         }
       ];
+
+      const joinedChoices = joinedTeams
+        .filter((team) => !baseChoices.some((owner) => owner.handle === team.handle))
+        .map(
+          (team): OwnerChoice => ({
+            handle: team.handle,
+            title: team.title,
+            note: "Publish under a team profile that was joined from your account session.",
+            badge: "Team"
+          })
+        );
+
+      return [...baseChoices, ...joinedChoices];
     },
-    [creators]
+    [creators, joinedTeams]
   );
 
   const licenseOptions = useMemo(
@@ -309,10 +404,9 @@ export function UploadBuilderClient({
   }, [parts]);
 
   const [ownerHandle, setOwnerHandle] = useState(ownerChoices[0]?.handle ?? "graham-pinnell");
-  const [title, setTitle] = useState("Mk4 Swerve Cover");
-  const [summary, setSummary] = useState(
-    "A quick-swap cover that protects wires and encoder routing without slowing down module service."
-  );
+  const [sourceUrl, setSourceUrl] = useState("");
+  const [title, setTitle] = useState(defaultDraftTitle);
+  const [summary, setSummary] = useState(defaultDraftSummary);
   const [category, setCategory] = useState(options.categories[0]?.slug ?? "swerve-covers");
   const [subsystem, setSubsystem] = useState("Drivetrain");
   const [products, setProducts] = useState("MK4i");
@@ -321,18 +415,15 @@ export function UploadBuilderClient({
   const [materials, setMaterials] = useState("PETG, ABS");
   const [tags, setTags] = useState("swerve, wire management, encoder guard");
   const [license, setLicense] = useState(licenseOptions[0] ?? "CC BY-NC 4.0");
-  const [printNotes, setPrintNotes] = useState(
-    "PETG or ABS, 0.4 mm nozzle, 0.24 mm layers, four walls recommended."
-  );
-  const [installNotes, setInstallNotes] = useState(
-    "Snaps around the module top plate. Check cable exit clearance before tightening hardware."
-  );
+  const [printNotes, setPrintNotes] = useState(defaultPrintNotes);
+  const [installNotes, setInstallNotes] = useState(defaultInstallNotes);
   const [files, setFiles] = useState<DraftFile[]>(defaultFiles);
   const [media, setMedia] = useState<DraftMedia[]>(defaultMedia);
   const [stagedUploads, setStagedUploads] = useState<StagedUpload[]>([]);
   const [stagedMediaUploads, setStagedMediaUploads] = useState<StagedMediaUpload[]>([]);
   const [savedDrafts, setSavedDrafts] = useState<SavedDraftSnapshot[]>([]);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [importMessage, setImportMessage] = useState<string | null>(null);
   const [isDraggingFiles, setIsDraggingFiles] = useState(false);
   const [isDraggingMedia, setIsDraggingMedia] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -456,6 +547,22 @@ export function UploadBuilderClient({
   }, []);
 
   useEffect(() => {
+    function syncJoinedTeams() {
+      const session = parsePreviewSession(window.localStorage.getItem(previewSessionStorageKey));
+      setJoinedTeams(session?.joinedTeams ?? []);
+    }
+
+    syncJoinedTeams();
+    window.addEventListener("storage", syncJoinedTeams);
+    window.addEventListener("focus", syncJoinedTeams);
+
+    return () => {
+      window.removeEventListener("storage", syncJoinedTeams);
+      window.removeEventListener("focus", syncJoinedTeams);
+    };
+  }, []);
+
+  useEffect(() => {
     return () => {
       objectUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
       objectUrlsRef.current = [];
@@ -563,6 +670,7 @@ export function UploadBuilderClient({
       id: `${slugify(title || "untitled")}-${Date.now()}`,
       savedAt: new Date().toISOString(),
       ownerHandle,
+      sourceUrl,
       title,
       summary,
       category,
@@ -597,6 +705,7 @@ export function UploadBuilderClient({
 
   function restoreDraft(snapshot: SavedDraftSnapshot) {
     setOwnerHandle(normalizeOwnerHandle(snapshot.ownerHandle));
+    setSourceUrl(snapshot.sourceUrl ?? "");
     setTitle(snapshot.title);
     setSummary(snapshot.summary);
     setCategory(snapshot.category);
@@ -624,7 +733,7 @@ export function UploadBuilderClient({
 
   function requestTeamLink() {
     setSaveMessage(
-      "Additional team profiles will appear here once team sign-in is connected."
+      "Log in and join a team with a 6-digit code to add another team profile here."
     );
   }
 
@@ -645,6 +754,53 @@ export function UploadBuilderClient({
     window.localStorage.setItem(draftsStorageKey, JSON.stringify(nextDrafts));
     setSaveMessage(
       `Published preview updated at ${new Date(snapshot.savedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}.`
+    );
+  }
+
+  function importFromListingLink() {
+    const trimmedUrl = sourceUrl.trim();
+
+    if (!trimmedUrl) {
+      setImportMessage(
+        "Paste a Printables, Thingiverse, GrabCAD, Onshape, or GitHub link to start from an existing listing."
+      );
+      return;
+    }
+
+    let parsedUrl: URL;
+
+    try {
+      parsedUrl = new URL(trimmedUrl);
+    } catch {
+      setImportMessage("Enter a full URL, including https://, before importing.");
+      return;
+    }
+
+    const source = detectImportSource(parsedUrl);
+
+    if (!source) {
+      setImportMessage(
+        "This first pass recognizes Printables, Thingiverse, GrabCAD, Onshape, and GitHub links."
+      );
+      return;
+    }
+
+    const inferredTitle = inferTitleFromImportUrl(parsedUrl);
+
+    if ((!title.trim() || title === defaultDraftTitle) && inferredTitle) {
+      setTitle(inferredTitle);
+    }
+
+    if (!summary.trim() || summary === defaultDraftSummary) {
+      setSummary(
+        `Imported starting point from ${source.label}. Review metadata, files, and media before publishing the listing.`
+      );
+    }
+
+    setImportMessage(
+      inferredTitle
+        ? `${source.label} link recognized. The title was prefilled from the URL and the rest is ready for review.`
+        : `${source.label} link recognized. Review the imported link and fill in the remaining listing details.`
     );
   }
 
@@ -694,6 +850,44 @@ export function UploadBuilderClient({
 
       <div className="upload-workbench">
         <div className="page-stack">
+        <section className="panel upload-step-panel">
+          <div className="upload-step-head">
+            <p className="eyebrow">Quick Start</p>
+            <h3>Import from an existing listing link</h3>
+          </div>
+          <div className="upload-form upload-import-grid">
+            <label>
+              Listing URL
+              <div className="upload-link-row">
+                <input
+                  value={sourceUrl}
+                  onChange={(event) => setSourceUrl(event.target.value)}
+                  placeholder="https://www.printables.com/model/..."
+                />
+                <button
+                  type="button"
+                  className="action-link upload-import-button"
+                  onClick={importFromListingLink}
+                >
+                  Import link
+                </button>
+              </div>
+            </label>
+            <div className="chip-row">
+              {supportedImportSources.map((source) => (
+                <span key={source.label} className="chip">
+                  {source.label}
+                </span>
+              ))}
+            </div>
+            <p className="upload-owner-note">
+              Use this to prefill a listing from Printables, Thingiverse, GrabCAD, Onshape, or
+              GitHub before attaching your own local files and photos.
+            </p>
+            {importMessage ? <p className="upload-inline-note">{importMessage}</p> : null}
+          </div>
+        </section>
+
         <section className="panel upload-step-panel">
           <div className="upload-step-head">
             <p className="eyebrow">Step 1</p>
