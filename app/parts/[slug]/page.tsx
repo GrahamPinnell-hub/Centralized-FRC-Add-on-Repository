@@ -70,6 +70,7 @@ export default async function PartDetailPage({
   const vendorSummary = part.vendors.join(", ");
   const materialSummary = part.materials.join(" / ");
   const currentRelease = part.versions[0]?.label ?? "v1.0";
+  const hasMedia = part.media.some((item) => item.src);
 
   return (
     <div className="page-stack detail-page">
@@ -160,22 +161,24 @@ export default async function PartDetailPage({
                 View files
               </a>
             )}
-            <a href="#viewer" className="action-link">
-              View in 3D
-            </a>
             {sourceFile ? (
               <a href={sourceFile.href} className="action-link" target="_blank" rel="noreferrer">
                 Open source CAD
               </a>
             ) : (
-              <a href="#viewer" className="action-link">
-                View in 3D
+              <a href="#files" className="action-link">
+                Browse files
               </a>
             )}
+            {hasMedia ? (
+              <a href="#media" className="action-link">
+                Open gallery
+              </a>
+            ) : null}
             <a href="#related" className="action-link">
-              Similar by shape
+              Related parts
             </a>
-            <Link href={`/report?part=${part.slug}`} className="action-link">
+            <Link href={`/report?part=${part.slug}`} className="ghost-link detail-report-link">
               Report listing
             </Link>
           </div>

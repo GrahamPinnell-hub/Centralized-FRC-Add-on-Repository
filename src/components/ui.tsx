@@ -113,6 +113,25 @@ function getFileSlotLabel(fileType: CatalogPart["files"][number]["fileType"]) {
   }
 }
 
+function getFileActionLabel(file: CatalogPart["files"][number]) {
+  switch (file.fileType) {
+    case "SOURCE":
+      return "Open source CAD";
+    case "STEP":
+      return "Download STEP";
+    case "DXF":
+      return "Download DXF";
+    case "ZIP":
+      return "Download ZIP";
+    case "3MF":
+      return "Download 3MF";
+    case "STL":
+      return "Download STL";
+    default:
+      return `Open ${file.fileType}`;
+  }
+}
+
 function MetricIcon({ kind }: { kind: "rating" | "views" | "downloads" }) {
   if (kind === "rating") {
     return (
@@ -468,10 +487,17 @@ export function FileTable({ part }: { part: CatalogPart }) {
         <p>Printable, fabrication, and source files.</p>
       </div>
       <div className="file-table">
-        {part.files.map((file) => (
-          <article key={`${part.slug}-${file.label}`} className="file-row">
+        {part.files.map((file, index) => (
+          <article
+            key={`${part.slug}-${file.label}`}
+            className={`file-row${index === 0 ? " is-primary" : ""}`}
+          >
             <div className="file-row-copy">
-              <strong>{file.label}</strong>
+              <div className="file-row-titleline">
+                <strong>{file.label}</strong>
+                {index === 0 ? <span className="file-row-badge is-primary">Primary</span> : null}
+                {file.fileType === "SOURCE" ? <span className="file-row-badge">Source</span> : null}
+              </div>
               <div className="file-row-meta">
                 <span className={`chip${file.fileType === "SOURCE" ? " chip-accent" : ""}`}>{file.fileType}</span>
                 <span className="muted">{getFileSlotLabel(file.fileType)}</span>
@@ -480,7 +506,7 @@ export function FileTable({ part }: { part: CatalogPart }) {
             </div>
             <div className="file-actions">
               <a href={file.href} target="_blank" rel="noreferrer">
-                {file.fileType === "SOURCE" ? "Open source" : `Download ${file.fileType}`}
+                {getFileActionLabel(file)}
               </a>
             </div>
           </article>
@@ -492,7 +518,7 @@ export function FileTable({ part }: { part: CatalogPart }) {
 
 export function MediaGallery({ part }: { part: CatalogPart }) {
   return (
-    <section className="panel">
+    <section className="panel" id="media">
       <div className="section-title detail-section-title">
         <p className="eyebrow">Media</p>
         <h2>Gallery</h2>
