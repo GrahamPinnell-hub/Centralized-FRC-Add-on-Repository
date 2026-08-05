@@ -14,12 +14,36 @@ export type CatalogFile = {
   note: string;
 };
 
+export type MediaSurfaceFit = "cover" | "contain";
+
+export type MediaFraming = {
+  position?: string;
+  fit?: MediaSurfaceFit;
+  zoom?: number;
+  cardPosition?: string;
+  cardFit?: MediaSurfaceFit;
+  cardZoom?: number;
+  detailPosition?: string;
+  detailFit?: MediaSurfaceFit;
+  detailZoom?: number;
+  thumbPosition?: string;
+  thumbFit?: MediaSurfaceFit;
+  thumbZoom?: number;
+  galleryPosition?: string;
+  galleryFit?: MediaSurfaceFit;
+  galleryZoom?: number;
+  lightboxPosition?: string;
+  lightboxFit?: MediaSurfaceFit;
+  lightboxZoom?: number;
+};
+
 export type MediaCard = {
   kind: "image" | "video";
   title: string;
   note: string;
   accent: string;
   src?: string;
+  framing?: MediaFraming;
 };
 
 export type PartVersion = {
@@ -196,7 +220,16 @@ export const parts: CatalogPart[] = [
         title: exampleImages.swerveCover.title,
         note: "Example listing photo for the installed wire cover and its clearance around the module hardware.",
         accent: "#f97316",
-        src: exampleImages.swerveCover.src
+        src: exampleImages.swerveCover.src,
+        framing: {
+          cardFit: "cover",
+          cardPosition: "center 54%",
+          detailFit: "contain",
+          galleryFit: "cover",
+          galleryPosition: "center 54%",
+          thumbFit: "cover",
+          thumbPosition: "center 54%"
+        }
       }
     ],
     versions: [
@@ -251,7 +284,15 @@ export const parts: CatalogPart[] = [
         title: exampleImages.cameraMount.title,
         note: "Example mounted camera photo used for the vision mount listing card and detail page.",
         accent: "#0f766e",
-        src: exampleImages.cameraMount.src
+        src: exampleImages.cameraMount.src,
+        framing: {
+          cardFit: "cover",
+          cardPosition: "center 44%",
+          detailFit: "contain",
+          detailPosition: "center 48%",
+          galleryFit: "cover",
+          galleryPosition: "center 46%"
+        }
       }
     ],
     versions: [
@@ -304,7 +345,15 @@ export const parts: CatalogPart[] = [
         title: exampleImages.radioRslMount.title,
         note: "Example mounted electronics photo used in place of the old stock sheet-metal art.",
         accent: "#38bdf8",
-        src: exampleImages.radioRslMount.src
+        src: exampleImages.radioRslMount.src,
+        framing: {
+          cardFit: "cover",
+          cardPosition: "center 46%",
+          detailFit: "contain",
+          detailPosition: "center 50%",
+          galleryFit: "cover",
+          galleryPosition: "center 46%"
+        }
       }
     ],
     versions: [
@@ -348,7 +397,14 @@ export const parts: CatalogPart[] = [
         title: exampleImages.pulleyGenerator.title,
         note: "Example mechanism screenshot used as the sample image for the pulley-generator listing.",
         accent: "#f43f5e",
-        src: exampleImages.pulleyGenerator.src
+        src: exampleImages.pulleyGenerator.src,
+        framing: {
+          cardFit: "cover",
+          cardPosition: "center 50%",
+          detailFit: "contain",
+          galleryFit: "cover",
+          galleryPosition: "center 50%"
+        }
       }
     ],
     versions: [
@@ -401,7 +457,20 @@ export const parts: CatalogPart[] = [
         title: exampleImages.intakeWheels.title,
         note: "Example product image used for the sample intake-wheel listing.",
         accent: "#8b5cf6",
-        src: exampleImages.intakeWheels.src
+        src: exampleImages.intakeWheels.src,
+        framing: {
+          cardFit: "contain",
+          cardPosition: "center 42%",
+          cardZoom: 1.02,
+          detailFit: "contain",
+          detailPosition: "center 44%",
+          thumbFit: "contain",
+          thumbPosition: "center 44%",
+          galleryFit: "contain",
+          galleryPosition: "center 44%",
+          lightboxFit: "contain",
+          lightboxPosition: "center 44%"
+        }
       }
     ],
     versions: [

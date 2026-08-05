@@ -1,8 +1,9 @@
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 
-import { resolveAssetUrl } from "@/lib/assets";
+import { ViewerShellClient } from "@/components/viewer-shell-client";
 import type { CatalogPart, Creator, SearchFilters } from "@/lib/catalog";
+import { mediaSource, mediaSurfaceStyle } from "@/lib/media-presentation";
 
 type FilterOptions = {
   categories: { slug: string; label: string }[];
@@ -60,18 +61,6 @@ function previewStyle(key: string): CSSProperties {
     ["--preview-accent" as string]: theme.accent,
     ["--preview-glow" as string]: theme.glow,
     ["--preview-deep" as string]: theme.deep
-  };
-}
-
-function mediaFrameStyle(src?: string): CSSProperties | undefined {
-  const resolvedSrc = resolveAssetUrl(src);
-
-  if (!resolvedSrc) {
-    return undefined;
-  }
-
-  return {
-    ["--media-image" as string]: `url("${resolvedSrc.replace(/"/g, '\\"')}")`
   };
 }
 
@@ -309,8 +298,8 @@ export function PartCard({ part }: { part: CatalogPart }) {
       <Link href={`/parts/${part.slug}`} className="card-media">
         <div className={`card-preview card-preview-clean${leadMedia ? " has-media" : ""}`}>
           {leadMedia?.src ? (
-            <div className="card-preview-image" aria-hidden="true" style={mediaFrameStyle(leadMedia.src)}>
-              <img src={resolveAssetUrl(leadMedia.src)} alt="" loading="lazy" />
+            <div className="card-preview-image" aria-hidden="true" style={mediaSurfaceStyle(leadMedia, "card")}>
+              <img src={mediaSource(leadMedia)} alt="" loading="lazy" />
             </div>
           ) : null}
         </div>
@@ -485,97 +474,7 @@ export function FilterPanel({
 }
 
 export function ViewerShell({ part }: { part: CatalogPart }) {
-  const leadMedia = getLeadMedia(part);
-  const leadMediaSrc = leadMedia?.src ? resolveAssetUrl(leadMedia.src) : "";
-  const primaryDownload = getPrimaryDownload(part);
-  const sourceFile = getSourceFile(part);
-  const galleryPreview = part.media.slice(0, 4);
-  const viewerModes = [
-    primaryDownload ? `3D / ${primaryDownload.fileType}` : null,
-    part.media.some((item) => item.kind === "image") ? "Photos" : null,
-    part.media.some((item) => item.kind === "video") ? "Video" : null,
-    sourceFile ? "Source CAD" : null
-  ].filter((mode): mode is string => Boolean(mode));
-
-  return (
-    <section className="panel viewer-shell" id="viewer" style={previewStyle(part.category)}>
-      <div className="viewer-head">
-        <div className="viewer-heading">
-          <span className="chip chip-accent">Built-in Viewer</span>
-          <strong>{primaryDownload ? `${primaryDownload.fileType} preview lane` : "Preview lane"}</strong>
-        </div>
-        {leadMediaSrc ? (
-          <a href={leadMediaSrc} className="ghost-link viewer-open-link" target="_blank" rel="noreferrer">
-            Open full photo
-          </a>
-        ) : (
-          <span className="muted">{part.files.map((file) => file.fileType).join(" / ")}</span>
-        )}
-      </div>
-      <div className="viewer-mode-bar">
-        {viewerModes.map((mode, index) => (
-          <span key={mode} className={`chip${index === 0 ? " chip-accent" : ""}`}>
-            {mode}
-          </span>
-        ))}
-      </div>
-      <div className="viewer-stage-tools">
-        {primaryDownload ? <span className="chip chip-accent">Primary {primaryDownload.fileType}</span> : null}
-        {sourceFile ? <span className="chip">Source CAD</span> : null}
-        <span className="chip">{part.subsystem}</span>
-      </div>
-      <div className={`viewer-stage${leadMedia ? " has-media" : ""}`}>
-        {leadMedia?.src ? (
-          <a
-            href={leadMediaSrc}
-            className="viewer-stage-frame"
-            target="_blank"
-            rel="noreferrer"
-            aria-label={`Open ${leadMedia.title} full size`}
-          >
-            <div className="viewer-stage-image" aria-hidden="true" style={mediaFrameStyle(leadMedia.src)}>
-              <img src={leadMediaSrc} alt="" loading="lazy" />
-            </div>
-          </a>
-        ) : (
-          <div className="viewer-mesh">
-            <span>3D / 2D preview slot</span>
-            <small>Viewer shell for STL, STEP, DXF, media, and source CAD.</small>
-          </div>
-        )}
-        <div className="viewer-stage-caption">
-          <strong>{leadMedia?.title ?? part.title}</strong>
-          <span>
-            {leadMedia?.note ??
-              "V1 keeps the viewer shell ready for richer STL, STEP, DXF, and media previews once live asset uploads are connected."}
-          </span>
-        </div>
-      </div>
-      {galleryPreview.length > 1 ? (
-        <div className="viewer-thumb-strip">
-          {galleryPreview.map((item) => (
-            <article key={`${part.slug}-${item.title}`} className="viewer-thumb">
-              <div className="viewer-thumb-media">
-                {item.src ? (
-                  <div className="viewer-thumb-media-image" style={mediaFrameStyle(item.src)}>
-                    <img src={resolveAssetUrl(item.src)} alt={item.title} loading="lazy" />
-                  </div>
-                ) : null}
-                <span className="viewer-thumb-kind">{item.kind === "video" ? "Video" : "Photo"}</span>
-              </div>
-              <strong>{item.title}</strong>
-            </article>
-          ))}
-        </div>
-      ) : null}
-      <div className="viewer-callouts">
-        {primaryDownload ? <span className="chip">Primary file: {primaryDownload.fileType}</span> : null}
-        {sourceFile ? <span className="chip">Source available</span> : null}
-        <span className="chip">Season tags: {part.seasons.join(", ")}</span>
-      </div>
-      <p>{part.viewerNote}</p>
-    </section>
-  );
+  return <ViewerShellClient part={part} themeStyle={previewStyle(part.category)} />;
 }
 
 export function FileTable({ part }: { part: CatalogPart }) {
@@ -630,12 +529,14 @@ export function MediaGallery({ part }: { part: CatalogPart }) {
           >
             <div className={`media-poster${item.src ? " has-media" : ""}`}>
               {item.src ? (
-                <div className="media-poster-image" style={mediaFrameStyle(item.src)}>
-                  <img src={resolveAssetUrl(item.src)} alt={item.title} loading="lazy" />
+                <div className="media-poster-image" style={mediaSurfaceStyle(item, "gallery")}>
+                  <img src={mediaSource(item)} alt={item.title} loading="lazy" />
                 </div>
               ) : null}
-              <span className="media-kind-badge">{item.kind === "video" ? "Video" : "Photo"}</span>
-              <span className="media-slot-note">{item.kind === "video" ? "Install clip" : "Installed view"}</span>
+            </div>
+            <div className="media-card-topline">
+              <span>{item.kind === "video" ? "Video" : "Photo"}</span>
+              <span>{item.kind === "video" ? "Install clip" : "Installed view"}</span>
             </div>
             <strong>{item.title}</strong>
             <p>{item.note}</p>
