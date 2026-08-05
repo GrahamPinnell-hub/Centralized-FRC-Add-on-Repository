@@ -1324,6 +1324,11 @@ textarea {
   font-size: 0.92rem;
 }
 
+.card-author-row {
+  display: flex;
+  align-items: center;
+}
+
 .metric-pill {
   display: inline-flex;
   align-items: center;
@@ -1392,7 +1397,6 @@ textarea {
 }
 
 .card-byline {
-  margin-left: auto;
   color: var(--accent-soft);
   font-weight: 600;
 }
@@ -1995,8 +1999,8 @@ textarea {
 }
 
 .card-stats {
-  flex-wrap: nowrap;
-  overflow-x: auto;
+  flex-wrap: wrap;
+  overflow: visible;
   font-size: 0.98rem;
 }
 
@@ -2018,7 +2022,6 @@ textarea {
 }
 
 .card-byline {
-  margin-left: 0;
   font-size: 1rem;
   white-space: nowrap;
 }

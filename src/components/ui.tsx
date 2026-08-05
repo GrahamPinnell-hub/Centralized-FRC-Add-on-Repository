@@ -315,6 +315,8 @@ export function PartCard({ part }: { part: CatalogPart }) {
             <MetricIcon kind="downloads" />
             {formatMetric(part.downloads)}
           </span>
+        </div>
+        <div className="card-author-row">
           <span className="card-byline">by {creatorLabel(part.creatorHandle)}</span>
         </div>
         <div className="chip-row">
