@@ -450,32 +450,6 @@ export function UploadBuilderClient({
     }
   }, [ownerChoices, ownerHandle]);
 
-  function updateFile(index: number, key: keyof DraftFile, value: string) {
-    setFiles((current) =>
-      current.map((file, fileIndex) =>
-        fileIndex === index
-          ? {
-              ...file,
-              [key]: key === "fileType" ? (value as DraftFile["fileType"]) : value
-            }
-          : file
-      )
-    );
-  }
-
-  function updateMedia(index: number, key: keyof DraftMedia, value: string) {
-    setMedia((current) =>
-      current.map((item, itemIndex) =>
-        itemIndex === index
-          ? {
-              ...item,
-              [key]: key === "kind" ? (value as DraftMedia["kind"]) : value
-            }
-          : item
-      )
-    );
-  }
-
   function queueFiles(incoming: File[]) {
     if (incoming.length === 0) {
       return;
@@ -550,6 +524,21 @@ export function UploadBuilderClient({
     setTags((current) => replaceTrailingTag(current, tag));
   }
 
+  function removeMedia(index: number) {
+    setMedia((current) => current.filter((_, itemIndex) => itemIndex !== index));
+    setStagedMediaUploads((current) => current.filter((_, itemIndex) => itemIndex !== index));
+  }
+
+  function removeFile(index: number) {
+    setFiles((current) => current.filter((_, fileIndex) => fileIndex !== index));
+    setStagedUploads((current) => current.filter((_, fileIndex) => fileIndex !== index));
+  }
+
+  function sortFilesAlphabetically() {
+    setFiles((current) => [...current].sort((left, right) => left.label.localeCompare(right.label)));
+    setStagedUploads((current) => [...current].sort((left, right) => left.name.localeCompare(right.name)));
+  }
+
   function buildSnapshot(): SavedDraftSnapshot {
     return {
       id: `${slugify(title || "untitled")}-${Date.now()}`,
@@ -617,6 +606,12 @@ export function UploadBuilderClient({
   function requestTeamLink() {
     setSaveMessage(
       "Team linking stays mocked for V1. Later this button will attach another FRC team profile through an access code."
+    );
+  }
+
+  function requestFolderUpload() {
+    setSaveMessage(
+      "Folder upload stays mocked for V1. Later this button will keep nested print packages together like Printables."
     );
   }
 
@@ -718,7 +713,9 @@ export function UploadBuilderClient({
               open={showAdvanced}
               onToggle={(event) => setShowAdvanced((event.target as HTMLDetailsElement).open)}
             >
-              <summary>Advanced options</summary>
+              <summary>
+                <span>Advanced options</span>
+              </summary>
               <div className="upload-advanced-grid">
                 <div className="upload-field-grid">
                   <label>
@@ -786,7 +783,7 @@ export function UploadBuilderClient({
               </div>
             </div>
             <div
-              className={`upload-dropzone upload-dropzone-media${isDraggingMedia ? " is-dragging" : ""}`}
+              className={`upload-media-strip${isDraggingMedia ? " is-dragging" : ""}`}
               onDragEnter={(event) => {
                 event.preventDefault();
                 setIsDraggingMedia(true);
@@ -803,55 +800,47 @@ export function UploadBuilderClient({
               }}
               onDrop={onMediaDrop}
             >
-              <div className="upload-dropzone-frame upload-dropzone-frame-compact">
-                <span className="upload-dropzone-icon upload-dropzone-icon-media" aria-hidden="true" />
-                <strong>Drag gallery media here</strong>
-                <p>Photos first. Short install videos can live here too.</p>
-              </div>
-              <button type="button" className="upload-browse-button" onClick={() => mediaInputRef.current?.click()}>
-                Add Photos
+              {media.map((item, index) => (
+                <article key={`media-${index}`} className="upload-photo-tile">
+                  <button
+                    type="button"
+                    className="upload-photo-remove"
+                    aria-label={`Remove ${item.title || `media ${index + 1}`}`}
+                    onClick={() => removeMedia(index)}
+                  >
+                    ×
+                  </button>
+                  <span className={`chip${item.kind === "video" ? " chip-accent" : ""}`}>{item.kind}</span>
+                  <div className="upload-photo-frame">
+                    {item.src ? (
+                      item.kind === "video" ? (
+                        <video src={item.src} muted playsInline />
+                      ) : (
+                        <img src={item.src} alt={item.title || ""} />
+                      )
+                    ) : (
+                      <span>Preview</span>
+                    )}
+                  </div>
+                  <strong>{item.title || `Photo ${index + 1}`}</strong>
+                </article>
+              ))}
+              <button type="button" className="upload-photo-add" onClick={() => mediaInputRef.current?.click()}>
+                <span aria-hidden="true">+</span>
               </button>
             </div>
+            <div className="upload-dropzone upload-dropzone-inline upload-dropzone-media-note">
+              <p>Drag photos and short clips here, or tap the plus tile to add them.</p>
+            </div>
             {stagedMediaUploads.length > 0 ? (
-              <div className="upload-queue-grid">
+              <div className="upload-upload-summary">
                 {stagedMediaUploads.map((upload, index) => (
-                  <article key={`${upload.name}-${index}`} className="upload-queue-item">
-                    <div>
-                      <strong>{upload.name}</strong>
-                      <p>{upload.sizeLabel}</p>
-                    </div>
-                    <span className={`chip${upload.kind === "video" ? " chip-accent" : ""}`}>
-                      {upload.kind}
-                    </span>
-                  </article>
+                  <span key={`${upload.name}-${index}`} className={`chip${upload.kind === "video" ? " chip-accent" : ""}`}>
+                    {upload.name} · {upload.sizeLabel}
+                  </span>
                 ))}
               </div>
             ) : null}
-            <div className="upload-media-grid">
-              {media.map((item, index) => (
-                <div key={`media-${index}`} className="upload-media-card">
-                  <div className="upload-media-preview">
-                    {item.src ? <img src={item.src} alt="" /> : <span>Preview</span>}
-                  </div>
-                  <div className="upload-slot-head">
-                    <strong>{item.kind === "video" ? "Video slot" : "Photo slot"} {index + 1}</strong>
-                    <span className={`chip${item.kind === "video" ? " chip-accent" : ""}`}>
-                      {item.kind}
-                    </span>
-                  </div>
-                  <div className="upload-form">
-                    <label>
-                      Title
-                      <input value={item.title} onChange={(event) => updateMedia(index, "title", event.target.value)} />
-                    </label>
-                    <label>
-                      Note
-                      <input value={item.note} onChange={(event) => updateMedia(index, "note", event.target.value)} />
-                    </label>
-                  </div>
-                </div>
-              ))}
-            </div>
           </section>
 
           <input
@@ -864,12 +853,23 @@ export function UploadBuilderClient({
           <section className="upload-board">
             <div className="upload-section-head">
               <div>
-                <h4>3D Models and Fabrication Files</h4>
-                <p>Print files, neutral CAD, DXF flat patterns, ZIP bundles, and source CAD.</p>
+                <h4>Fabrication Files</h4>
+                <p>.stl, .3mf, .step, .dxf, .zip, and source CAD</p>
               </div>
             </div>
+            <div className="upload-file-actions">
+              <button type="button" className="upload-file-action" onClick={requestFolderUpload}>
+                Add folder
+              </button>
+              <button type="button" className="upload-file-action" onClick={() => fileInputRef.current?.click()}>
+                Add files
+              </button>
+              <button type="button" className="upload-file-action" onClick={sortFilesAlphabetically}>
+                Sort files alphabetically
+              </button>
+            </div>
             <div
-              className={`upload-dropzone${isDraggingFiles ? " is-dragging" : ""}`}
+              className={`upload-dropzone upload-dropzone-inline${isDraggingFiles ? " is-dragging" : ""}`}
               onDragEnter={(event) => {
                 event.preventDefault();
                 setIsDraggingFiles(true);
@@ -886,65 +886,38 @@ export function UploadBuilderClient({
               }}
               onDrop={onFileDrop}
             >
-              <div className="upload-dropzone-frame upload-dropzone-frame-compact">
-                <span className="upload-dropzone-icon" aria-hidden="true" />
-                <strong>Drag model files here</strong>
-                <p>STL, STEP, 3MF, DXF, ZIP, and source CAD all belong in this lane.</p>
-              </div>
-              <button type="button" className="upload-browse-button" onClick={() => fileInputRef.current?.click()}>
-                Add Model Files
-              </button>
+              <p>Drag files here to add them to the root</p>
+            </div>
+            <div className="upload-file-list">
+              {files.map((file, index) => (
+                <article key={`file-${index}`} className="upload-file-row">
+                  <div className="upload-file-meta">
+                    <strong>{file.label}</strong>
+                    <p>{file.note}</p>
+                  </div>
+                  <div className="upload-file-row-actions">
+                    <span className="chip">{file.fileType}</span>
+                    <button
+                      type="button"
+                      className="action-link"
+                      aria-label={`Remove ${file.label}`}
+                      onClick={() => removeFile(index)}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </article>
+              ))}
             </div>
             {stagedUploads.length > 0 ? (
-              <div className="upload-queue-grid">
+              <div className="upload-upload-summary">
                 {stagedUploads.map((upload, index) => (
-                  <article key={`${upload.name}-${index}`} className="upload-queue-item">
-                    <div>
-                      <strong>{upload.name}</strong>
-                      <p>{upload.sizeLabel}</p>
-                    </div>
-                    <span className="chip">{upload.fileType}</span>
-                  </article>
+                  <span key={`${upload.name}-${index}`} className="chip">
+                    {upload.name} · {upload.sizeLabel}
+                  </span>
                 ))}
               </div>
             ) : null}
-            <div className="upload-file-grid">
-              {files.map((file, index) => (
-                <div key={`file-${index}`} className="upload-slot-card">
-                  <div className="upload-slot-head">
-                    <strong>Model slot {index + 1}</strong>
-                    <span className="chip">{file.fileType}</span>
-                  </div>
-                  <div className="upload-field-grid">
-                    <label>
-                      File label
-                      <input value={file.label} onChange={(event) => updateFile(index, "label", event.target.value)} />
-                    </label>
-                    <label>
-                      File type
-                      <select
-                        value={file.fileType}
-                        onChange={(event) => updateFile(index, "fileType", event.target.value)}
-                      >
-                        {options.fileTypes.map((fileType) => (
-                          <option key={fileType} value={fileType}>
-                            {fileType}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
-                  <label className="upload-form">
-                    File or source URL
-                    <input value={file.href} onChange={(event) => updateFile(index, "href", event.target.value)} />
-                  </label>
-                  <label className="upload-form">
-                    Slot note
-                    <input value={file.note} onChange={(event) => updateFile(index, "note", event.target.value)} />
-                  </label>
-                </div>
-              ))}
-            </div>
           </section>
         </section>
 
