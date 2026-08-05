@@ -5,8 +5,8 @@ export default function LanguagePage() {
         <p className="eyebrow">Language</p>
         <h1>Language options for the repository</h1>
         <p>
-          V1 stays English-first, but the top-bar language entry is reserved so community
-          translations can land without changing the site structure later.
+          The repository is English-first for now, but the top-bar language entry is already in
+          place so community translations can be added without changing the site structure later.
         </p>
         <div className="chip-row">
           <span className="chip chip-accent">English</span>
@@ -16,7 +16,7 @@ export default function LanguagePage() {
         </div>
       </section>
       <section className="panel compact-panel">
-        <p className="eyebrow">Planned</p>
+        <p className="eyebrow">Next</p>
         <h3>Translation support will follow the same listing structure.</h3>
         <p>
           Categories, listing metadata, and the upload flow are being kept consistent now so

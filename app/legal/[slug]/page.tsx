@@ -5,7 +5,7 @@ import { SectionTitle } from "@/components/ui";
 const legalPages = {
   terms: {
     title: "Terms of Service",
-    body: "V1 terms define how teams can upload, reuse, and report shared FRC add-ons while keeping the repository searchable and safe.",
+    body: "These terms define how teams can upload, reuse, and report shared FRC add-ons while keeping the repository searchable and safe.",
     sections: [
       {
         heading: "Repository use",
@@ -21,7 +21,7 @@ const legalPages = {
   },
   privacy: {
     title: "Privacy Policy",
-    body: "V1 privacy coverage stays narrow: basic account details, listing metadata, and repository activity used to operate the site.",
+    body: "Privacy coverage stays narrow: basic account details, listing metadata, and repository activity used to operate the site.",
     sections: [
       {
         heading: "What is stored",
@@ -29,9 +29,9 @@ const legalPages = {
           "Account identity, team association, listing metadata, and basic repository activity can be stored so teams can publish, search, and manage uploads."
       },
       {
-        heading: "What is not here yet",
+        heading: "What is not collected",
         copy:
-          "V1 does not include a production newsletter backend, vendor analytics pipeline, or expanded ad tracking layer."
+          "The repository does not include a production newsletter backend, vendor analytics pipeline, or expanded ad tracking layer."
       }
     ]
   },
@@ -47,7 +47,7 @@ const legalPages = {
       {
         heading: "Response path",
         copy:
-          "V1 routes these reports manually so obviously infringing or misattributed content can be taken down while the claim is reviewed."
+          "Reports route through a lightweight manual review path so obviously infringing or misattributed content can be taken down while the claim is reviewed."
       }
     ]
   },

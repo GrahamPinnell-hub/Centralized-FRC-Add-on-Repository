@@ -76,15 +76,15 @@ export function ReportForm() {
       </form>
       <aside className="panel report-aside">
         <p className="eyebrow">Report Flow</p>
-        <h3>V1 moderation stays lightweight</h3>
+        <h3>Moderation stays lightweight</h3>
         <ul className="detail-list">
           <li>Listings publish immediately instead of waiting for manual approval.</li>
           <li>Each listing can be flagged for broken files, bad metadata, licensing, or unsafe content.</li>
-          <li>The next backend pass can write these reports into Prisma without redesigning this flow.</li>
+          <li>This flow is already structured so reports can move into persistent storage later.</li>
         </ul>
         {submitted ? (
           <div className="report-confirmation">
-            <strong>Report captured in the V1 flow.</strong>
+            <strong>Report captured.</strong>
             <p>
               This mock submission is tied to <span>{part}</span> for the selected reason:
               {" "}

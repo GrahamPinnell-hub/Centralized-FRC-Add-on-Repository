@@ -85,7 +85,7 @@ export default async function HomePage() {
           <div className="chip-row">
             <span className="chip">{stats.supportedTypes.join(" / ")}</span>
             <span className="chip">{stats.creatorCount} teams</span>
-            <span className="chip">Auto-approved</span>
+            <span className="chip">Live publishing</span>
           </div>
           <div className="hero-actions">
             <Link href="/parts" className="button-link">
@@ -98,19 +98,19 @@ export default async function HomePage() {
         </section>
         <aside className="page-stack">
           <section className="panel compact-panel">
-            <p className="eyebrow">Coverage</p>
+            <p className="eyebrow">Library</p>
             <h3>{stats.partCount} seeded listings across {stats.categoryCount} categories.</h3>
             <p>
-              Enough sample content to validate browse, upload, detail views, and the team-based
-              ownership model before the first real community imports land.
+              Sample content is in place across browse, upload, detail views, and team ownership so
+              real community submissions can drop into a stable structure.
             </p>
           </section>
           <section className="panel compact-panel">
-            <p className="eyebrow">Direction</p>
-            <h3>Keep the structure broad enough to grow.</h3>
+            <p className="eyebrow">Expansion</p>
+            <h3>Built to grow beyond printed add-ons.</h3>
             <p>
-              V1 focuses on core hardware files now, while leaving room for board layouts, fixture
-              plates, richer 3D preview, and smarter search later.
+              The listing model already leaves room for board layouts, fixture plates, richer 3D
+              preview, and more flexible search without rebuilding the repository later.
             </p>
           </section>
         </aside>

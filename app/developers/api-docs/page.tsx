@@ -6,7 +6,7 @@ export default function ApiDocsPage() {
       <SectionTitle
         eyebrow="Developers"
         title="API Docs"
-        body="V1 developer docs outline the repository data model, listing metadata expectations, and the handoff path for static-site publishing."
+        body="Developer docs outline the repository data model, listing metadata expectations, and the publish path for a repository-backed workflow."
       />
       <section className="panel page-stack">
         <article className="page-stack">

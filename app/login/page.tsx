@@ -6,7 +6,7 @@ export default function LoginPage() {
       <SectionTitle
         eyebrow="Account"
         title="Log in"
-        body="V1 starts with a basic account path. Team-managed access, richer permissions, and OAuth can layer in after the repository workflow itself is stable."
+        body="Start with a basic account path now, then layer in team-managed access, richer permissions, and OAuth as the publishing workflow grows."
       />
       <form className="panel upload-form">
         <label>

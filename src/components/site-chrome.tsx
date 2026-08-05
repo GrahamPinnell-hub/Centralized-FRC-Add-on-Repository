@@ -27,8 +27,7 @@ const librarySidebarLinks = [
   { href: "/parts?fileType=DXF", label: "Sheet Metal", icon: "sheet" },
   { href: "/parts?fileType=SOURCE", label: "Source CAD", icon: "source" },
   { href: "/parts?sort=rating", label: "Top Rated", icon: "crown" },
-  { href: "/parts?sort=downloads", label: "Downloads", icon: "downloads" },
-  { href: "/report", label: "Report", icon: "report" }
+  { href: "/parts?sort=downloads", label: "Downloads", icon: "downloads" }
 ] as const;
 
 const mobileNavLinks = [
@@ -85,7 +84,7 @@ const footerGroups: Array<{ title: string; links: FooterLinkItem[] }> = [
       { href: "/u/team-31", label: "Team Libraries" },
       { href: "/parts?sort=latest", label: "Fresh Uploads" },
       { href: "/upload", label: "Upload" },
-      { href: "/report", label: "Contact" }
+      { href: "/language", label: "Language" }
     ]
   },
   {
@@ -101,8 +100,7 @@ const footerGroups: Array<{ title: string; links: FooterLinkItem[] }> = [
     title: "Developers",
     links: [
       { href: "/developers/api-docs", label: "API Docs" },
-      { href: sourceCodeUrl, label: "Source Code", external: true },
-      { href: "/report", label: "Report a Bug" }
+      { href: sourceCodeUrl, label: "Source Code", external: true }
     ]
   }
 ];
@@ -414,11 +412,13 @@ export function SiteChrome({ children }: { children: ReactNode }) {
     event.preventDefault();
 
     if (!newsletterEmail.trim()) {
-      setNewsletterMessage("Enter an email to save newsletter interest for V1.");
+      setNewsletterMessage("Enter an email to save newsletter interest.");
       return;
     }
 
-    setNewsletterMessage("Newsletter signup is mocked for V1, but your interest has been saved locally.");
+    setNewsletterMessage(
+      "Newsletter delivery is not connected yet. Your interest has been saved in this browser."
+    );
     setNewsletterEmail("");
   }
 
@@ -446,9 +446,9 @@ export function SiteChrome({ children }: { children: ReactNode }) {
               pathname={pathname}
             />
             <section className="sidebar-note">
-              <p className="eyebrow">V1 Scope</p>
+              <p className="eyebrow">Repository Focus</p>
               <strong>Prints, sheet metal, and source CAD first.</strong>
-              <p>PCB boards, fixtures, and smarter AI-assisted search can layer in next.</p>
+              <p>Boards, code, and richer search can expand from the same listing structure later.</p>
             </section>
           </div>
           <div className="sidebar-footer">
@@ -499,9 +499,9 @@ export function SiteChrome({ children }: { children: ReactNode }) {
                   ))}
                 </nav>
                 <section className="mobile-nav-note">
-                  <p className="eyebrow">V1 Scope</p>
+                  <p className="eyebrow">Repository Focus</p>
                   <strong>Prints, sheet metal, and source CAD first.</strong>
-                  <p>PCB boards, fixtures, and smarter AI-assisted search can layer in next.</p>
+                  <p>Boards, code, and richer search can expand from the same listing structure later.</p>
                 </section>
               </div>
             </details>
@@ -512,7 +512,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
                   <span className="brand-title-long">Centralized FRC Repository</span>
                   <span className="brand-title-short">FRC Add-ons</span>
                 </strong>
-                <small>robot accessories, sheet metal, and reusable hardware</small>
+                <small>robot accessories, fabrication files, and reusable hardware</small>
               </span>
             </Link>
           </div>
@@ -630,7 +630,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
           </div>
 
           <div className="footer-bottom">
-            <p>Copyright © 2026 Centralized FRC Add-on Repository. All rights reserved.</p>
+            <p>Copyright {"\u00a9"} 2026 Centralized FRC Add-on Repository. All rights reserved.</p>
             <p>
               Not affiliated with FIRST or official FRC vendors. Content is community submitted and
               maintained by teams.
