@@ -286,12 +286,6 @@ export function StatStrip({
 
 export function PartCard({ part }: { part: CatalogPart }) {
   const leadMedia = getLeadMedia(part);
-  const previewProduct = part.products[0] ?? part.subsystem;
-  const previewFiles = part.files
-    .map((file) => file.fileType)
-    .filter((fileType, index, values) => values.indexOf(fileType) === index)
-    .slice(0, 2)
-    .join(" / ");
 
   return (
     <article className="panel card listing-card" style={previewStyle(part.category)}>
@@ -305,19 +299,9 @@ export function PartCard({ part }: { part: CatalogPart }) {
         </div>
       </Link>
       <div className="card-body">
-        <div className="card-kicker-row">
-          <span className="card-product">{previewProduct}</span>
-        </div>
         <h3>
           <Link href={`/parts/${part.slug}`}>{part.title}</Link>
         </h3>
-        <div className="card-subline">
-          <span className="card-byline">by {creatorLabel(part.creatorHandle)}</span>
-        </div>
-        <div className="card-surface-meta">
-          <span className="card-surface-pill">{previewFiles}</span>
-          <span className="card-surface-pill">{part.materials[0]}</span>
-        </div>
         <div className="card-stats">
           <span className="metric-pill">
             <MetricIcon kind="rating" />
@@ -331,17 +315,14 @@ export function PartCard({ part }: { part: CatalogPart }) {
             <MetricIcon kind="downloads" />
             {formatMetric(part.downloads)}
           </span>
+          <span className="card-byline">by {creatorLabel(part.creatorHandle)}</span>
         </div>
         <div className="chip-row">
-          {part.tags.slice(0, 3).map((tag, index) => (
+          {part.tags.slice(0, 4).map((tag, index) => (
             <span key={tag} className={`chip${index === 0 ? " chip-accent" : ""}`}>
               {tag}
             </span>
           ))}
-        </div>
-        <div className="card-meta">
-          <span>{part.uploadedAgo}</span>
-          <span>{part.validated ? "Validated" : part.seasons.join(", ")}</span>
         </div>
       </div>
     </article>
