@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import type { FormEvent, ReactNode } from "react";
 import { useState } from "react";
 
 const primarySidebarLinks = [
@@ -59,6 +59,58 @@ type TopAction = {
 const topActions: TopAction[] = [
   { href: "/parts", label: "Search", icon: "search", iconOnly: true },
   { href: "/upload", label: "Upload", icon: "upload", iconOnly: true }
+];
+
+type FooterLinkItem = {
+  href: string;
+  label: string;
+  external?: boolean;
+};
+
+const sourceCodeUrl = "https://github.com/GrahamPinnell-hub/Centralized-FRC-Add-on-Repository";
+
+const footerGroups: Array<{ title: string; links: FooterLinkItem[] }> = [
+  {
+    title: "Browse",
+    links: [
+      { href: "/parts?sort=latest", label: "Latest Listings" },
+      { href: "/parts", label: "Explore" },
+      { href: "/categories/swerve-covers", label: "Categories" },
+      { href: "/parts?sort=trending", label: "Trending" }
+    ]
+  },
+  {
+    title: "Community",
+    links: [
+      { href: "/u/team-31", label: "Team Libraries" },
+      { href: "/parts?sort=latest", label: "Fresh Uploads" },
+      { href: "/upload", label: "Upload" },
+      { href: "/report", label: "Contact" }
+    ]
+  },
+  {
+    title: "Legal",
+    links: [
+      { href: "/legal/terms", label: "Terms of Service" },
+      { href: "/legal/privacy", label: "Privacy Policy" },
+      { href: "/legal/dmca", label: "DMCA" },
+      { href: "/legal/rules", label: "Rules" }
+    ]
+  },
+  {
+    title: "Developers",
+    links: [
+      { href: "/developers/api-docs", label: "API Docs" },
+      { href: sourceCodeUrl, label: "Source Code", external: true },
+      { href: "/report", label: "Report a Bug" }
+    ]
+  }
+];
+
+const footerSocialLinks: Array<FooterLinkItem & { icon: string }> = [
+  { href: sourceCodeUrl, label: "GitHub", icon: "github", external: true },
+  { href: "/upload", label: "Upload", icon: "upload" },
+  { href: "/parts?sort=latest", label: "Latest", icon: "latest" }
 ];
 
 function actionClassName(label: string) {
@@ -242,6 +294,17 @@ function SidebarGlyph({
     );
   }
 
+  if (icon === "github") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M12 4.3c-4.2 0-7.7 3.4-7.7 7.7 0 3.4 2.2 6.2 5.2 7.2.4.1.5-.2.5-.4v-1.6c-2.1.5-2.6-.9-2.6-.9-.4-.9-.9-1.1-.9-1.1-.8-.5.1-.5.1-.5.8.1 1.3.9 1.3.9.8 1.3 2 1 2.5.8.1-.6.3-1 .6-1.2-1.7-.2-3.5-.8-3.5-3.8 0-.8.3-1.5.8-2-.1-.2-.4-1 .1-2.1 0 0 .6-.2 2.1.8a7 7 0 0 1 3.8 0c1.4-1 2.1-.8 2.1-.8.4 1.1.2 1.9.1 2.1.5.6.8 1.2.8 2 0 2.9-1.8 3.6-3.5 3.8.3.3.6.8.6 1.5V19c0 .2.1.5.5.4 3-1 5.2-3.8 5.2-7.2 0-4.3-3.4-7.7-7.7-7.7Z"
+          fill="currentColor"
+        />
+      </svg>
+    );
+  }
+
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <rect x="5" y="5" width="14" height="14" rx="3" fill="none" stroke="currentColor" strokeWidth="1.8" />
@@ -325,9 +388,39 @@ function SidebarLinkGroup({
   );
 }
 
+function FooterLink({ href, label, external = false }: FooterLinkItem) {
+  if (external) {
+    return (
+      <a href={href} className="footer-link" target="_blank" rel="noreferrer">
+        {label}
+      </a>
+    );
+  }
+
+  return (
+    <Link href={href} className="footer-link">
+      {label}
+    </Link>
+  );
+}
+
 export function SiteChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [newsletterMessage, setNewsletterMessage] = useState<string | null>(null);
+
+  function submitNewsletter(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!newsletterEmail.trim()) {
+      setNewsletterMessage("Enter an email to save newsletter interest for V1.");
+      return;
+    }
+
+    setNewsletterMessage("Newsletter signup is mocked for V1, but your interest has been saved locally.");
+    setNewsletterEmail("");
+  }
 
   return (
     <div className="app-shell">
@@ -462,11 +555,87 @@ export function SiteChrome({ children }: { children: ReactNode }) {
         </header>
         <main className="content-shell page-stack">{children}</main>
         <footer className="footer">
-          <p>
-            Centralized FRC Add-on Repository exists so teams stop redrawing the same mounts,
-            covers, trays, guards, and pit accessories every season.
-          </p>
-          <p>V1 keeps the library simple: immediate publishing, better metadata, and searchable CAD.</p>
+          <div className="footer-main">
+            <section className="footer-brand-column">
+              <Link href="/" className="footer-brand-logo">
+                <span className="brand-mark footer-brand-mark">FRC</span>
+                <span className="footer-brand-wordmark">Centralized Add-on Repository</span>
+              </Link>
+              <p className="footer-lede">
+                Centralized FRC Add-on Repository. Download and share community-built mounts,
+                prints, sheet metal, and reusable robot hardware.
+              </p>
+              <div className="footer-social">
+                {footerSocialLinks.map((link) =>
+                  link.external ? (
+                    <a
+                      key={`${link.href}-${link.label}`}
+                      href={link.href}
+                      className="footer-social-link"
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={link.label}
+                      title={link.label}
+                    >
+                      <SidebarGlyph icon={link.icon} />
+                    </a>
+                  ) : (
+                    <Link
+                      key={`${link.href}-${link.label}`}
+                      href={link.href}
+                      className="footer-social-link"
+                      aria-label={link.label}
+                      title={link.label}
+                    >
+                      <SidebarGlyph icon={link.icon} />
+                    </Link>
+                  )
+                )}
+              </div>
+              <section className="footer-newsletter">
+                <p className="footer-section-title">Newsletter</p>
+                <p>Get trending add-ons and fresh uploads in your inbox.</p>
+                <form className="footer-newsletter-form" onSubmit={submitNewsletter}>
+                  <input
+                    type="email"
+                    placeholder="Your email"
+                    value={newsletterEmail}
+                    onChange={(event) => setNewsletterEmail(event.target.value)}
+                  />
+                  <button type="submit">Subscribe</button>
+                </form>
+                {newsletterMessage ? (
+                  <p className="footer-newsletter-note">{newsletterMessage}</p>
+                ) : null}
+              </section>
+            </section>
+
+            <div className="footer-links-grid">
+              {footerGroups.map((group) => (
+                <section key={group.title} className="footer-group">
+                  <p className="footer-section-title">{group.title}</p>
+                  <nav className="footer-link-list">
+                    {group.links.map((link) => (
+                      <FooterLink
+                        key={`${group.title}-${link.href}-${link.label}`}
+                        href={link.href}
+                        label={link.label}
+                        external={link.external}
+                      />
+                    ))}
+                  </nav>
+                </section>
+              ))}
+            </div>
+          </div>
+
+          <div className="footer-bottom">
+            <p>Copyright © 2026 Centralized FRC Add-on Repository. All rights reserved.</p>
+            <p>
+              Not affiliated with FIRST or official FRC vendors. Content is community submitted and
+              maintained by teams.
+            </p>
+          </div>
         </footer>
       </div>
     </div>
