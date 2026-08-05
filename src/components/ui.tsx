@@ -297,6 +297,12 @@ export function StatStrip({
 
 export function PartCard({ part }: { part: CatalogPart }) {
   const leadMedia = getLeadMedia(part);
+  const previewProduct = part.products[0] ?? part.subsystem;
+  const previewFiles = part.files
+    .map((file) => file.fileType)
+    .filter((fileType, index, values) => values.indexOf(fileType) === index)
+    .slice(0, 2)
+    .join(" / ");
 
   return (
     <article className="panel card listing-card" style={previewStyle(part.category)}>
@@ -309,20 +315,22 @@ export function PartCard({ part }: { part: CatalogPart }) {
           ) : null}
           <div className="card-preview-meta">
             <span className="preview-badge">{part.categoryLabel}</span>
-            <span className="preview-owner">{part.products[0] ?? part.subsystem}</span>
-          </div>
-          <div className="card-art-footer">
-            <span className="card-art-metric">{part.files.map((file) => file.fileType).slice(0, 2).join(" / ")}</span>
-            <span className="card-art-metric">{part.materials[0]}</span>
           </div>
         </div>
       </Link>
       <div className="card-body">
-        <h3>
-          <Link href={`/parts/${part.slug}`}>{part.title}</Link>
-        </h3>
-        <div className="card-subline">
-          <span className="card-byline">by {creatorLabel(part.creatorHandle)}</span>
+        <div className="card-header-copy">
+          <h3>
+            <Link href={`/parts/${part.slug}`}>{part.title}</Link>
+          </h3>
+          <div className="card-subline">
+            <span className="card-byline">by {creatorLabel(part.creatorHandle)}</span>
+            <span className="card-product">{previewProduct}</span>
+          </div>
+        </div>
+        <div className="card-surface-meta">
+          <span className="card-surface-pill">{previewFiles}</span>
+          <span className="card-surface-pill">{part.materials[0]}</span>
         </div>
         <div className="card-stats">
           <span className="metric-pill">
@@ -480,6 +488,7 @@ export function FilterPanel({
 
 export function ViewerShell({ part }: { part: CatalogPart }) {
   const leadMedia = getLeadMedia(part);
+  const leadMediaSrc = leadMedia?.src ? resolveAssetUrl(leadMedia.src) : "";
   const primaryDownload = getPrimaryDownload(part);
   const sourceFile = getSourceFile(part);
   const galleryPreview = part.media.slice(0, 4);
@@ -497,7 +506,13 @@ export function ViewerShell({ part }: { part: CatalogPart }) {
           <span className="chip chip-accent">Built-in Viewer</span>
           <strong>{primaryDownload ? `${primaryDownload.fileType} preview lane` : "Preview lane"}</strong>
         </div>
-        <span className="muted">{part.files.map((file) => file.fileType).join(" / ")}</span>
+        {leadMediaSrc ? (
+          <a href={leadMediaSrc} className="ghost-link viewer-open-link" target="_blank" rel="noreferrer">
+            Open full photo
+          </a>
+        ) : (
+          <span className="muted">{part.files.map((file) => file.fileType).join(" / ")}</span>
+        )}
       </div>
       <div className="viewer-mode-bar">
         {viewerModes.map((mode, index) => (
@@ -507,21 +522,31 @@ export function ViewerShell({ part }: { part: CatalogPart }) {
         ))}
       </div>
       <div className={`viewer-stage${leadMedia ? " has-media" : ""}`}>
-        <div className="viewer-stage-tools">
-          {primaryDownload ? <span className="chip chip-accent">Primary {primaryDownload.fileType}</span> : null}
-          {sourceFile ? <span className="chip">Source CAD</span> : null}
-          <span className="chip">{part.subsystem}</span>
-        </div>
         {leadMedia?.src ? (
-          <div className="viewer-stage-image" aria-hidden="true" style={mediaFrameStyle(leadMedia.src)}>
-            <img src={resolveAssetUrl(leadMedia.src)} alt="" loading="lazy" />
+          <a
+            href={leadMediaSrc}
+            className="viewer-stage-frame"
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`Open ${leadMedia.title} full size`}
+          >
+            <div className="viewer-stage-tools">
+              {primaryDownload ? <span className="chip chip-accent">Primary {primaryDownload.fileType}</span> : null}
+              {sourceFile ? <span className="chip">Source CAD</span> : null}
+              <span className="chip">{part.subsystem}</span>
+            </div>
+            <div className="viewer-stage-image" aria-hidden="true" style={mediaFrameStyle(leadMedia.src)}>
+              <img src={leadMediaSrc} alt="" loading="lazy" />
+            </div>
+            <span className="viewer-stage-open">Open full photo</span>
+          </a>
+        ) : (
+          <div className="viewer-mesh">
+            <span>3D / 2D preview slot</span>
+            <small>Viewer shell for STL, STEP, DXF, media, and source CAD.</small>
           </div>
-        ) : null}
-        <div className="viewer-mesh">
-          <span>{leadMedia ? "Interactive preview layer" : "3D / 2D preview slot"}</span>
-          <small>Viewer shell for STL, STEP, DXF, media, and source CAD.</small>
-        </div>
-        <div className="viewer-stage-note">
+        )}
+        <div className="viewer-stage-caption">
           <strong>{leadMedia?.title ?? part.title}</strong>
           <span>
             {leadMedia?.note ??
@@ -529,7 +554,7 @@ export function ViewerShell({ part }: { part: CatalogPart }) {
           </span>
         </div>
       </div>
-      {galleryPreview.length > 0 ? (
+      {galleryPreview.length > 1 ? (
         <div className="viewer-thumb-strip">
           {galleryPreview.map((item) => (
             <article key={`${part.slug}-${item.title}`} className="viewer-thumb">

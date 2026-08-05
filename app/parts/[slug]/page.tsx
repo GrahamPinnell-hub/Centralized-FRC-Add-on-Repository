@@ -80,34 +80,37 @@ export default async function PartDetailPage({
       </nav>
 
       <section className="detail-hero-shell">
-        <div className="page-stack detail-hero-copy">
-          <div className="detail-hero-topline">
-            <p className="eyebrow">{part.categoryLabel}</p>
-            {part.validated ? <span className="status-pill">Validated</span> : null}
-          </div>
-          <h1>{part.title}</h1>
-          <p className="detail-summary-intro">{part.summary}</p>
-          <div className="detail-meta-row">
-            <Link href={`/u/${part.creatorHandle}`} className="detail-author">
-              by {creatorName}
-            </Link>
-            <span>{creatorLocation}</span>
-            <span>Uploaded {part.uploadedAgo}</span>
-            <span>Updated {formatDateLabel(part.updatedAt)}</span>
-            <span>{part.rating.toFixed(1)} rating</span>
-          </div>
-          <div className="chip-row">
-            {part.products.map((product) => (
-              <span key={product} className="chip">
-                {product}
-              </span>
-            ))}
-            {part.seasons.map((season) => (
-              <span key={season} className="chip">
-                {season}
-              </span>
-            ))}
-            <span className="chip chip-accent">{part.license}</span>
+        <div className="detail-hero-main">
+          <ViewerShell part={part} />
+          <div className="page-stack detail-hero-copy">
+            <div className="detail-hero-topline">
+              <p className="eyebrow">{part.categoryLabel}</p>
+              {part.validated ? <span className="status-pill">Validated</span> : null}
+            </div>
+            <h1>{part.title}</h1>
+            <p className="detail-summary-intro">{part.summary}</p>
+            <div className="detail-meta-row">
+              <Link href={`/u/${part.creatorHandle}`} className="detail-author">
+                by {creatorName}
+              </Link>
+              <span>{creatorLocation}</span>
+              <span>Uploaded {part.uploadedAgo}</span>
+              <span>Updated {formatDateLabel(part.updatedAt)}</span>
+              <span>{part.rating.toFixed(1)} rating</span>
+            </div>
+            <div className="chip-row">
+              {part.products.map((product) => (
+                <span key={product} className="chip">
+                  {product}
+                </span>
+              ))}
+              {part.seasons.map((season) => (
+                <span key={season} className="chip">
+                  {season}
+                </span>
+              ))}
+              <span className="chip chip-accent">{part.license}</span>
+            </div>
           </div>
         </div>
         <aside className="panel detail-hero-aside">
@@ -173,7 +176,6 @@ export default async function PartDetailPage({
 
       <div className="detail-stage-grid">
         <section className="detail-stage-panel">
-          <ViewerShell part={part} />
           <div className="detail-summary-copy">
             <p>
               Built around {part.products.join(", ")} with fitment for {part.vendors.join(", ")}{" "}
