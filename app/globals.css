@@ -2136,6 +2136,30 @@ textarea {
   white-space: nowrap;
 }
 
+.upload-import-button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+  transform: none;
+}
+
+.upload-import-summary {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(31, 33, 33, 0.24);
+}
+
+.upload-import-warnings {
+  gap: 0.35rem;
+}
+
+.upload-import-warnings p {
+  margin: 0;
+  color: var(--muted);
+}
+
 .upload-owner-card {
   display: grid;
   justify-items: start;

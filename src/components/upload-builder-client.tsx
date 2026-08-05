@@ -17,6 +17,13 @@ import {
   previewSessionStorageKey,
   type PreviewJoinedTeam
 } from "@/lib/account-preview";
+import {
+  getSupportedImportSources,
+  importListingFromUrl,
+  type ImportedFileCandidate,
+  type ImportedListingData,
+  type ImportedMediaCandidate
+} from "@/lib/link-import";
 import type { CatalogPart, CatalogFile, Creator } from "@/lib/catalog";
 
 type SearchOptions = {
@@ -92,18 +99,12 @@ const draftsStorageKey = "frc-addon-upload-drafts-v2";
 const defaultDraftTitle = "Mk4 Swerve Cover";
 const defaultDraftSummary =
   "A quick-swap cover that protects wires and encoder routing without slowing down module service.";
+const defaultDraftTags = "swerve, wire management, encoder guard";
 const defaultPrintNotes =
   "PETG or ABS, 0.4 mm nozzle, 0.24 mm layers, four walls recommended.";
 const defaultInstallNotes =
   "Snaps around the module top plate. Check cable exit clearance before tightening hardware.";
-
-const supportedImportSources = [
-  { hostnames: ["printables.com"], label: "Printables" },
-  { hostnames: ["thingiverse.com"], label: "Thingiverse" },
-  { hostnames: ["grabcad.com"], label: "GrabCAD" },
-  { hostnames: ["cad.onshape.com", "onshape.com"], label: "Onshape" },
-  { hostnames: ["github.com"], label: "GitHub" }
-] as const;
+const supportedImportSources = getSupportedImportSources();
 
 const defaultFiles: DraftFile[] = [
   {
@@ -142,16 +143,6 @@ const fallbackLicenses = [
   "MIT",
   "CERN-OHL-S"
 ] as const;
-
-function humanizeImportSegment(value: string) {
-  return value
-    .replace(/\.[^.]+$/, "")
-    .replace(/^thing:?/i, "")
-    .replace(/[_-]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-}
 
 function splitList(value: string) {
   return value
@@ -289,54 +280,58 @@ function replaceTrailingTag(tags: string, nextTag: string) {
   return [...existing, nextTag].join(", ") + ", ";
 }
 
-function detectImportSource(url: URL) {
-  return supportedImportSources.find((source) =>
-    source.hostnames.some((hostname) => url.hostname === hostname || url.hostname.endsWith(`.${hostname}`))
-  );
-}
+function mergeImportedFiles(currentFiles: DraftFile[], importedFiles: ImportedFileCandidate[]) {
+  const nextFiles = importedFiles.map((file) => ({
+    label: file.label,
+    fileType: file.fileType,
+    href: file.href,
+    note: file.note
+  }));
 
-function inferTitleFromImportUrl(url: URL) {
-  const segments = url.pathname
-    .split("/")
-    .map((segment) => segment.trim())
-    .filter(Boolean)
-    .map((segment) => {
-      try {
-        return decodeURIComponent(segment);
-      } catch {
-        return segment;
-      }
-    });
-
-  const ignoredSegments = new Set([
-    "model",
-    "models",
-    "library",
-    "cad-library",
-    "files",
-    "file",
-    "download",
-    "downloads",
-    "documents",
-    "document",
-    "w",
-    "e",
-    "u"
-  ]);
-
-  for (const segment of [...segments].reverse()) {
-    if (ignoredSegments.has(segment.toLowerCase()) || !/[a-z]/i.test(segment)) {
-      continue;
-    }
-
-    const candidate = humanizeImportSegment(segment);
-
-    if (candidate.length >= 4) {
-      return candidate;
-    }
+  if (nextFiles.length === 0) {
+    return currentFiles;
   }
 
-  return "";
+  if (isPlaceholderFileSet(currentFiles)) {
+    return nextFiles;
+  }
+
+  const importedKeys = new Set(nextFiles.map((file) => `${file.href}|${file.label}`));
+
+  return [
+    ...nextFiles,
+    ...currentFiles.filter((file) => !importedKeys.has(`${file.href}|${file.label}`))
+  ];
+}
+
+function mergeImportedMedia(currentMedia: DraftMedia[], importedMedia: ImportedMediaCandidate[]) {
+  if (importedMedia.length === 0) {
+    return currentMedia;
+  }
+
+  const nextMedia = importedMedia.map((item) => ({
+    kind: item.kind,
+    title: item.title,
+    note: item.note,
+    src: item.src
+  }));
+
+  if (currentMedia.length === defaultMedia.length && currentMedia[0]?.src === defaultMedia[0]?.src) {
+    return nextMedia;
+  }
+
+  const seen = new Set<string>();
+
+  return [...nextMedia, ...currentMedia].filter((item) => {
+    const key = `${item.kind}|${item.src}|${item.title}`;
+
+    if (seen.has(key)) {
+      return false;
+    }
+
+    seen.add(key);
+    return true;
+  });
 }
 
 export function UploadBuilderClient({
@@ -413,7 +408,7 @@ export function UploadBuilderClient({
   const [vendors, setVendors] = useState("SDS");
   const [seasons, setSeasons] = useState("2026, General");
   const [materials, setMaterials] = useState("PETG, ABS");
-  const [tags, setTags] = useState("swerve, wire management, encoder guard");
+  const [tags, setTags] = useState(defaultDraftTags);
   const [license, setLicense] = useState(licenseOptions[0] ?? "CC BY-NC 4.0");
   const [printNotes, setPrintNotes] = useState(defaultPrintNotes);
   const [installNotes, setInstallNotes] = useState(defaultInstallNotes);
@@ -424,6 +419,8 @@ export function UploadBuilderClient({
   const [savedDrafts, setSavedDrafts] = useState<SavedDraftSnapshot[]>([]);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [importMessage, setImportMessage] = useState<string | null>(null);
+  const [lastImport, setLastImport] = useState<ImportedListingData | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
   const [isDraggingFiles, setIsDraggingFiles] = useState(false);
   const [isDraggingMedia, setIsDraggingMedia] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -757,7 +754,7 @@ export function UploadBuilderClient({
     );
   }
 
-  function importFromListingLink() {
+  async function importFromListingLink() {
     const trimmedUrl = sourceUrl.trim();
 
     if (!trimmedUrl) {
@@ -767,41 +764,63 @@ export function UploadBuilderClient({
       return;
     }
 
-    let parsedUrl: URL;
+    setIsImporting(true);
+    setImportMessage("Importing listing metadata...");
 
     try {
-      parsedUrl = new URL(trimmedUrl);
-    } catch {
-      setImportMessage("Enter a full URL, including https://, before importing.");
-      return;
-    }
+      const imported = await importListingFromUrl(trimmedUrl);
 
-    const source = detectImportSource(parsedUrl);
-
-    if (!source) {
-      setImportMessage(
-        "This first pass recognizes Printables, Thingiverse, GrabCAD, Onshape, and GitHub links."
-      );
-      return;
-    }
-
-    const inferredTitle = inferTitleFromImportUrl(parsedUrl);
-
-    if ((!title.trim() || title === defaultDraftTitle) && inferredTitle) {
-      setTitle(inferredTitle);
-    }
-
-    if (!summary.trim() || summary === defaultDraftSummary) {
+      setSourceUrl(imported.sourceUrl);
+      setTitle(imported.title || defaultDraftTitle);
       setSummary(
-        `Imported starting point from ${source.label}. Review metadata, files, and media before publishing the listing.`
+        imported.description ||
+          `Imported starting point from ${imported.sourceLabel}. Review metadata, files, and media before publishing the listing.`
       );
-    }
 
-    setImportMessage(
-      inferredTitle
-        ? `${source.label} link recognized. The title was prefilled from the URL and the rest is ready for review.`
-        : `${source.label} link recognized. Review the imported link and fill in the remaining listing details.`
-    );
+      if (imported.categorySlug && options.categories.some((option) => option.slug === imported.categorySlug)) {
+        setCategory(imported.categorySlug);
+      }
+
+      if (imported.products.length > 0) {
+        setProducts(imported.products.join(", "));
+      }
+
+      if (imported.vendors.length > 0) {
+        setVendors(imported.vendors.join(", "));
+      }
+
+      if (imported.tags.length > 0) {
+        setTags(imported.tags.join(", "));
+      } else if (tags === defaultDraftTags) {
+        setTags(defaultDraftTags);
+      }
+
+      if (imported.license && licenseOptions.includes(imported.license)) {
+        setLicense(imported.license);
+      }
+
+      setFiles((current) => mergeImportedFiles(current, imported.files));
+      setMedia((current) => mergeImportedMedia(current, imported.media));
+      setLastImport(imported);
+
+      const pulledParts = [
+        imported.title ? "title" : null,
+        imported.description ? "summary" : null,
+        imported.media.length > 0 ? "cover media" : null,
+        imported.files.length > 0 ? "source links" : null
+      ].filter(Boolean);
+
+      setImportMessage(
+        `Imported ${pulledParts.join(", ")} from ${imported.sourceLabel}${
+          imported.author ? ` by ${imported.author}` : ""
+        }.`
+      );
+    } catch (error) {
+      setLastImport(null);
+      setImportMessage(error instanceof Error ? error.message : "Import failed. Try another link.");
+    } finally {
+      setIsImporting(false);
+    }
   }
 
   function closeComposer() {
@@ -868,8 +887,9 @@ export function UploadBuilderClient({
                   type="button"
                   className="action-link upload-import-button"
                   onClick={importFromListingLink}
+                  disabled={isImporting}
                 >
-                  Import link
+                  {isImporting ? "Importing..." : "Import link"}
                 </button>
               </div>
             </label>
@@ -885,6 +905,27 @@ export function UploadBuilderClient({
               GitHub before attaching your own local files and photos.
             </p>
             {importMessage ? <p className="upload-inline-note">{importMessage}</p> : null}
+            {lastImport ? (
+              <div className="upload-import-summary">
+                <div className="chip-row">
+                  <span className="chip chip-accent">{lastImport.sourceLabel}</span>
+                  {lastImport.author ? <span className="chip">By {lastImport.author}</span> : null}
+                  {lastImport.media.length > 0 ? (
+                    <span className="chip">{lastImport.media.length} media item{lastImport.media.length === 1 ? "" : "s"}</span>
+                  ) : null}
+                  {lastImport.files.length > 0 ? (
+                    <span className="chip">{lastImport.files.length} imported link{lastImport.files.length === 1 ? "" : "s"}</span>
+                  ) : null}
+                </div>
+                {lastImport.warnings.length > 0 ? (
+                  <div className="page-stack upload-import-warnings">
+                    {lastImport.warnings.map((warning) => (
+                      <p key={warning}>{warning}</p>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
           </div>
         </section>
 
