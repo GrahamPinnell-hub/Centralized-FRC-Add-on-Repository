@@ -772,7 +772,7 @@ export function UploadBuilderClient({
     setPublishMode((current) => (current === "draft" ? "publish" : "draft"));
   }
 
-  function downloadSubmissionManifest() {
+  function triggerManifestDownload() {
     const blob = new Blob([submissionManifestJson], { type: "application/json" });
     const href = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
@@ -780,26 +780,60 @@ export function UploadBuilderClient({
     anchor.download = submissionManifestFilename;
     anchor.click();
     URL.revokeObjectURL(href);
-    setSaveMessage(`Downloaded ${submissionManifestFilename}.`);
   }
 
-  async function copyManifestJson() {
-    try {
-      await navigator.clipboard.writeText(submissionManifestJson);
-      setSaveMessage("Submission manifest JSON copied to the clipboard.");
-    } catch {
-      setSaveMessage("Clipboard access failed. Download the manifest JSON instead.");
-    }
-  }
-
-  function openSubmissionIssueDraft() {
+  function startPublishHandoff() {
+    triggerManifestDownload();
     window.open(submissionIssueUrl, "_blank", "noopener,noreferrer");
-    setSaveMessage("Opened a GitHub issue draft for this submission.");
+    setSaveMessage(`Downloaded ${submissionManifestFilename} and opened the GitHub issue draft.`);
+  }
+
+  function closeComposer() {
+    if (window.history.length > 1) {
+      window.history.back();
+      return;
+    }
+
+    window.location.assign("/");
   }
 
   return (
-    <div className="upload-workbench">
-      <div className="page-stack">
+    <div className="page-stack upload-compose-shell">
+      <section className="upload-compose-sticky">
+        <div className="upload-compose-bar">
+          <h2 className="upload-compose-title">New Listing</h2>
+          <div className="upload-compose-controls">
+            <div className="upload-mode-toggle">
+              <span className={`upload-mode-label${!isPublishMode ? " is-active" : ""}`}>Draft</span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={isPublishMode}
+                aria-label={isPublishMode ? "Switch to draft mode" : "Switch to published mode"}
+                className={`upload-mode-switch${isPublishMode ? " is-published" : ""}`}
+                onClick={togglePublishMode}
+              >
+                <span className="upload-mode-knob" />
+              </button>
+              <span className={`upload-mode-label${isPublishMode ? " is-active" : ""}`}>Published</span>
+            </div>
+            <button type="button" className="action-link upload-compose-close" onClick={closeComposer}>
+              Close
+            </button>
+            <button
+              type="button"
+              className="upload-compose-primary"
+              onClick={isPublishMode ? startPublishHandoff : saveDraft}
+            >
+              {isPublishMode ? "Start Publish" : "Save Draft"}
+            </button>
+          </div>
+        </div>
+        {saveMessage ? <p className="upload-inline-note upload-compose-feedback">{saveMessage}</p> : null}
+      </section>
+
+      <div className="upload-workbench">
+        <div className="page-stack">
         <section className="panel upload-step-panel">
           <div className="upload-step-head">
             <p className="eyebrow">Step 1</p>
@@ -1116,84 +1150,9 @@ export function UploadBuilderClient({
           </form>
         </section>
 
-        <section className="panel upload-step-panel">
-          <div className="upload-step-head">
-            <p className="eyebrow">Step 5</p>
-            <h3>Draft or publish</h3>
-          </div>
-          <div className="upload-publish-shell">
-            <div className="upload-publish-bar">
-              <div className="upload-mode-toggle">
-                <span className={`upload-mode-label${!isPublishMode ? " is-active" : ""}`}>Draft</span>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={isPublishMode}
-                  aria-label={isPublishMode ? "Switch to draft mode" : "Switch to published mode"}
-                  className={`upload-mode-switch${isPublishMode ? " is-published" : ""}`}
-                  onClick={togglePublishMode}
-                >
-                  <span className="upload-mode-knob" />
-                </button>
-                <span className={`upload-mode-label${isPublishMode ? " is-active" : ""}`}>
-                  Published
-                </span>
-              </div>
+        </div>
 
-              <div className="upload-publish-actions">
-                {isPublishMode ? (
-                  <>
-                    <button type="button" className="action-link" onClick={copyManifestJson}>
-                      Copy manifest JSON
-                    </button>
-                    <button type="button" onClick={downloadSubmissionManifest}>
-                      Download manifest
-                    </button>
-                  </>
-                ) : (
-                  <button type="button" onClick={saveDraft}>
-                    Save draft
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {isPublishMode ? (
-              <div className="upload-publish-note upload-publish-note-publish">
-                <div className="upload-submission-meta">
-                  <span className="submission-status submission-status-pending">Pending review</span>
-                  <span className="chip chip-accent">{submissionManifestFilename}</span>
-                  <span className="chip">{submissionRepo}</span>
-                </div>
-                <p className="muted">
-                  Published mode prepares the GitHub handoff package for this listing. Download the
-                  manifest, then open the issue draft when you are ready to submit it.
-                </p>
-                <div className="upload-publish-actions upload-publish-actions-secondary">
-                  <button type="button" className="action-link" onClick={openSubmissionIssueDraft}>
-                    Open GitHub issue
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="upload-publish-note">
-                <div className="upload-submission-meta">
-                  <span className="submission-status submission-status-draft">Draft mode</span>
-                  <span className="chip">{ownerLabel}</span>
-                  <span className="chip">{previewPart.categoryLabel}</span>
-                </div>
-                <p className="muted">
-                  Keep the listing in draft while you finish files, photos, and notes. Switch to
-                  published when you want the manifest and GitHub handoff tools.
-                </p>
-              </div>
-            )}
-          </div>
-          {saveMessage ? <p className="upload-inline-note">{saveMessage}</p> : null}
-        </section>
-      </div>
-
-      <div className="page-stack upload-preview-column">
+        <div className="page-stack upload-preview-column">
         <section className="panel upload-preview-panel">
           <div className="upload-step-head">
             <p className="eyebrow">Live Preview</p>
@@ -1287,6 +1246,7 @@ export function UploadBuilderClient({
         </section>
 
         <UploadChecklist />
+        </div>
       </div>
     </div>
   );
