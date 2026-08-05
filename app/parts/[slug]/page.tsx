@@ -66,6 +66,10 @@ export default async function PartDetailPage({
   const creatorLocation = creatorProfile?.creator.location ?? "Community-maintained listing";
   const creatorParts = creatorProfile?.parts.length ?? 1;
   const deliverableTypes = Array.from(new Set(part.files.map((file) => file.fileType)));
+  const productSummary = part.products.join(", ");
+  const vendorSummary = part.vendors.join(", ");
+  const materialSummary = part.materials.join(" / ");
+  const currentRelease = part.versions[0]?.label ?? "v1.0";
 
   return (
     <div className="page-stack detail-page">
@@ -81,7 +85,6 @@ export default async function PartDetailPage({
 
       <section className="detail-hero-shell">
         <div className="detail-hero-main">
-          <ViewerShell part={part} />
           <div className="page-stack detail-hero-copy">
             <div className="detail-hero-topline">
               <p className="eyebrow">{part.categoryLabel}</p>
@@ -98,7 +101,7 @@ export default async function PartDetailPage({
               <span>Updated {formatDateLabel(part.updatedAt)}</span>
               <span>{part.rating.toFixed(1)} rating</span>
             </div>
-            <div className="chip-row">
+            <div className="chip-row detail-chip-row">
               {part.products.map((product) => (
                 <span key={product} className="chip">
                   {product}
@@ -111,7 +114,26 @@ export default async function PartDetailPage({
               ))}
               <span className="chip chip-accent">{part.license}</span>
             </div>
+            <div className="detail-spec-grid">
+              <div className="detail-spec-card">
+                <span>Compatible with</span>
+                <strong>{productSummary}</strong>
+              </div>
+              <div className="detail-spec-card">
+                <span>Deliverables</span>
+                <strong>{deliverableTypes.join(" / ")}</strong>
+              </div>
+              <div className="detail-spec-card">
+                <span>Material lane</span>
+                <strong>{materialSummary}</strong>
+              </div>
+              <div className="detail-spec-card">
+                <span>Subsystem</span>
+                <strong>{part.subsystem}</strong>
+              </div>
+            </div>
           </div>
+          <ViewerShell part={part} />
         </div>
         <aside className="panel detail-hero-aside">
           <div className="detail-stat-inline-grid">
@@ -159,16 +181,16 @@ export default async function PartDetailPage({
           </div>
           <div className="detail-hero-facts">
             <div className="detail-inline-block">
-              <strong>Compatible with</strong>
-              <span>{part.products.join(", ")}</span>
-            </div>
-            <div className="detail-inline-block">
-              <strong>Deliverables</strong>
-              <span>{deliverableTypes.join(" / ")}</span>
+              <strong>Current release</strong>
+              <span>{currentRelease}</span>
             </div>
             <div className="detail-inline-block">
               <strong>Repository owner</strong>
               <span>{creatorName}</span>
+            </div>
+            <div className="detail-inline-block">
+              <strong>Vendor fit</strong>
+              <span>{vendorSummary}</span>
             </div>
           </div>
         </aside>
@@ -176,9 +198,14 @@ export default async function PartDetailPage({
 
       <div className="detail-stage-grid">
         <section className="detail-stage-panel">
+          <div className="section-title detail-section-title">
+            <p className="eyebrow">Reuse Notes</p>
+            <h2>Design intent and fit</h2>
+            <p>What another team should understand before dropping this into CAD, print prep, or fabrication.</p>
+          </div>
           <div className="detail-summary-copy">
             <p>
-              Built around {part.products.join(", ")} with fitment for {part.vendors.join(", ")}{" "}
+              Built around {productSummary} with fitment for {vendorSummary}{" "}
               hardware and intended for {part.subsystem.toLowerCase()} packaging.
             </p>
             <p>
@@ -280,9 +307,6 @@ export default async function PartDetailPage({
               </span>
             ))}
           </div>
-          <Link href={`/report?part=${part.slug}`} className="ghost-link">
-            Report broken files or metadata
-          </Link>
         </section>
       </div>
 

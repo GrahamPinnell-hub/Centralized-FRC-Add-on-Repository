@@ -6,14 +6,6 @@ import { useEffect, useMemo, useState } from "react";
 import type { CatalogPart } from "@/lib/catalog";
 import { mediaSource, mediaSurfaceStyle } from "@/lib/media-presentation";
 
-function getPrimaryDownload(part: CatalogPart) {
-  return part.files.find((file) => file.fileType !== "SOURCE") ?? part.files[0] ?? null;
-}
-
-function getSourceFile(part: CatalogPart) {
-  return part.files.find((file) => file.fileType === "SOURCE") ?? null;
-}
-
 function visualMedia(part: CatalogPart) {
   return part.media.filter((item) => item.src);
 }
@@ -26,19 +18,21 @@ export function ViewerShellClient({
   themeStyle: CSSProperties;
 }) {
   const mediaItems = useMemo(() => visualMedia(part), [part]);
-  const primaryDownload = getPrimaryDownload(part);
-  const sourceFile = getSourceFile(part);
-  const viewerModes = [
-    primaryDownload ? `3D / ${primaryDownload.fileType}` : null,
-    part.media.some((item) => item.kind === "image") ? "Photos" : null,
-    part.media.some((item) => item.kind === "video") ? "Video" : null,
-    sourceFile ? "Source CAD" : null
-  ].filter((mode): mode is string => Boolean(mode));
   const [activeIndex, setActiveIndex] = useState(0);
   const [isLightboxOpen, setLightboxOpen] = useState(false);
   const activeMedia = mediaItems[activeIndex] ?? null;
   const activeSource = mediaSource(activeMedia);
   const hasCarousel = mediaItems.length > 1;
+  const stageLabel = activeMedia
+    ? activeMedia.title === part.title
+      ? activeMedia.kind === "video"
+        ? "Install clip"
+        : "Installed view"
+      : activeMedia.title
+    : "Preview lane";
+  const stageNote =
+    activeMedia?.note ??
+    "V1 keeps the viewer shell ready for richer STL, STEP, DXF, and media previews once live asset uploads are connected.";
 
   useEffect(() => {
     setActiveIndex(0);
@@ -93,31 +87,6 @@ export function ViewerShellClient({
   return (
     <>
       <section className="panel viewer-shell" id="viewer" style={themeStyle}>
-        <div className="viewer-head">
-          <div className="viewer-heading">
-            <span className="chip chip-accent">Built-in Viewer</span>
-            <strong>{primaryDownload ? `${primaryDownload.fileType} preview lane` : "Preview lane"}</strong>
-          </div>
-          {activeSource ? (
-            <button type="button" className="ghost-link viewer-open-link" onClick={openActiveMedia}>
-              Expand photo
-            </button>
-          ) : (
-            <span className="muted">{part.files.map((file) => file.fileType).join(" / ")}</span>
-          )}
-        </div>
-        <div className="viewer-mode-bar">
-          {viewerModes.map((mode, index) => (
-            <span key={mode} className={`chip${index === 0 ? " chip-accent" : ""}`}>
-              {mode}
-            </span>
-          ))}
-        </div>
-        <div className="viewer-stage-tools">
-          {primaryDownload ? <span className="chip chip-accent">Primary {primaryDownload.fileType}</span> : null}
-          {sourceFile ? <span className="chip">Source CAD</span> : null}
-          <span className="chip">{part.subsystem}</span>
-        </div>
         <div className={`viewer-stage${activeMedia ? " has-media" : ""}`}>
           {activeMedia ? (
             <button
@@ -141,11 +110,8 @@ export function ViewerShellClient({
             </div>
           )}
           <div className="viewer-stage-caption">
-            <strong>{activeMedia?.title ?? part.title}</strong>
-            <span>
-              {activeMedia?.note ??
-                "V1 keeps the viewer shell ready for richer STL, STEP, DXF, and media previews once live asset uploads are connected."}
-            </span>
+            <strong>{stageLabel}</strong>
+            <span>{stageNote}</span>
           </div>
         </div>
         {activeMedia ? (
@@ -182,12 +148,6 @@ export function ViewerShellClient({
             ))}
           </div>
         ) : null}
-        <div className="viewer-callouts">
-          {primaryDownload ? <span className="chip">Primary file: {primaryDownload.fileType}</span> : null}
-          {sourceFile ? <span className="chip">Source available</span> : null}
-          <span className="chip">Season tags: {part.seasons.join(", ")}</span>
-        </div>
-        <p>{part.viewerNote}</p>
       </section>
 
       {isLightboxOpen && activeMedia ? (
