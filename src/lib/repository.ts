@@ -10,6 +10,7 @@ import {
   creators as staticCreators,
   filterPartsList,
   filterParts as filterStaticParts,
+  sortPartsList,
   getCatalogStats as getStaticCatalogStats,
   getCategory as getStaticCategory,
   getCategorySummaries as getStaticCategorySummaries,
@@ -334,7 +335,7 @@ export async function filterPartsData(filters: SearchFilters) {
     return filterStaticParts(filters);
   }
 
-  return filterPartsList(state.parts, state.creators, filters);
+  return sortPartsList(filterPartsList(state.parts, state.creators, filters), filters.sort);
 }
 
 export async function getCategoryData(slug: string) {

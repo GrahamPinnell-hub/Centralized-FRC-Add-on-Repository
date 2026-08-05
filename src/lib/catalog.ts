@@ -70,9 +70,11 @@ export type SearchFilters = {
   q?: string;
   category?: string;
   vendor?: string;
+  creator?: string;
   season?: string;
   fileType?: string;
   material?: string;
+  sort?: "trending" | "latest" | "rating" | "downloads";
 };
 
 const categoryMeta = [
@@ -552,14 +554,50 @@ export function filterPartsList(
     const queryMatch = !query || haystack.includes(query);
     const categoryMatch = !filters.category || part.category === filters.category;
     const vendorMatch = !filters.vendor || part.vendors.includes(filters.vendor);
+    const creatorMatch = !filters.creator || part.creatorHandle === filters.creator;
     const seasonMatch = !filters.season || part.seasons.includes(filters.season);
     const materialMatch = !filters.material || part.materials.includes(filters.material);
     const fileTypeMatch = !filters.fileType || part.files.some((file) => file.fileType === filters.fileType);
 
-    return queryMatch && categoryMatch && vendorMatch && seasonMatch && materialMatch && fileTypeMatch;
+    return (
+      queryMatch &&
+      categoryMatch &&
+      vendorMatch &&
+      creatorMatch &&
+      seasonMatch &&
+      materialMatch &&
+      fileTypeMatch
+    );
   });
 }
 
+export function sortPartsList(
+  partList: CatalogPart[],
+  sort: SearchFilters["sort"] = "trending"
+) {
+  const next = [...partList];
+
+  switch (sort) {
+    case "latest":
+      return next.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+    case "rating":
+      return next.sort(
+        (a, b) => b.rating - a.rating || b.downloads - a.downloads || b.views - a.views
+      );
+    case "downloads":
+      return next.sort((a, b) => b.downloads - a.downloads || b.views - a.views);
+    case "trending":
+    default:
+      return next.sort(
+        (a, b) =>
+          Number(Boolean(b.validated)) - Number(Boolean(a.validated)) ||
+          b.downloads - a.downloads ||
+          b.views - a.views ||
+          b.rating - a.rating
+      );
+  }
+}
+
 export function filterParts(filters: SearchFilters) {
-  return filterPartsList(parts, creators, filters);
+  return sortPartsList(filterPartsList(parts, creators, filters), filters.sort);
 }

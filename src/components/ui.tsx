@@ -370,13 +370,21 @@ export function CategoryCard({
 
 export function FilterPanel({
   filters,
-  options
+  options,
+  creators
 }: {
   filters: SearchFilters;
   options: FilterOptions;
+  creators: Creator[];
 }) {
   return (
     <form className="panel filters" action="/parts">
+      <input type="hidden" name="sort" value={filters.sort ?? "trending"} />
+      <div className="page-stack">
+        <p className="eyebrow">Filter Stack</p>
+        <h3>Search like a builder</h3>
+        <p>Drill into vendors, teams, file types, and seasons without leaving the same browse lane.</p>
+      </div>
       <label>
         Search
         <input name="q" defaultValue={filters.q ?? ""} placeholder="mk4i swerve cover from team 31" />
@@ -399,6 +407,17 @@ export function FilterPanel({
           {options.vendors.map((vendor) => (
             <option key={vendor} value={vendor}>
               {vendor}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label>
+        Team
+        <select name="creator" defaultValue={filters.creator ?? ""}>
+          <option value="">All teams</option>
+          {creators.map((creator) => (
+            <option key={creator.handle} value={creator.handle}>
+              {creator.teamNumber} / {creator.teamName}
             </option>
           ))}
         </select>

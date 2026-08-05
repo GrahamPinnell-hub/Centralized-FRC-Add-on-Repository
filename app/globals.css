@@ -864,6 +864,103 @@ textarea {
   grid-template-columns: 290px minmax(0, 1fr);
 }
 
+.results-header-panel,
+.results-header-topline {
+  display: grid;
+  gap: 1rem;
+}
+
+.results-header-topline {
+  grid-template-columns: minmax(0, 1fr) 190px;
+  align-items: start;
+}
+
+.results-header-panel h2 {
+  margin: 0.28rem 0 0.35rem;
+  font-size: clamp(1.7rem, 2.2vw, 2.3rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.results-header-panel p {
+  margin: 0;
+}
+
+.results-count-card {
+  display: grid;
+  gap: 0.18rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(31, 33, 33, 0.34);
+  text-align: center;
+}
+
+.results-count-card strong {
+  color: #fff;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.results-count-card span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.results-sortbar,
+.results-active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  align-items: center;
+}
+
+.results-sort-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0.52rem 0.95rem;
+  border: 1px solid rgba(168, 176, 187, 0.22);
+  border-radius: 999px;
+  background: rgba(31, 33, 33, 0.2);
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.results-sort-pill:hover {
+  border-color: rgba(191, 144, 69, 0.42);
+  color: var(--text);
+}
+
+.results-sort-pill.is-active {
+  border-color: rgba(191, 144, 69, 0.54);
+  background: rgba(191, 144, 69, 0.1);
+  color: var(--accent-soft);
+}
+
+.results-filter-chip {
+  color: var(--text);
+}
+
+.results-filter-chip:hover {
+  border-color: rgba(191, 144, 69, 0.42);
+  color: var(--accent-soft);
+}
+
+.results-empty {
+  display: grid;
+  justify-items: start;
+  gap: 0.7rem;
+}
+
+.results-empty h3,
+.filters h3 {
+  margin: 0;
+}
+
 .panel {
   padding: 1rem;
 }
@@ -1784,6 +1881,10 @@ textarea {
   align-self: start;
 }
 
+.filters > .page-stack p {
+  margin: 0;
+}
+
 .filters label,
 .upload-form label {
   display: grid;
@@ -2450,6 +2551,10 @@ textarea {
     grid-template-columns: 1fr;
   }
 
+  .results-header-topline {
+    grid-template-columns: 1fr;
+  }
+
   .filters,
   .upload-preview-column {
     position: static;
@@ -2522,6 +2627,11 @@ textarea {
   .category-grid,
   .media-grid {
     grid-template-columns: 1fr;
+  }
+
+  .results-sortbar,
+  .results-active-filters {
+    gap: 0.5rem;
   }
 
   .media-card:first-child {
