@@ -1710,17 +1710,79 @@ textarea {
   font-weight: 600;
 }
 
-.upload-review-grid,
-.upload-review-stats {
+.upload-publish-shell {
   display: grid;
   gap: 1rem;
 }
 
-.upload-review-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.upload-publish-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(31, 33, 33, 0.32);
 }
 
-.upload-review-card {
+.upload-mode-toggle,
+.upload-publish-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.upload-mode-label {
+  color: rgba(227, 231, 236, 0.74);
+  font-size: 0.92rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.upload-mode-label.is-active {
+  color: #f07d42;
+}
+
+.upload-mode-switch {
+  min-height: 0;
+  width: 3.3rem;
+  padding: 0.18rem;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(220, 225, 231, 0.3);
+  justify-content: flex-start;
+  transition:
+    background 140ms ease,
+    transform 140ms ease;
+}
+
+.upload-mode-switch:hover {
+  background: rgba(220, 225, 231, 0.38);
+  transform: none;
+}
+
+.upload-mode-switch.is-published {
+  background: #f07d42;
+}
+
+.upload-mode-knob {
+  display: block;
+  width: 1.45rem;
+  height: 1.45rem;
+  border-radius: 999px;
+  background: #1f2121;
+  transition: transform 140ms ease;
+}
+
+.upload-mode-switch.is-published .upload-mode-knob {
+  transform: translateX(1.48rem);
+}
+
+.upload-publish-note {
   display: grid;
   gap: 0.85rem;
   padding: 1rem;
@@ -1729,28 +1791,16 @@ textarea {
   background: rgba(31, 33, 33, 0.24);
 }
 
-.upload-review-stats {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.upload-publish-note p {
+  margin: 0;
 }
 
-.upload-review-stat {
-  display: grid;
-  gap: 0.16rem;
-  padding: 0.85rem 0.9rem;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: rgba(31, 33, 33, 0.34);
+.upload-publish-note-publish {
+  border-color: rgba(191, 144, 69, 0.22);
 }
 
-.upload-review-stat strong {
-  color: #fff;
-}
-
-.upload-review-stat span {
-  color: var(--muted);
-  font-size: 0.82rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.upload-publish-actions-secondary {
+  justify-content: flex-start;
 }
 
 .upload-submission-meta {
@@ -1779,54 +1829,10 @@ textarea {
   color: var(--accent-soft);
 }
 
-.upload-manifest-panel {
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: rgba(31, 33, 33, 0.18);
-}
-
-.upload-manifest-panel summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  list-style: none;
-  padding: 0.95rem 1rem;
-  font-weight: 700;
-}
-
-.upload-manifest-panel summary::after {
-  content: "";
-  width: 0.65rem;
-  height: 0.65rem;
-  border-right: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
-  transform: rotate(45deg);
-  transition: transform 140ms ease;
-}
-
-.upload-manifest-panel summary::-webkit-details-marker {
-  display: none;
-}
-
-.upload-manifest-panel[open] summary {
-  border-bottom: 1px solid var(--line);
-}
-
-.upload-manifest-panel[open] summary::after {
-  transform: rotate(225deg);
-}
-
-.upload-manifest-code {
-  margin: 0;
-  padding: 1rem;
-  overflow: auto;
-  color: #d9dee4;
-  font-family: var(--font-mono), monospace;
-  font-size: 0.82rem;
-  line-height: 1.55;
-  white-space: pre-wrap;
-  word-break: break-word;
+.submission-status-draft {
+  border-color: rgba(168, 176, 187, 0.22);
+  background: rgba(220, 225, 231, 0.06);
+  color: #d8dde3;
 }
 
 .card-subline {
@@ -2901,9 +2907,15 @@ textarea {
     grid-template-columns: 1fr;
   }
 
-  .upload-review-grid,
-  .upload-review-stats {
-    grid-template-columns: 1fr;
+  .upload-publish-bar,
+  .upload-mode-toggle,
+  .upload-publish-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .upload-mode-toggle {
+    align-items: center;
   }
 
   .upload-owner-bar,

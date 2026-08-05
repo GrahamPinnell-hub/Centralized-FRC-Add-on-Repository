@@ -374,6 +374,7 @@ export function UploadBuilderClient({
   const [isDraggingFiles, setIsDraggingFiles] = useState(false);
   const [isDraggingMedia, setIsDraggingMedia] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [publishMode, setPublishMode] = useState<"draft" | "publish">("draft");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const mediaInputRef = useRef<HTMLInputElement | null>(null);
   const objectUrlsRef = useRef<string[]>([]);
@@ -563,6 +564,7 @@ export function UploadBuilderClient({
     [submissionManifest]
   );
   const submissionManifestFilename = `${previewPart.slug || "frc-addon"}-submission.json`;
+  const isPublishMode = publishMode === "publish";
 
   function normalizeOwnerHandle(handle: string) {
     return ownerChoices.some((owner) => owner.handle === handle)
@@ -764,6 +766,10 @@ export function UploadBuilderClient({
     setSaveMessage(
       "Folder upload stays mocked for V1. Later this button will keep nested print packages together like Printables."
     );
+  }
+
+  function togglePublishMode() {
+    setPublishMode((current) => (current === "draft" ? "publish" : "draft"));
   }
 
   function downloadSubmissionManifest() {
@@ -1113,87 +1119,76 @@ export function UploadBuilderClient({
         <section className="panel upload-step-panel">
           <div className="upload-step-head">
             <p className="eyebrow">Step 5</p>
-            <h3>Review and submission package</h3>
+            <h3>Draft or publish</h3>
           </div>
-          <div className="upload-review-grid">
-            <section className="upload-review-card">
-              <div className="upload-slot-head">
-                <strong>Submission review</strong>
-                <span className="submission-status submission-status-pending">Pending review</span>
+          <div className="upload-publish-shell">
+            <div className="upload-publish-bar">
+              <div className="upload-mode-toggle">
+                <span className={`upload-mode-label${!isPublishMode ? " is-active" : ""}`}>Draft</span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={isPublishMode}
+                  aria-label={isPublishMode ? "Switch to draft mode" : "Switch to published mode"}
+                  className={`upload-mode-switch${isPublishMode ? " is-published" : ""}`}
+                  onClick={togglePublishMode}
+                >
+                  <span className="upload-mode-knob" />
+                </button>
+                <span className={`upload-mode-label${isPublishMode ? " is-active" : ""}`}>
+                  Published
+                </span>
               </div>
-              <div className="upload-review-stats">
-                <div className="upload-review-stat">
-                  <strong>{ownerLabel}</strong>
-                  <span>owner</span>
-                </div>
-                <div className="upload-review-stat">
-                  <strong>{previewPart.categoryLabel}</strong>
-                  <span>category</span>
-                </div>
-                <div className="upload-review-stat">
-                  <strong>{previewPart.files.length}</strong>
-                  <span>files</span>
-                </div>
-                <div className="upload-review-stat">
-                  <strong>{previewPart.media.length}</strong>
-                  <span>media</span>
-                </div>
-              </div>
-              <div className="chip-row">
-                {previewPart.products.map((product) => (
-                  <span key={product} className="chip">
-                    {product}
-                  </span>
-                ))}
-                {previewPart.vendors.map((vendor) => (
-                  <span key={vendor} className="chip">
-                    {vendor}
-                  </span>
-                ))}
-                <span className="chip chip-accent">{previewPart.license}</span>
-              </div>
-              <p className="muted">
-                Static Pages mode packages this listing as a structured manifest so it can move
-                through GitHub review before becoming a published repository entry.
-              </p>
-            </section>
 
-            <section className="upload-review-card">
-              <strong>Submission package</strong>
-              <div className="upload-submission-meta">
-                <span className="chip chip-accent">{submissionManifestFilename}</span>
-                <span className="chip">{submissionRepo}</span>
+              <div className="upload-publish-actions">
+                {isPublishMode ? (
+                  <>
+                    <button type="button" className="action-link" onClick={copyManifestJson}>
+                      Copy manifest JSON
+                    </button>
+                    <button type="button" onClick={downloadSubmissionManifest}>
+                      Download manifest
+                    </button>
+                  </>
+                ) : (
+                  <button type="button" onClick={saveDraft}>
+                    Save draft
+                  </button>
+                )}
               </div>
-              <ul className="detail-list">
-                <li>Download the manifest JSON package for this listing.</li>
-                <li>Open a GitHub issue draft tied to the repository handoff lane.</li>
-                <li>Paste or attach the manifest so the listing can move into review.</li>
-              </ul>
-            </section>
+            </div>
+
+            {isPublishMode ? (
+              <div className="upload-publish-note upload-publish-note-publish">
+                <div className="upload-submission-meta">
+                  <span className="submission-status submission-status-pending">Pending review</span>
+                  <span className="chip chip-accent">{submissionManifestFilename}</span>
+                  <span className="chip">{submissionRepo}</span>
+                </div>
+                <p className="muted">
+                  Published mode prepares the GitHub handoff package for this listing. Download the
+                  manifest, then open the issue draft when you are ready to submit it.
+                </p>
+                <div className="upload-publish-actions upload-publish-actions-secondary">
+                  <button type="button" className="action-link" onClick={openSubmissionIssueDraft}>
+                    Open GitHub issue
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="upload-publish-note">
+                <div className="upload-submission-meta">
+                  <span className="submission-status submission-status-draft">Draft mode</span>
+                  <span className="chip">{ownerLabel}</span>
+                  <span className="chip">{previewPart.categoryLabel}</span>
+                </div>
+                <p className="muted">
+                  Keep the listing in draft while you finish files, photos, and notes. Switch to
+                  published when you want the manifest and GitHub handoff tools.
+                </p>
+              </div>
+            )}
           </div>
-
-          <div className="filter-actions">
-            <button type="button" onClick={saveDraft}>
-              Save draft
-            </button>
-            <button type="button" onClick={downloadSubmissionManifest}>
-              Download manifest
-            </button>
-            <button type="button" className="action-link" onClick={copyManifestJson}>
-              Copy manifest JSON
-            </button>
-            <button type="button" className="action-link" onClick={openSubmissionIssueDraft}>
-              Open GitHub issue
-            </button>
-          </div>
-
-          <details className="upload-manifest-panel">
-            <summary>
-              <span>Preview submission manifest</span>
-            </summary>
-            <pre className="upload-manifest-code">{submissionManifestJson}</pre>
-          </details>
-
           {saveMessage ? <p className="upload-inline-note">{saveMessage}</p> : null}
         </section>
       </div>
@@ -1206,8 +1201,14 @@ export function UploadBuilderClient({
           </div>
           <PartCard part={previewPart} />
           <div className="upload-submission-meta">
-            <span className="submission-status submission-status-pending">Pending review</span>
-            <span className="chip">{submissionManifestFilename}</span>
+            <span
+              className={`submission-status${
+                isPublishMode ? " submission-status-pending" : " submission-status-draft"
+              }`}
+            >
+              {isPublishMode ? "Publish mode" : "Draft mode"}
+            </span>
+            {isPublishMode ? <span className="chip">{submissionManifestFilename}</span> : null}
           </div>
           <div className="upload-preview-meta">
             <div className="detail-stat-block">
@@ -1251,22 +1252,6 @@ export function UploadBuilderClient({
             {previewPart.installNotes.map((note) => (
               <li key={note}>{note}</li>
             ))}
-          </ul>
-        </section>
-
-        <section className="panel upload-preview-panel">
-          <div className="upload-step-head">
-            <p className="eyebrow">Submission</p>
-            <h3>Repository handoff</h3>
-          </div>
-          <div className="upload-submission-meta">
-            <span className="chip chip-accent">{submissionRepo}</span>
-            <span className="chip">{submissionManifestFilename}</span>
-          </div>
-          <ul className="detail-list">
-            <li>Manifest status stays pending until the GitHub handoff is reviewed.</li>
-            <li>Use the downloaded package to preserve tags, files, media, notes, and ownership.</li>
-            <li>Later this same manifest can post directly into Prisma-backed storage.</li>
           </ul>
         </section>
 
