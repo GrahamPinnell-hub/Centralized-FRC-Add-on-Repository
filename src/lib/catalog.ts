@@ -140,10 +140,33 @@ export const creators: Creator[] = [
   }
 ];
 
+const exampleImages = {
+  swerveCover: {
+    title: "Mk4 Swerve Cover",
+    src: "/example-images/mk4-swerve-cover.png"
+  },
+  cameraMount: {
+    title: "FRC Camera Mount",
+    src: "/example-images/frc-camera-mount.png"
+  },
+  radioRslMount: {
+    title: "FRC Radio and RSL Mount",
+    src: "/example-images/frc-radio-and-rsl-mount.png"
+  },
+  pulleyGenerator: {
+    title: "Pulley generator with hex hole and hub holes support (useful in FRC)",
+    src: "/example-images/pulley-generator-support.png"
+  },
+  intakeWheels: {
+    title: "Vectored Intake Wheels for FRC",
+    src: "/example-images/vectored-intake-wheels-for-frc.png"
+  }
+} as const;
+
 export const parts: CatalogPart[] = [
   {
     slug: "team-31-mk4i-wire-cover",
-    title: "MK4i Swerve Wire Cover",
+    title: exampleImages.swerveCover.title,
     summary: "A snap-on cover for SDS MK4i modules that shields motor and encoder leads without blocking fast maintenance access.",
     category: "swerve-covers",
     categoryLabel: "Swerve Covers",
@@ -170,24 +193,10 @@ export const parts: CatalogPart[] = [
     media: [
       {
         kind: "image",
-        title: "Installed on a module",
-        note: "Shows cable path clearance around the top plate and wheel guard.",
+        title: exampleImages.swerveCover.title,
+        note: "Example listing photo for the installed wire cover and its clearance around the module hardware.",
         accent: "#f97316",
-        src: "https://images.unsplash.com/photo-1741517669003-94a4cb80f793?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000"
-      },
-      {
-        kind: "image",
-        title: "Pit service angle",
-        note: "Demonstrates how the cover can be removed without disturbing the module.",
-        accent: "#14b8a6",
-        src: "https://images.unsplash.com/photo-1756723902363-25de2ac0ffae?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000"
-      },
-      {
-        kind: "video",
-        title: "Quick install clip",
-        note: "Thirty-second install video placeholder for the listing page.",
-        accent: "#22c55e",
-        src: "https://images.unsplash.com/photo-1756723902363-25de2ac0ffae?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000"
+        src: exampleImages.swerveCover.src
       }
     ],
     versions: [
@@ -213,8 +222,8 @@ export const parts: CatalogPart[] = [
   },
   {
     slug: "limelight-4-universal-mount",
-    title: "Limelight 4 Universal Mount",
-    summary: "An angled front-rail mount for Limelight 4 with slotted adjustment for quick camera swaps and shooter tuning.",
+    title: exampleImages.cameraMount.title,
+    summary: "An adjustable robot camera bracket example showing a compact FRC vision mount with simple rail-side hardware.",
     category: "vision-mounts",
     categoryLabel: "Vision Mounts",
     subsystem: "Vision",
@@ -239,17 +248,10 @@ export const parts: CatalogPart[] = [
     media: [
       {
         kind: "image",
-        title: "Mount at intake edge",
-        note: "A front rail camera placement intended for wide field-of-view use.",
+        title: exampleImages.cameraMount.title,
+        note: "Example mounted camera photo used for the vision mount listing card and detail page.",
         accent: "#0f766e",
-        src: "https://images.unsplash.com/photo-1776294435314-53c9dcdedf6a?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000"
-      },
-      {
-        kind: "image",
-        title: "Slot adjustment detail",
-        note: "Shows the angle slot and screw capture geometry.",
-        accent: "#f59e0b",
-        src: "https://images.unsplash.com/photo-1776294435314-53c9dcdedf6a?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000"
+        src: exampleImages.cameraMount.src
       }
     ],
     versions: [
@@ -273,8 +275,8 @@ export const parts: CatalogPart[] = [
   },
   {
     slug: "radio-pdh-sheet-metal-tray",
-    title: "Radio + PDH Sheet Metal Tray",
-    summary: "A bent-sheet electronics tray sized for radio, PDH, and CANivore packaging on a compact bellypan without a separate printed bracket stack.",
+    title: exampleImages.radioRslMount.title,
+    summary: "A compact electronics bracket example that keeps a robot radio and status light in one clean, serviceable mount.",
     category: "electronics-mounts",
     categoryLabel: "Electronics Mounts",
     subsystem: "Electrical",
@@ -299,17 +301,10 @@ export const parts: CatalogPart[] = [
     media: [
       {
         kind: "image",
-        title: "Flat pattern overview",
-        note: "Tab structure and bend callouts are placed for easy sponsor communication.",
+        title: exampleImages.radioRslMount.title,
+        note: "Example mounted electronics photo used in place of the old stock sheet-metal art.",
         accent: "#38bdf8",
-        src: "https://images.unsplash.com/photo-1740209475472-aa7d280f7452?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000"
-      },
-      {
-        kind: "image",
-        title: "Installed tray",
-        note: "Shows compact electronics packaging with service loops and radio airflow.",
-        accent: "#0ea5e9",
-        src: "https://images.unsplash.com/photo-1650530415027-dc9199f473ec?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000"
+        src: exampleImages.radioRslMount.src
       }
     ],
     versions: [
@@ -325,18 +320,18 @@ export const parts: CatalogPart[] = [
   },
   {
     slug: "battery-retainer-pull-tab",
-    title: "Battery Retainer With Pull Tab",
-    summary: "A simple battery retainer and quick-pull tab combo that keeps batteries planted while making swap speed more consistent in the pit.",
+    title: exampleImages.pulleyGenerator.title,
+    summary: "An example drivetrain utility listing showing a configurable pulley generator concept for quick FRC mechanism iteration.",
     category: "battery-hardware",
     categoryLabel: "Battery Hardware",
     subsystem: "Electrical",
     creatorHandle: "team-5940",
     featured: false,
     materials: ["PETG", "Nylon"],
-    vendors: ["AndyMark"],
-    products: ["FRC Battery"],
+    vendors: ["WCP"],
+    products: ["Pulley Generator"],
     seasons: ["2025", "2026", "General"],
-    tags: ["battery", "retainer", "pit workflow"],
+    tags: ["pulley", "hex bore", "mechanism", "generator"],
     license: "MIT",
     rating: 4.7,
     views: 907,
@@ -350,17 +345,10 @@ export const parts: CatalogPart[] = [
     media: [
       {
         kind: "image",
-        title: "Battery in frame",
-        note: "Shows how the pull tab remains reachable with bumper brackets nearby.",
+        title: exampleImages.pulleyGenerator.title,
+        note: "Example mechanism screenshot used as the sample image for the pulley-generator listing.",
         accent: "#f43f5e",
-        src: "https://images.unsplash.com/photo-1741517669003-94a4cb80f793?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000"
-      },
-      {
-        kind: "video",
-        title: "Swap sequence",
-        note: "Short clip placeholder showing the battery removal motion.",
-        accent: "#fb7185",
-        src: "https://images.unsplash.com/photo-1650530415027-dc9199f473ec?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000"
+        src: exampleImages.pulleyGenerator.src
       }
     ],
     versions: [
@@ -384,18 +372,18 @@ export const parts: CatalogPart[] = [
   },
   {
     slug: "driver-station-cable-tray",
-    title: "Driver Station Cable Tray",
-    summary: "A low-profile tray for joystick cables, battery leads, and labels that keeps the front edge of the driver station from becoming a cable pile.",
+    title: exampleImages.intakeWheels.title,
+    summary: "An example intake-wheel listing showing a vectored roller concept teams can reuse when prototyping FRC intakes.",
     category: "driver-station",
     categoryLabel: "Driver Station",
     subsystem: "Driver Station",
     creatorHandle: "team-5940",
     featured: false,
     materials: ["PLA+", "PETG"],
-    vendors: ["Logitech"],
-    products: ["Joystick", "USB Hub"],
+    vendors: ["AndyMark"],
+    products: ["Intake Wheels"],
     seasons: ["General"],
-    tags: ["driver station", "cable management", "labels"],
+    tags: ["intake", "wheels", "roller", "vectored"],
     license: "CC BY-NC-SA 4.0",
     rating: 4.8,
     views: 1384,
@@ -410,17 +398,10 @@ export const parts: CatalogPart[] = [
     media: [
       {
         kind: "image",
-        title: "Cable lanes",
-        note: "Shows dedicated routing lanes for USB and charge leads.",
+        title: exampleImages.intakeWheels.title,
+        note: "Example product image used for the sample intake-wheel listing.",
         accent: "#8b5cf6",
-        src: "https://images.unsplash.com/photo-1775457480933-a9ca6953ef69?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000"
-      },
-      {
-        kind: "image",
-        title: "Driver station view",
-        note: "Demonstrates a cleaner front edge during match setup.",
-        accent: "#6366f1",
-        src: "https://images.unsplash.com/photo-1756723902363-25de2ac0ffae?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000"
+        src: exampleImages.intakeWheels.src
       }
     ],
     versions: [

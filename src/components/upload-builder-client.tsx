@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  type CSSProperties,
   type ChangeEvent,
   type DragEvent,
   useEffect,
@@ -158,9 +159,9 @@ const defaultFiles: DraftFile[] = [
 const defaultMedia: DraftMedia[] = [
   {
     kind: "image",
-    title: "Installed photo",
+    title: "Mk4 Swerve Cover",
     note: "Show the part mounted on the robot if possible.",
-    src: "https://images.unsplash.com/photo-1741517669003-94a4cb80f793?auto=format&fit=crop&fm=jpg&ixlib=rb-4.1.0&q=60&w=1600"
+    src: "/example-images/mk4-swerve-cover.png"
   }
 ];
 
@@ -262,6 +263,16 @@ function formatBytes(size: number) {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function mediaFrameStyle(src: string | undefined): CSSProperties | undefined {
+  if (!src) {
+    return undefined;
+  }
+
+  return {
+    ["--media-image" as string]: `url("${src.replace(/"/g, '\\"')}")`
+  };
+}
+
 function toDraftFile(file: File): DraftFile {
   const fileType = inferFileType(file.name);
 
@@ -347,7 +358,7 @@ export function UploadBuilderClient({
   }, [parts]);
 
   const [ownerHandle, setOwnerHandle] = useState(ownerChoices[0]?.handle ?? "graham-pinnell");
-  const [title, setTitle] = useState("MK4i Swerve Wire Cover");
+  const [title, setTitle] = useState("Mk4 Swerve Cover");
   const [summary, setSummary] = useState(
     "A quick-swap cover that protects wires and encoder routing without slowing down module service."
   );
@@ -1027,7 +1038,7 @@ export function UploadBuilderClient({
                     x
                   </button>
                   <span className={`chip${item.kind === "video" ? " chip-accent" : ""}`}>{item.kind}</span>
-                  <div className="upload-photo-frame">
+                  <div className="upload-photo-frame" style={mediaFrameStyle(item.src)}>
                     {item.src ? (
                       item.kind === "video" ? (
                         <video src={item.src} muted playsInline />

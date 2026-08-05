@@ -62,6 +62,16 @@ function previewStyle(key: string): CSSProperties {
   };
 }
 
+function mediaFrameStyle(src?: string): CSSProperties | undefined {
+  if (!src) {
+    return undefined;
+  }
+
+  return {
+    ["--media-image" as string]: `url("${src.replace(/"/g, '\\"')}")`
+  };
+}
+
 function creatorLabel(handle: string) {
   if (handle.startsWith("team-")) {
     return handle.replace("team-", "Team ");
@@ -290,7 +300,7 @@ export function PartCard({ part }: { part: CatalogPart }) {
       <Link href={`/parts/${part.slug}`} className="card-media">
         <div className={`card-preview${leadMedia ? " has-media" : ""}`}>
           {leadMedia?.src ? (
-            <div className="card-preview-image" aria-hidden="true">
+            <div className="card-preview-image" aria-hidden="true" style={mediaFrameStyle(leadMedia.src)}>
               <img src={leadMedia.src} alt="" loading="lazy" />
             </div>
           ) : null}
@@ -500,7 +510,7 @@ export function ViewerShell({ part }: { part: CatalogPart }) {
           <span className="chip">{part.subsystem}</span>
         </div>
         {leadMedia?.src ? (
-          <div className="viewer-stage-image" aria-hidden="true">
+          <div className="viewer-stage-image" aria-hidden="true" style={mediaFrameStyle(leadMedia.src)}>
             <img src={leadMedia.src} alt="" loading="lazy" />
           </div>
         ) : null}
@@ -521,7 +531,11 @@ export function ViewerShell({ part }: { part: CatalogPart }) {
           {galleryPreview.map((item) => (
             <article key={`${part.slug}-${item.title}`} className="viewer-thumb">
               <div className="viewer-thumb-media">
-                {item.src ? <img src={item.src} alt={item.title} loading="lazy" /> : null}
+                {item.src ? (
+                  <div className="viewer-thumb-media-image" style={mediaFrameStyle(item.src)}>
+                    <img src={item.src} alt={item.title} loading="lazy" />
+                  </div>
+                ) : null}
                 <span className="viewer-thumb-kind">{item.kind === "video" ? "Video" : "Photo"}</span>
               </div>
               <strong>{item.title}</strong>
@@ -590,7 +604,11 @@ export function MediaGallery({ part }: { part: CatalogPart }) {
             }}
           >
             <div className={`media-poster${item.src ? " has-media" : ""}`}>
-              {item.src ? <img src={item.src} alt={item.title} loading="lazy" /> : null}
+              {item.src ? (
+                <div className="media-poster-image" style={mediaFrameStyle(item.src)}>
+                  <img src={item.src} alt={item.title} loading="lazy" />
+                </div>
+              ) : null}
               <span className="media-kind-badge">{item.kind === "video" ? "Video" : "Photo"}</span>
               <span className="media-slot-note">{item.kind === "video" ? "Install clip" : "Installed view"}</span>
             </div>
