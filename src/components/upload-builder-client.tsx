@@ -80,7 +80,59 @@ type OwnerChoice = {
   badge: string;
 };
 
+type SubmissionManifest = {
+  manifestVersion: "frc-addon-submission-v1";
+  generatedAt: string;
+  reviewStatus: "PENDING_REVIEW";
+  workflow: "github-pages-static-submission";
+  repository: {
+    target: string;
+    issueDraftUrl: string;
+  };
+  owner: {
+    type: "PERSONAL" | "TEAM";
+    handle: string;
+    label: string;
+  };
+  listing: {
+    slug: string;
+    title: string;
+    summary: string;
+    category: string;
+    categoryLabel: string;
+    subsystem: string;
+    license: string;
+    tags: string[];
+    vendors: string[];
+    products: string[];
+    seasons: string[];
+    materials: string[];
+    installNotes: string[];
+    printAndFabricationNotes: string;
+    fileCount: number;
+    mediaCount: number;
+    routeHint: string;
+  };
+  files: Array<{
+    label: string;
+    fileType: CatalogFile["fileType"];
+    note: string;
+    sourceUrl: string | null;
+  }>;
+  localUploads: {
+    files: StagedUpload[];
+    media: StagedMediaUpload[];
+  };
+  media: Array<{
+    title: string;
+    kind: DraftMedia["kind"];
+    note: string;
+    sourceUrl: string | null;
+  }>;
+};
+
 const draftsStorageKey = "frc-addon-upload-drafts-v2";
+const submissionRepo = "GrahamPinnell-hub/Centralized-FRC-Add-on-Repository";
 
 const defaultFiles: DraftFile[] = [
   {
@@ -412,6 +464,105 @@ export function UploadBuilderClient({
   ]);
 
   const activeOwner = ownerChoices.find((owner) => owner.handle === ownerHandle) ?? ownerChoices[0];
+  const ownerLabel =
+    activeOwner?.badge === "Personal"
+      ? "Personal"
+      : (activeOwner?.title ?? formatOwnerLabel(ownerHandle));
+  const submissionIssueTitle = `[Submission] ${previewPart.title || "Untitled FRC Add-on"}`;
+  const submissionIssueBody = [
+    "## Listing summary",
+    `- Title: ${previewPart.title}`,
+    `- Owner: ${ownerLabel}`,
+    `- Category: ${previewPart.categoryLabel}`,
+    `- Subsystem: ${previewPart.subsystem}`,
+    `- Vendors: ${previewPart.vendors.join(", ") || "None listed"}`,
+    `- Products: ${previewPart.products.join(", ") || "None listed"}`,
+    `- Seasons: ${previewPart.seasons.join(", ") || "None listed"}`,
+    `- Materials: ${previewPart.materials.join(", ") || "None listed"}`,
+    `- License: ${previewPart.license}`,
+    `- Files: ${previewPart.files.length}`,
+    `- Media: ${previewPart.media.length}`,
+    "",
+    "## Install notes",
+    ...previewPart.installNotes.map((note) => `- ${note}`),
+    "",
+    "## Handoff",
+    "- Download the generated submission manifest from the upload page.",
+    "- Attach it to this issue or paste the copied manifest JSON below.",
+    "",
+    "## Manifest JSON",
+    "```json",
+    "{}",
+    "```"
+  ].join("\n");
+  const submissionIssueUrl = `https://github.com/${submissionRepo}/issues/new?title=${encodeURIComponent(submissionIssueTitle)}&body=${encodeURIComponent(submissionIssueBody)}`;
+  const submissionManifest = useMemo<SubmissionManifest>(
+    () => ({
+      manifestVersion: "frc-addon-submission-v1",
+      generatedAt: new Date().toISOString(),
+      reviewStatus: "PENDING_REVIEW",
+      workflow: "github-pages-static-submission",
+      repository: {
+        target: submissionRepo,
+        issueDraftUrl: submissionIssueUrl
+      },
+      owner: {
+        type: activeOwner?.badge === "Team" ? "TEAM" : "PERSONAL",
+        handle: ownerHandle,
+        label: ownerLabel
+      },
+      listing: {
+        slug: previewPart.slug,
+        title: previewPart.title,
+        summary: previewPart.summary,
+        category: previewPart.category,
+        categoryLabel: previewPart.categoryLabel,
+        subsystem: previewPart.subsystem,
+        license: previewPart.license,
+        tags: previewPart.tags,
+        vendors: previewPart.vendors,
+        products: previewPart.products,
+        seasons: previewPart.seasons,
+        materials: previewPart.materials,
+        installNotes: previewPart.installNotes,
+        printAndFabricationNotes: printNotes,
+        fileCount: previewPart.files.length,
+        mediaCount: previewPart.media.length,
+        routeHint: `/parts/${previewPart.slug}`
+      },
+      files: previewPart.files.map((file) => ({
+        label: file.label,
+        fileType: file.fileType,
+        note: file.note,
+        sourceUrl: file.href !== "#" ? file.href : null
+      })),
+      localUploads: {
+        files: stagedUploads,
+        media: stagedMediaUploads
+      },
+      media: previewPart.media.map((item) => ({
+        title: item.title,
+        kind: item.kind,
+        note: item.note,
+        sourceUrl: item.src?.startsWith("blob:") ? null : (item.src ?? null)
+      }))
+    }),
+    [
+      activeOwner?.badge,
+      ownerHandle,
+      ownerLabel,
+      previewPart,
+      printNotes,
+      stagedMediaUploads,
+      stagedUploads,
+      submissionIssueUrl
+    ]
+  );
+  const submissionManifestJson = useMemo(
+    () => JSON.stringify(submissionManifest, null, 2),
+    [submissionManifest]
+  );
+  const submissionManifestFilename = `${previewPart.slug || "frc-addon"}-submission.json`;
 
   function normalizeOwnerHandle(handle: string) {
     return ownerChoices.some((owner) => owner.handle === handle)
@@ -615,6 +766,31 @@ export function UploadBuilderClient({
     );
   }
 
+  function downloadSubmissionManifest() {
+    const blob = new Blob([submissionManifestJson], { type: "application/json" });
+    const href = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = href;
+    anchor.download = submissionManifestFilename;
+    anchor.click();
+    URL.revokeObjectURL(href);
+    setSaveMessage(`Downloaded ${submissionManifestFilename}.`);
+  }
+
+  async function copyManifestJson() {
+    try {
+      await navigator.clipboard.writeText(submissionManifestJson);
+      setSaveMessage("Submission manifest JSON copied to the clipboard.");
+    } catch {
+      setSaveMessage("Clipboard access failed. Download the manifest JSON instead.");
+    }
+  }
+
+  function openSubmissionIssueDraft() {
+    window.open(submissionIssueUrl, "_blank", "noopener,noreferrer");
+    setSaveMessage("Opened a GitHub issue draft for this submission.");
+  }
+
   return (
     <div className="upload-workbench">
       <div className="page-stack">
@@ -808,7 +984,7 @@ export function UploadBuilderClient({
                     aria-label={`Remove ${item.title || `media ${index + 1}`}`}
                     onClick={() => removeMedia(index)}
                   >
-                    ×
+                    x
                   </button>
                   <span className={`chip${item.kind === "video" ? " chip-accent" : ""}`}>{item.kind}</span>
                   <div className="upload-photo-frame">
@@ -836,7 +1012,7 @@ export function UploadBuilderClient({
               <div className="upload-upload-summary">
                 {stagedMediaUploads.map((upload, index) => (
                   <span key={`${upload.name}-${index}`} className={`chip${upload.kind === "video" ? " chip-accent" : ""}`}>
-                    {upload.name} · {upload.sizeLabel}
+                    {upload.name} - {upload.sizeLabel}
                   </span>
                 ))}
               </div>
@@ -913,7 +1089,7 @@ export function UploadBuilderClient({
               <div className="upload-upload-summary">
                 {stagedUploads.map((upload, index) => (
                   <span key={`${upload.name}-${index}`} className="chip">
-                    {upload.name} · {upload.sizeLabel}
+                    {upload.name} - {upload.sizeLabel}
                   </span>
                 ))}
               </div>
@@ -924,28 +1100,101 @@ export function UploadBuilderClient({
         <section className="panel upload-step-panel">
           <div className="upload-step-head">
             <p className="eyebrow">Step 4</p>
-            <h3>Install notes and publish</h3>
+            <h3>Install notes</h3>
           </div>
           <form className="upload-form">
             <label>
               Installation notes
               <textarea value={installNotes} onChange={(event) => setInstallNotes(event.target.value)} />
             </label>
-            <div className="filter-actions">
-              <button type="button" onClick={saveDraft}>
-                Save draft
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  setSaveMessage("Publish flow stays mocked until live storage, accounts, and team access are connected.")
-                }
-              >
-                Publish now
-              </button>
-            </div>
-            {saveMessage ? <p className="upload-inline-note">{saveMessage}</p> : null}
           </form>
+        </section>
+
+        <section className="panel upload-step-panel">
+          <div className="upload-step-head">
+            <p className="eyebrow">Step 5</p>
+            <h3>Review and submission package</h3>
+          </div>
+          <div className="upload-review-grid">
+            <section className="upload-review-card">
+              <div className="upload-slot-head">
+                <strong>Submission review</strong>
+                <span className="submission-status submission-status-pending">Pending review</span>
+              </div>
+              <div className="upload-review-stats">
+                <div className="upload-review-stat">
+                  <strong>{ownerLabel}</strong>
+                  <span>owner</span>
+                </div>
+                <div className="upload-review-stat">
+                  <strong>{previewPart.categoryLabel}</strong>
+                  <span>category</span>
+                </div>
+                <div className="upload-review-stat">
+                  <strong>{previewPart.files.length}</strong>
+                  <span>files</span>
+                </div>
+                <div className="upload-review-stat">
+                  <strong>{previewPart.media.length}</strong>
+                  <span>media</span>
+                </div>
+              </div>
+              <div className="chip-row">
+                {previewPart.products.map((product) => (
+                  <span key={product} className="chip">
+                    {product}
+                  </span>
+                ))}
+                {previewPart.vendors.map((vendor) => (
+                  <span key={vendor} className="chip">
+                    {vendor}
+                  </span>
+                ))}
+                <span className="chip chip-accent">{previewPart.license}</span>
+              </div>
+              <p className="muted">
+                Static Pages mode packages this listing as a structured manifest so it can move
+                through GitHub review before becoming a published repository entry.
+              </p>
+            </section>
+
+            <section className="upload-review-card">
+              <strong>Submission package</strong>
+              <div className="upload-submission-meta">
+                <span className="chip chip-accent">{submissionManifestFilename}</span>
+                <span className="chip">{submissionRepo}</span>
+              </div>
+              <ul className="detail-list">
+                <li>Download the manifest JSON package for this listing.</li>
+                <li>Open a GitHub issue draft tied to the repository handoff lane.</li>
+                <li>Paste or attach the manifest so the listing can move into review.</li>
+              </ul>
+            </section>
+          </div>
+
+          <div className="filter-actions">
+            <button type="button" onClick={saveDraft}>
+              Save draft
+            </button>
+            <button type="button" onClick={downloadSubmissionManifest}>
+              Download manifest
+            </button>
+            <button type="button" className="action-link" onClick={copyManifestJson}>
+              Copy manifest JSON
+            </button>
+            <button type="button" className="action-link" onClick={openSubmissionIssueDraft}>
+              Open GitHub issue
+            </button>
+          </div>
+
+          <details className="upload-manifest-panel">
+            <summary>
+              <span>Preview submission manifest</span>
+            </summary>
+            <pre className="upload-manifest-code">{submissionManifestJson}</pre>
+          </details>
+
+          {saveMessage ? <p className="upload-inline-note">{saveMessage}</p> : null}
         </section>
       </div>
 
@@ -956,6 +1205,10 @@ export function UploadBuilderClient({
             <h3>Card and listing summary</h3>
           </div>
           <PartCard part={previewPart} />
+          <div className="upload-submission-meta">
+            <span className="submission-status submission-status-pending">Pending review</span>
+            <span className="chip">{submissionManifestFilename}</span>
+          </div>
           <div className="upload-preview-meta">
             <div className="detail-stat-block">
               <strong>{activeOwner?.badge ?? "Profile"}</strong>
@@ -998,6 +1251,22 @@ export function UploadBuilderClient({
             {previewPart.installNotes.map((note) => (
               <li key={note}>{note}</li>
             ))}
+          </ul>
+        </section>
+
+        <section className="panel upload-preview-panel">
+          <div className="upload-step-head">
+            <p className="eyebrow">Submission</p>
+            <h3>Repository handoff</h3>
+          </div>
+          <div className="upload-submission-meta">
+            <span className="chip chip-accent">{submissionRepo}</span>
+            <span className="chip">{submissionManifestFilename}</span>
+          </div>
+          <ul className="detail-list">
+            <li>Manifest status stays pending until the GitHub handoff is reviewed.</li>
+            <li>Use the downloaded package to preserve tags, files, media, notes, and ownership.</li>
+            <li>Later this same manifest can post directly into Prisma-backed storage.</li>
           </ul>
         </section>
 
