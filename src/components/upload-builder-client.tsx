@@ -82,59 +82,7 @@ type OwnerChoice = {
   badge: string;
 };
 
-type SubmissionManifest = {
-  manifestVersion: "frc-addon-submission-v1";
-  generatedAt: string;
-  reviewStatus: "PENDING_REVIEW";
-  workflow: "github-pages-static-submission";
-  repository: {
-    target: string;
-    issueDraftUrl: string;
-  };
-  owner: {
-    type: "PERSONAL" | "TEAM";
-    handle: string;
-    label: string;
-  };
-  listing: {
-    slug: string;
-    title: string;
-    summary: string;
-    category: string;
-    categoryLabel: string;
-    subsystem: string;
-    license: string;
-    tags: string[];
-    vendors: string[];
-    products: string[];
-    seasons: string[];
-    materials: string[];
-    installNotes: string[];
-    printAndFabricationNotes: string;
-    fileCount: number;
-    mediaCount: number;
-    routeHint: string;
-  };
-  files: Array<{
-    label: string;
-    fileType: CatalogFile["fileType"];
-    note: string;
-    sourceUrl: string | null;
-  }>;
-  localUploads: {
-    files: StagedUpload[];
-    media: StagedMediaUpload[];
-  };
-  media: Array<{
-    title: string;
-    kind: DraftMedia["kind"];
-    note: string;
-    sourceUrl: string | null;
-  }>;
-};
-
 const draftsStorageKey = "frc-addon-upload-drafts-v2";
-const submissionRepo = "GrahamPinnell-hub/Centralized-FRC-Add-on-Repository";
 
 const defaultFiles: DraftFile[] = [
   {
@@ -327,13 +275,13 @@ export function UploadBuilderClient({
         {
           handle: "graham-pinnell",
           title: "Publish personally",
-          note: "Personal listings can work before a team code is attached.",
+          note: "Use your personal profile when the listing should not be attached to a team.",
           badge: "Personal"
         },
         {
           handle: team31?.handle ?? "team-31",
           title: team31 ? `${team31.teamNumber} / ${team31.teamName}` : "31 / Prime Movers",
-          note: "Use the signed-in team profile once team access codes are wired.",
+          note: "Publish under the team profile that should own the listing.",
           badge: "Team"
         }
       ];
@@ -442,7 +390,7 @@ export function UploadBuilderClient({
         {
           label: "v1.0",
           date: "2026-08-05",
-          summary: "Initial draft listing generated from the V1 upload workbench."
+          summary: "Initial listing generated from the upload form."
         }
       ],
       printProfile: {
@@ -454,8 +402,7 @@ export function UploadBuilderClient({
         notes: printNotes
       },
       installNotes: splitList(installNotes),
-      viewerNote:
-        "Preview shell will support richer 3D, DXF, and media inspection once live asset uploads are connected.",
+      viewerNote: "Media previews appear here as files and photos are added to the listing.",
       publishedAt: "2026-08-05",
       updatedAt: "2026-08-05"
     };
@@ -483,101 +430,6 @@ export function UploadBuilderClient({
     activeOwner?.badge === "Personal"
       ? "Personal"
       : (activeOwner?.title ?? formatOwnerLabel(ownerHandle));
-  const submissionIssueTitle = `[Submission] ${previewPart.title || "Untitled FRC Add-on"}`;
-  const submissionIssueBody = [
-    "## Listing summary",
-    `- Title: ${previewPart.title}`,
-    `- Owner: ${ownerLabel}`,
-    `- Category: ${previewPart.categoryLabel}`,
-    `- Subsystem: ${previewPart.subsystem}`,
-    `- Vendors: ${previewPart.vendors.join(", ") || "None listed"}`,
-    `- Products: ${previewPart.products.join(", ") || "None listed"}`,
-    `- Seasons: ${previewPart.seasons.join(", ") || "None listed"}`,
-    `- Materials: ${previewPart.materials.join(", ") || "None listed"}`,
-    `- License: ${previewPart.license}`,
-    `- Files: ${previewPart.files.length}`,
-    `- Media: ${previewPart.media.length}`,
-    "",
-    "## Install notes",
-    ...previewPart.installNotes.map((note) => `- ${note}`),
-    "",
-    "## Handoff",
-    "- Download the generated submission manifest from the upload page.",
-    "- Attach it to this issue or paste the copied manifest JSON below.",
-    "",
-    "## Manifest JSON",
-    "```json",
-    "{}",
-    "```"
-  ].join("\n");
-  const submissionIssueUrl = `https://github.com/${submissionRepo}/issues/new?title=${encodeURIComponent(submissionIssueTitle)}&body=${encodeURIComponent(submissionIssueBody)}`;
-  const submissionManifest = useMemo<SubmissionManifest>(
-    () => ({
-      manifestVersion: "frc-addon-submission-v1",
-      generatedAt: new Date().toISOString(),
-      reviewStatus: "PENDING_REVIEW",
-      workflow: "github-pages-static-submission",
-      repository: {
-        target: submissionRepo,
-        issueDraftUrl: submissionIssueUrl
-      },
-      owner: {
-        type: activeOwner?.badge === "Team" ? "TEAM" : "PERSONAL",
-        handle: ownerHandle,
-        label: ownerLabel
-      },
-      listing: {
-        slug: previewPart.slug,
-        title: previewPart.title,
-        summary: previewPart.summary,
-        category: previewPart.category,
-        categoryLabel: previewPart.categoryLabel,
-        subsystem: previewPart.subsystem,
-        license: previewPart.license,
-        tags: previewPart.tags,
-        vendors: previewPart.vendors,
-        products: previewPart.products,
-        seasons: previewPart.seasons,
-        materials: previewPart.materials,
-        installNotes: previewPart.installNotes,
-        printAndFabricationNotes: printNotes,
-        fileCount: previewPart.files.length,
-        mediaCount: previewPart.media.length,
-        routeHint: `/parts/${previewPart.slug}`
-      },
-      files: previewPart.files.map((file) => ({
-        label: file.label,
-        fileType: file.fileType,
-        note: file.note,
-        sourceUrl: file.href !== "#" ? file.href : null
-      })),
-      localUploads: {
-        files: stagedUploads,
-        media: stagedMediaUploads
-      },
-      media: previewPart.media.map((item) => ({
-        title: item.title,
-        kind: item.kind,
-        note: item.note,
-        sourceUrl: item.src?.startsWith("blob:") ? null : (item.src ?? null)
-      }))
-    }),
-    [
-      activeOwner?.badge,
-      ownerHandle,
-      ownerLabel,
-      previewPart,
-      printNotes,
-      stagedMediaUploads,
-      stagedUploads,
-      submissionIssueUrl
-    ]
-  );
-  const submissionManifestJson = useMemo(
-    () => JSON.stringify(submissionManifest, null, 2),
-    [submissionManifest]
-  );
-  const submissionManifestFilename = `${previewPart.slug || "frc-addon"}-submission.json`;
   const isPublishMode = publishMode === "publish";
 
   function normalizeOwnerHandle(handle: string) {
@@ -772,13 +624,13 @@ export function UploadBuilderClient({
 
   function requestTeamLink() {
     setSaveMessage(
-      "Team linking stays mocked for V1. Later this button will attach another FRC team profile through an access code."
+      "Additional team profiles will appear here once team sign-in is connected."
     );
   }
 
   function requestFolderUpload() {
     setSaveMessage(
-      "Folder upload stays mocked for V1. Later this button will keep nested print packages together like Printables."
+      "Folder upload is not connected yet. For now, use Add files for grouped fabrication packages."
     );
   }
 
@@ -786,20 +638,14 @@ export function UploadBuilderClient({
     setPublishMode((current) => (current === "draft" ? "publish" : "draft"));
   }
 
-  function triggerManifestDownload() {
-    const blob = new Blob([submissionManifestJson], { type: "application/json" });
-    const href = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = href;
-    anchor.download = submissionManifestFilename;
-    anchor.click();
-    URL.revokeObjectURL(href);
-  }
-
-  function startPublishHandoff() {
-    triggerManifestDownload();
-    window.open(submissionIssueUrl, "_blank", "noopener,noreferrer");
-    setSaveMessage(`Downloaded ${submissionManifestFilename} and opened the GitHub issue draft.`);
+  function publishListing() {
+    const snapshot = buildSnapshot();
+    const nextDrafts = [snapshot, ...savedDrafts].slice(0, 5);
+    setSavedDrafts(nextDrafts);
+    window.localStorage.setItem(draftsStorageKey, JSON.stringify(nextDrafts));
+    setSaveMessage(
+      `Published preview updated at ${new Date(snapshot.savedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}.`
+    );
   }
 
   function closeComposer() {
@@ -837,9 +683,9 @@ export function UploadBuilderClient({
             <button
               type="button"
               className="upload-compose-primary"
-              onClick={isPublishMode ? startPublishHandoff : saveDraft}
+              onClick={isPublishMode ? publishListing : saveDraft}
             >
-              {isPublishMode ? "Start Publish" : "Save Draft"}
+              {isPublishMode ? "Publish Listing" : "Save Draft"}
             </button>
           </div>
         </div>
@@ -855,7 +701,7 @@ export function UploadBuilderClient({
           </div>
           <div className="upload-owner-bar">
             <label className="upload-owner-select">
-              Owner
+              Publisher
               <select value={ownerHandle} onChange={(event) => setOwnerHandle(event.target.value)}>
                 {ownerChoices.map((owner) => (
                   <option key={owner.handle} value={owner.handle}>
@@ -1049,7 +895,7 @@ export function UploadBuilderClient({
                         <img src={resolveAssetUrl(item.src)} alt={item.title || ""} />
                       )
                     ) : (
-                      <span>Preview</span>
+                      <span>Media</span>
                     )}
                   </div>
                   <strong>{item.title || `Photo ${index + 1}`}</strong>
@@ -1179,9 +1025,8 @@ export function UploadBuilderClient({
                 isPublishMode ? " submission-status-pending" : " submission-status-draft"
               }`}
             >
-              {isPublishMode ? "Publish mode" : "Draft mode"}
+              {isPublishMode ? "Ready to publish" : "Draft"}
             </span>
-            {isPublishMode ? <span className="chip">{submissionManifestFilename}</span> : null}
           </div>
           <div className="upload-preview-meta">
             <div className="detail-stat-block">
@@ -1190,11 +1035,11 @@ export function UploadBuilderClient({
             </div>
             <div className="detail-stat-block">
               <strong>{previewPart.files.length}</strong>
-              <span>model slots</span>
+              <span>files</span>
             </div>
             <div className="detail-stat-block">
               <strong>{previewPart.media.length}</strong>
-              <span>photo slots</span>
+              <span>photos and clips</span>
             </div>
             <div className="detail-stat-block">
               <strong>{previewPart.tags.length}</strong>
@@ -1232,7 +1077,7 @@ export function UploadBuilderClient({
           <div className="upload-slot-head">
             <div className="upload-step-head">
               <p className="eyebrow">Saved Drafts</p>
-              <h3>Browser draft shelf</h3>
+              <h3>Saved in this browser</h3>
             </div>
             {savedDrafts.length > 0 ? (
               <button type="button" className="action-link" onClick={clearSavedDrafts}>
@@ -1255,7 +1100,7 @@ export function UploadBuilderClient({
               ))}
             </div>
           ) : (
-            <p className="muted">No saved browser drafts yet. Save one after editing the listing builder.</p>
+            <p className="muted">No saved drafts yet. Save one after editing the listing.</p>
           )}
         </section>
 

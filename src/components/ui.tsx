@@ -603,13 +603,13 @@ export function EmptyState({
 export function UploadChecklist() {
   return (
     <aside className="panel upload-notes">
-      <h3>V1 upload rules</h3>
+      <h3>Upload checklist</h3>
       <ul>
-        <li>Publish immediately. Listings are auto-approved in V1.</li>
+        <li>Choose whether to save a draft or publish the listing from the top bar.</li>
         <li>Accepted file types: STL, STEP, 3MF, DXF, ZIP, and source CAD links.</li>
-        <li>Use the drop zone for grouped robot files, then clean up labels and detected file types before publishing.</li>
+        <li>Use the drop area for grouped robot files, then clean up labels and detected file types before publishing.</li>
         <li>Add enough compatibility metadata that another team can find the part without guessing.</li>
-        <li>Use the report flow later for broken links, unsafe content, or bad metadata.</li>
+        <li>Include clear photos or short clips so teams can confirm fit before downloading.</li>
       </ul>
     </aside>
   );
