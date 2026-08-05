@@ -63,7 +63,14 @@ function previewStyle(key: string): CSSProperties {
 }
 
 function creatorLabel(handle: string) {
-  return handle.replace("team-", "Team ");
+  if (handle.startsWith("team-")) {
+    return handle.replace("team-", "Team ");
+  }
+
+  return handle
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 }
 
 function formatMetric(value: number) {
@@ -102,6 +109,37 @@ function getFileSlotLabel(fileType: CatalogPart["files"][number]["fileType"]) {
     default:
       return "Reusable file";
   }
+}
+
+function MetricIcon({ kind }: { kind: "rating" | "views" | "downloads" }) {
+  if (kind === "rating") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true" className="metric-icon-svg">
+        <path
+          d="m12 3.5 2.7 5.48 6.05.88-4.38 4.27 1.04 6.03L12 17.33l-5.41 2.85 1.04-6.03L3.25 9.86l6.05-.88Z"
+          fill="currentColor"
+          stroke="none"
+        />
+      </svg>
+    );
+  }
+
+  if (kind === "views") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true" className="metric-icon-svg">
+        <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+        <circle cx="12" cy="12" r="3.1" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="metric-icon-svg">
+      <path d="M12 3.5v11.5" />
+      <path d="m7.5 10.5 4.5 4.5 4.5-4.5" />
+      <path d="M5 19.5h14" />
+    </svg>
+  );
 }
 
 export function SiteChrome({ children }: { children: ReactNode }) {
@@ -270,20 +308,22 @@ export function PartCard({ part }: { part: CatalogPart }) {
         <h3>
           <Link href={`/parts/${part.slug}`}>{part.title}</Link>
         </h3>
+        <div className="card-subline">
+          <span className="card-byline">by {creatorLabel(part.creatorHandle)}</span>
+        </div>
         <div className="card-stats">
           <span className="metric-pill">
-            <span className="metric-icon metric-icon-star" aria-hidden="true" />
+            <MetricIcon kind="rating" />
             {part.rating.toFixed(1)}
           </span>
           <span className="metric-pill">
-            <span className="metric-icon metric-icon-eye" aria-hidden="true" />
+            <MetricIcon kind="views" />
             {formatMetric(part.views)}
           </span>
           <span className="metric-pill">
-            <span className="metric-icon metric-icon-download" aria-hidden="true" />
+            <MetricIcon kind="downloads" />
             {formatMetric(part.downloads)}
           </span>
-          <span className="card-byline">by {creatorLabel(part.creatorHandle)}</span>
         </div>
         <div className="chip-row">
           {part.tags.slice(0, 3).map((tag, index) => (

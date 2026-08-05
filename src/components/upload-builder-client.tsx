@@ -49,7 +49,7 @@ type StagedMediaUpload = {
 type SavedDraftSnapshot = {
   id: string;
   savedAt: string;
-  creatorHandle: string;
+  ownerHandle: string;
   title: string;
   summary: string;
   category: string;
@@ -68,7 +68,19 @@ type SavedDraftSnapshot = {
   stagedMediaUploads: StagedMediaUpload[];
 };
 
-const draftsStorageKey = "frc-addon-upload-drafts-v1";
+type TagSuggestion = {
+  label: string;
+  count: number;
+};
+
+type OwnerChoice = {
+  handle: string;
+  title: string;
+  note: string;
+  badge: string;
+};
+
+const draftsStorageKey = "frc-addon-upload-drafts-v2";
 
 const defaultFiles: DraftFile[] = [
   {
@@ -97,14 +109,16 @@ const defaultMedia: DraftMedia[] = [
     title: "Installed photo",
     note: "Show the part mounted on the robot if possible.",
     src: "https://images.unsplash.com/photo-1741517669003-94a4cb80f793?auto=format&fit=crop&fm=jpg&ixlib=rb-4.1.0&q=60&w=1600"
-  },
-  {
-    kind: "video",
-    title: "Install clip",
-    note: "Short install or use clip placeholder.",
-    src: "https://images.unsplash.com/photo-1650530415027-dc9199f473ec?auto=format&fit=crop&fm=jpg&ixlib=rb-4.1.0&q=60&w=1600"
   }
 ];
+
+const fallbackLicenses = [
+  "CC BY-NC 4.0",
+  "CC BY 4.0",
+  "CC BY-NC-SA 4.0",
+  "MIT",
+  "CERN-OHL-S"
+] as const;
 
 function splitList(value: string) {
   return value
@@ -118,6 +132,17 @@ function slugify(value: string) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+function formatOwnerLabel(handle: string) {
+  if (handle.startsWith("team-")) {
+    return handle.replace("team-", "Team ");
+  }
+
+  return handle
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 }
 
 function inferFileType(name: string): CatalogFile["fileType"] {
@@ -164,6 +189,15 @@ function inferFileType(name: string): CatalogFile["fileType"] {
   return "ZIP";
 }
 
+function inferMediaKind(file: File): DraftMedia["kind"] {
+  if (file.type.startsWith("video/")) {
+    return "video";
+  }
+
+  const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
+  return ["mp4", "mov", "webm", "m4v"].includes(extension) ? "video" : "image";
+}
+
 function formatBytes(size: number) {
   if (size < 1024) {
     return `${size} B`;
@@ -174,15 +208,6 @@ function formatBytes(size: number) {
   }
 
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function inferMediaKind(file: File): DraftMedia["kind"] {
-  if (file.type.startsWith("video/")) {
-    return "video";
-  }
-
-  const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
-  return ["mp4", "mov", "webm", "m4v"].includes(extension) ? "video" : "image";
 }
 
 function toDraftFile(file: File): DraftFile {
@@ -209,14 +234,63 @@ function isPlaceholderFileSet(files: DraftFile[]) {
   );
 }
 
+function replaceTrailingTag(tags: string, nextTag: string) {
+  const existing = tags
+    .split(",")
+    .slice(0, -1)
+    .map((tag) => tag.trim())
+    .filter(Boolean);
+
+  return [...existing, nextTag].join(", ") + ", ";
+}
+
 export function UploadBuilderClient({
   options,
-  creators
+  creators,
+  parts
 }: {
   options: SearchOptions;
   creators: Creator[];
+  parts: CatalogPart[];
 }) {
-  const [creatorHandle, setCreatorHandle] = useState(creators[0]?.handle ?? "team-31");
+  const ownerChoices = useMemo<OwnerChoice[]>(
+    () => [
+      {
+        handle: "graham-pinnell",
+        title: "Publish personally",
+        note: "Personal listings can work before a team code is attached.",
+        badge: "Personal"
+      },
+      ...creators.map((creator) => ({
+        handle: creator.handle,
+        title: `${creator.teamNumber} / ${creator.teamName}`,
+        note: "Use the signed-in team profile once team access codes are wired.",
+        badge: "Team"
+      }))
+    ],
+    [creators]
+  );
+
+  const licenseOptions = useMemo(
+    () => Array.from(new Set([...parts.map((part) => part.license), ...fallbackLicenses])).sort(),
+    [parts]
+  );
+
+  const tagSuggestions = useMemo<TagSuggestion[]>(() => {
+    const counts = new Map<string, number>();
+
+    for (const part of parts) {
+      for (const tag of part.tags) {
+        counts.set(tag, (counts.get(tag) ?? 0) + 1);
+      }
+    }
+
+    return [...counts.entries()]
+      .map(([label, count]) => ({ label, count }))
+      .sort((left, right) => right.count - left.count || left.label.localeCompare(right.label));
+  }, [parts]);
+
+  const [ownerHandle, setOwnerHandle] = useState(ownerChoices[0]?.handle ?? "graham-pinnell");
   const [title, setTitle] = useState("MK4i Swerve Wire Cover");
   const [summary, setSummary] = useState(
     "A quick-swap cover that protects wires and encoder routing without slowing down module service."
@@ -228,7 +302,7 @@ export function UploadBuilderClient({
   const [seasons, setSeasons] = useState("2026, General");
   const [materials, setMaterials] = useState("PETG, ABS");
   const [tags, setTags] = useState("swerve, wire management, encoder guard");
-  const [license, setLicense] = useState("CC BY-NC 4.0");
+  const [license, setLicense] = useState(licenseOptions[0] ?? "CC BY-NC 4.0");
   const [printNotes, setPrintNotes] = useState(
     "PETG or ABS, 0.4 mm nozzle, 0.24 mm layers, four walls recommended."
   );
@@ -243,9 +317,22 @@ export function UploadBuilderClient({
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [isDraggingFiles, setIsDraggingFiles] = useState(false);
   const [isDraggingMedia, setIsDraggingMedia] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const mediaInputRef = useRef<HTMLInputElement | null>(null);
   const objectUrlsRef = useRef<string[]>([]);
+
+  const currentTagQuery = tags.split(",").at(-1)?.trim().toLowerCase() ?? "";
+  const selectedTags = splitList(tags).map((tag) => tag.toLowerCase());
+  const matchingTags = currentTagQuery
+    ? tagSuggestions
+        .filter(
+          (suggestion) =>
+            suggestion.label.toLowerCase().includes(currentTagQuery) &&
+            !selectedTags.includes(suggestion.label.toLowerCase())
+        )
+        .slice(0, 8)
+    : [];
 
   const previewPart = useMemo<CatalogPart>(() => {
     const activeCategory = options.categories.find((option) => option.slug === category);
@@ -257,7 +344,7 @@ export function UploadBuilderClient({
       category,
       categoryLabel: activeCategory?.label ?? "Uncategorized",
       subsystem: subsystem || "General",
-      creatorHandle,
+      creatorHandle: ownerHandle,
       featured: false,
       materials: splitList(materials),
       vendors: splitList(vendors),
@@ -277,8 +364,8 @@ export function UploadBuilderClient({
           kind: item.kind,
           title: item.title,
           note: item.note,
-          accent: "#d0a458",
-          src: item.src
+          accent: item.kind === "video" ? "#c4b896" : "#d0a458",
+          src: item.src || undefined
         })),
       versions: [
         {
@@ -303,13 +390,13 @@ export function UploadBuilderClient({
     };
   }, [
     category,
-    creatorHandle,
     files,
     installNotes,
     license,
     materials,
     media,
     options.categories,
+    ownerHandle,
     printNotes,
     products,
     seasons,
@@ -320,7 +407,7 @@ export function UploadBuilderClient({
     vendors
   ]);
 
-  const activeCreator = creators.find((creator) => creator.handle === creatorHandle) ?? creators[0];
+  const activeOwner = ownerChoices.find((owner) => owner.handle === ownerHandle) ?? ownerChoices[0];
 
   useEffect(() => {
     try {
@@ -442,11 +529,15 @@ export function UploadBuilderClient({
     queueMediaFiles(Array.from(event.dataTransfer.files));
   }
 
+  function applyTagSuggestion(tag: string) {
+    setTags((current) => replaceTrailingTag(current, tag));
+  }
+
   function buildSnapshot(): SavedDraftSnapshot {
     return {
       id: `${slugify(title || "untitled")}-${Date.now()}`,
       savedAt: new Date().toISOString(),
-      creatorHandle,
+      ownerHandle,
       title,
       summary,
       category,
@@ -474,11 +565,13 @@ export function UploadBuilderClient({
     const nextDrafts = [snapshot, ...savedDrafts].slice(0, 5);
     setSavedDrafts(nextDrafts);
     window.localStorage.setItem(draftsStorageKey, JSON.stringify(nextDrafts));
-    setSaveMessage(`Draft saved at ${new Date(snapshot.savedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}.`);
+    setSaveMessage(
+      `Draft saved at ${new Date(snapshot.savedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}.`
+    );
   }
 
   function restoreDraft(snapshot: SavedDraftSnapshot) {
-    setCreatorHandle(snapshot.creatorHandle);
+    setOwnerHandle(snapshot.ownerHandle);
     setTitle(snapshot.title);
     setSummary(snapshot.summary);
     setCategory(snapshot.category);
@@ -512,17 +605,21 @@ export function UploadBuilderClient({
             <p className="eyebrow">Step 1</p>
             <h3>Ownership and listing basics</h3>
           </div>
+          <div className="upload-owner-grid">
+            {ownerChoices.map((owner) => (
+              <button
+                key={owner.handle}
+                type="button"
+                className={`upload-owner-card${owner.handle === ownerHandle ? " is-active" : ""}`}
+                onClick={() => setOwnerHandle(owner.handle)}
+              >
+                <span className="chip">{owner.badge}</span>
+                <strong>{owner.title}</strong>
+                <span>{owner.note}</span>
+              </button>
+            ))}
+          </div>
           <form className="upload-form">
-            <label>
-              Team profile
-              <select value={creatorHandle} onChange={(event) => setCreatorHandle(event.target.value)}>
-                {creators.map((creator) => (
-                  <option key={creator.handle} value={creator.handle}>
-                    {creator.teamNumber} / {creator.teamName}
-                  </option>
-                ))}
-              </select>
-            </label>
             <label>
               Part title
               <input value={title} onChange={(event) => setTitle(event.target.value)} />
@@ -553,136 +650,114 @@ export function UploadBuilderClient({
         <section className="panel upload-step-panel">
           <div className="upload-step-head">
             <p className="eyebrow">Step 2</p>
-            <h3>Compatibility and search metadata</h3>
+            <h3>Search and licensing</h3>
           </div>
-          <form className="upload-form">
-            <div className="upload-field-grid">
-              <label>
-                Products
-                <input
-                  value={products}
-                  onChange={(event) => setProducts(event.target.value)}
-                  placeholder="MK4i, Limelight 4"
-                />
-              </label>
-              <label>
-                Vendors
-                <input
-                  value={vendors}
-                  onChange={(event) => setVendors(event.target.value)}
-                  placeholder="SDS, REV, WCP"
-                />
-              </label>
-            </div>
-            <div className="upload-field-grid">
-              <label>
-                Seasons
-                <input
-                  value={seasons}
-                  onChange={(event) => setSeasons(event.target.value)}
-                  placeholder="2026, General"
-                />
-              </label>
-              <label>
-                Materials
-                <input
-                  value={materials}
-                  onChange={(event) => setMaterials(event.target.value)}
-                  placeholder="PETG, ABS, 5052 Aluminum"
-                />
-              </label>
-            </div>
+          <div className="upload-form">
             <label>
+              License
+              <select value={license} onChange={(event) => setLicense(event.target.value)}>
+                {licenseOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="upload-tag-field">
               Search tags
               <input
                 value={tags}
                 onChange={(event) => setTags(event.target.value)}
-                placeholder="swerve, guard, pit service"
+                placeholder="mk4i, swerve cover, limelight mount"
               />
+              {matchingTags.length > 0 ? (
+                <div className="upload-tag-suggestions">
+                  {matchingTags.map((suggestion) => (
+                    <button
+                      key={suggestion.label}
+                      type="button"
+                      className="upload-tag-option"
+                      onClick={() => applyTagSuggestion(suggestion.label)}
+                    >
+                      <strong>{suggestion.label}</strong>
+                      <span>{suggestion.count} uses</span>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
             </label>
-            <label>
-              License
-              <input value={license} onChange={(event) => setLicense(event.target.value)} />
-            </label>
-          </form>
+            <details
+              className="upload-advanced-panel"
+              open={showAdvanced}
+              onToggle={(event) => setShowAdvanced((event.target as HTMLDetailsElement).open)}
+            >
+              <summary>Advanced options</summary>
+              <div className="upload-advanced-grid">
+                <div className="upload-field-grid">
+                  <label>
+                    Products
+                    <input
+                      value={products}
+                      onChange={(event) => setProducts(event.target.value)}
+                      placeholder="MK4i, Limelight 4"
+                    />
+                  </label>
+                  <label>
+                    Vendors
+                    <input
+                      value={vendors}
+                      onChange={(event) => setVendors(event.target.value)}
+                      placeholder="SDS, REV, WCP"
+                    />
+                  </label>
+                </div>
+                <div className="upload-field-grid">
+                  <label>
+                    Seasons
+                    <input
+                      value={seasons}
+                      onChange={(event) => setSeasons(event.target.value)}
+                      placeholder="2026, General"
+                    />
+                  </label>
+                  <label>
+                    Materials
+                    <input
+                      value={materials}
+                      onChange={(event) => setMaterials(event.target.value)}
+                      placeholder="PETG, ABS, 5052 Aluminum"
+                    />
+                  </label>
+                </div>
+                <label>
+                  Print and fabrication notes
+                  <textarea value={printNotes} onChange={(event) => setPrintNotes(event.target.value)} />
+                </label>
+              </div>
+            </details>
+          </div>
         </section>
 
         <section className="panel upload-step-panel">
           <div className="upload-step-head">
             <p className="eyebrow">Step 3</p>
-            <h3>Files, media drop lanes, and slot cleanup</h3>
+            <h3>Photos and model files</h3>
           </div>
-          <div className="page-stack">
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              className="upload-hidden-input"
-              onChange={onFileInputChange}
-            />
-            <input
-              ref={mediaInputRef}
-              type="file"
-              accept="image/*,video/*"
-              multiple
-              className="upload-hidden-input"
-              onChange={onMediaInputChange}
-            />
-            <div
-              className={`upload-dropzone${isDraggingFiles ? " is-dragging" : ""}`}
-              onDragEnter={(event) => {
-                event.preventDefault();
-                setIsDraggingFiles(true);
-              }}
-              onDragOver={(event) => {
-                event.preventDefault();
-                setIsDraggingFiles(true);
-              }}
-              onDragLeave={(event) => {
-                event.preventDefault();
-                if (event.currentTarget === event.target) {
-                  setIsDraggingFiles(false);
-                }
-              }}
-              onDrop={onFileDrop}
-            >
-              <div className="upload-dropzone-frame">
-                <span className="upload-dropzone-icon" aria-hidden="true" />
-                <strong>Drag your files here</strong>
-                <p>STL, STEP, 3MF, DXF, ZIP, source CAD, and mixed fabrication bundles.</p>
+          <input
+            ref={mediaInputRef}
+            type="file"
+            accept="image/*,video/*"
+            multiple
+            className="upload-hidden-input"
+            onChange={onMediaInputChange}
+          />
+          <section className="upload-board">
+            <div className="upload-section-head">
+              <div>
+                <h4>Photos</h4>
+                <p>Installed robot photos, screenshots, and short clips for the gallery.</p>
               </div>
-              <span className="upload-dropzone-separator">or</span>
-              <button type="button" className="upload-browse-button" onClick={() => fileInputRef.current?.click()}>
-                Browse Files
-              </button>
-              <p className="upload-dropzone-tip">
-                Tip: you can upload multiple files as a single `.zip`, or drop several robot files at once.
-              </p>
-              <p className="upload-dropzone-support">
-                Supported V1 lanes: `STL`, `STEP`, `3MF`, `DXF`, `ZIP`, source CAD exports, and related fabrication files.
-              </p>
             </div>
-
-            {stagedUploads.length > 0 ? (
-              <section className="upload-import-queue">
-                <div className="upload-slot-head">
-                  <strong>Imported file queue</strong>
-                  <span className="chip chip-accent">{stagedUploads.length} staged</span>
-                </div>
-                <div className="upload-queue-grid">
-                  {stagedUploads.map((upload, index) => (
-                    <article key={`${upload.name}-${index}`} className="upload-queue-item">
-                      <div>
-                        <strong>{upload.name}</strong>
-                        <p>{upload.sizeLabel}</p>
-                      </div>
-                      <span className="chip">{upload.fileType}</span>
-                    </article>
-                  ))}
-                </div>
-              </section>
-            ) : null}
-
             <div
               className={`upload-dropzone upload-dropzone-media${isDraggingMedia ? " is-dragging" : ""}`}
               onDragEnter={(event) => {
@@ -701,119 +776,157 @@ export function UploadBuilderClient({
               }}
               onDrop={onMediaDrop}
             >
-              <div className="upload-dropzone-frame">
+              <div className="upload-dropzone-frame upload-dropzone-frame-compact">
                 <span className="upload-dropzone-icon upload-dropzone-icon-media" aria-hidden="true" />
                 <strong>Drag gallery media here</strong>
-                <p>Installed robot photos, pit shots, screenshots, and short install clips for the listing gallery.</p>
+                <p>Photos first. Short install videos can live here too.</p>
               </div>
-              <span className="upload-dropzone-separator">or</span>
               <button type="button" className="upload-browse-button" onClick={() => mediaInputRef.current?.click()}>
-                Browse Media
+                Add Photos
               </button>
             </div>
-
             {stagedMediaUploads.length > 0 ? (
-              <section className="upload-import-queue">
-                <div className="upload-slot-head">
-                  <strong>Imported media queue</strong>
-                  <span className="chip chip-accent">{stagedMediaUploads.length} staged</span>
-                </div>
-                <div className="upload-queue-grid">
-                  {stagedMediaUploads.map((upload, index) => (
-                    <article key={`${upload.name}-${index}`} className="upload-queue-item">
-                      <div>
-                        <strong>{upload.name}</strong>
-                        <p>{upload.sizeLabel}</p>
-                      </div>
-                      <span className={`chip${upload.kind === "video" ? " chip-accent" : ""}`}>
-                        {upload.kind}
-                      </span>
-                    </article>
-                  ))}
-                </div>
-              </section>
+              <div className="upload-queue-grid">
+                {stagedMediaUploads.map((upload, index) => (
+                  <article key={`${upload.name}-${index}`} className="upload-queue-item">
+                    <div>
+                      <strong>{upload.name}</strong>
+                      <p>{upload.sizeLabel}</p>
+                    </div>
+                    <span className={`chip${upload.kind === "video" ? " chip-accent" : ""}`}>
+                      {upload.kind}
+                    </span>
+                  </article>
+                ))}
+              </div>
             ) : null}
+            <div className="upload-media-grid">
+              {media.map((item, index) => (
+                <div key={`media-${index}`} className="upload-media-card">
+                  <div className="upload-media-preview">
+                    {item.src ? <img src={item.src} alt="" /> : <span>Preview</span>}
+                  </div>
+                  <div className="upload-slot-head">
+                    <strong>{item.kind === "video" ? "Video slot" : "Photo slot"} {index + 1}</strong>
+                    <span className={`chip${item.kind === "video" ? " chip-accent" : ""}`}>
+                      {item.kind}
+                    </span>
+                  </div>
+                  <div className="upload-form">
+                    <label>
+                      Title
+                      <input value={item.title} onChange={(event) => updateMedia(index, "title", event.target.value)} />
+                    </label>
+                    <label>
+                      Note
+                      <input value={item.note} onChange={(event) => updateMedia(index, "note", event.target.value)} />
+                    </label>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
 
-            {files.map((file, index) => (
-              <div key={`file-${index}`} className="upload-slot-card">
-                <div className="upload-slot-head">
-                  <strong>File slot {index + 1}</strong>
-                  <span className="chip">{file.fileType}</span>
-                </div>
-                <div className="upload-field-grid">
-                  <label>
-                    File label
-                    <input value={file.label} onChange={(event) => updateFile(index, "label", event.target.value)} />
-                  </label>
-                  <label>
-                    File type
-                    <select
-                      value={file.fileType}
-                      onChange={(event) => updateFile(index, "fileType", event.target.value)}
-                    >
-                      {options.fileTypes.map((fileType) => (
-                        <option key={fileType} value={fileType}>
-                          {fileType}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-                <label className="upload-form">
-                  File or source URL
-                  <input value={file.href} onChange={(event) => updateFile(index, "href", event.target.value)} />
-                </label>
-                <label className="upload-form">
-                  Slot note
-                  <input value={file.note} onChange={(event) => updateFile(index, "note", event.target.value)} />
-                </label>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            className="upload-hidden-input"
+            onChange={onFileInputChange}
+          />
+          <section className="upload-board">
+            <div className="upload-section-head">
+              <div>
+                <h4>3D Models and Fabrication Files</h4>
+                <p>Print files, neutral CAD, DXF flat patterns, ZIP bundles, and source CAD.</p>
               </div>
-            ))}
-
-            {media.map((item, index) => (
-              <div key={`media-${index}`} className="upload-slot-card">
-                <div className="upload-slot-head">
-                  <strong>Media slot {index + 1}</strong>
-                  <span className={`chip${item.kind === "video" ? " chip-accent" : ""}`}>
-                    {item.kind}
-                  </span>
-                </div>
-                <div className="upload-field-grid">
-                  <label>
-                    Media kind
-                    <select value={item.kind} onChange={(event) => updateMedia(index, "kind", event.target.value)}>
-                      <option value="image">Image</option>
-                      <option value="video">Video</option>
-                    </select>
-                  </label>
-                  <label>
-                    Media title
-                    <input value={item.title} onChange={(event) => updateMedia(index, "title", event.target.value)} />
-                  </label>
-                </div>
-                <label className="upload-form">
-                  Preview image URL
-                  <input value={item.src} onChange={(event) => updateMedia(index, "src", event.target.value)} />
-                </label>
-                <label className="upload-form">
-                  Media note
-                  <input value={item.note} onChange={(event) => updateMedia(index, "note", event.target.value)} />
-                </label>
+            </div>
+            <div
+              className={`upload-dropzone${isDraggingFiles ? " is-dragging" : ""}`}
+              onDragEnter={(event) => {
+                event.preventDefault();
+                setIsDraggingFiles(true);
+              }}
+              onDragOver={(event) => {
+                event.preventDefault();
+                setIsDraggingFiles(true);
+              }}
+              onDragLeave={(event) => {
+                event.preventDefault();
+                if (event.currentTarget === event.target) {
+                  setIsDraggingFiles(false);
+                }
+              }}
+              onDrop={onFileDrop}
+            >
+              <div className="upload-dropzone-frame upload-dropzone-frame-compact">
+                <span className="upload-dropzone-icon" aria-hidden="true" />
+                <strong>Drag model files here</strong>
+                <p>STL, STEP, 3MF, DXF, ZIP, and source CAD all belong in this lane.</p>
               </div>
-            ))}
-          </div>
+              <button type="button" className="upload-browse-button" onClick={() => fileInputRef.current?.click()}>
+                Add Model Files
+              </button>
+            </div>
+            {stagedUploads.length > 0 ? (
+              <div className="upload-queue-grid">
+                {stagedUploads.map((upload, index) => (
+                  <article key={`${upload.name}-${index}`} className="upload-queue-item">
+                    <div>
+                      <strong>{upload.name}</strong>
+                      <p>{upload.sizeLabel}</p>
+                    </div>
+                    <span className="chip">{upload.fileType}</span>
+                  </article>
+                ))}
+              </div>
+            ) : null}
+            <div className="upload-file-grid">
+              {files.map((file, index) => (
+                <div key={`file-${index}`} className="upload-slot-card">
+                  <div className="upload-slot-head">
+                    <strong>Model slot {index + 1}</strong>
+                    <span className="chip">{file.fileType}</span>
+                  </div>
+                  <div className="upload-field-grid">
+                    <label>
+                      File label
+                      <input value={file.label} onChange={(event) => updateFile(index, "label", event.target.value)} />
+                    </label>
+                    <label>
+                      File type
+                      <select
+                        value={file.fileType}
+                        onChange={(event) => updateFile(index, "fileType", event.target.value)}
+                      >
+                        {options.fileTypes.map((fileType) => (
+                          <option key={fileType} value={fileType}>
+                            {fileType}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                  <label className="upload-form">
+                    File or source URL
+                    <input value={file.href} onChange={(event) => updateFile(index, "href", event.target.value)} />
+                  </label>
+                  <label className="upload-form">
+                    Slot note
+                    <input value={file.note} onChange={(event) => updateFile(index, "note", event.target.value)} />
+                  </label>
+                </div>
+              ))}
+            </div>
+          </section>
         </section>
 
         <section className="panel upload-step-panel">
           <div className="upload-step-head">
             <p className="eyebrow">Step 4</p>
-            <h3>Fabrication and install guidance</h3>
+            <h3>Install notes and publish</h3>
           </div>
           <form className="upload-form">
-            <label>
-              Print / fabrication notes
-              <textarea value={printNotes} onChange={(event) => setPrintNotes(event.target.value)} />
-            </label>
             <label>
               Installation notes
               <textarea value={installNotes} onChange={(event) => setInstallNotes(event.target.value)} />
@@ -822,7 +935,12 @@ export function UploadBuilderClient({
               <button type="button" onClick={saveDraft}>
                 Save draft
               </button>
-              <button type="button" onClick={() => setSaveMessage("Publish flow stays mocked until live storage and auth are connected.")}>
+              <button
+                type="button"
+                onClick={() =>
+                  setSaveMessage("Publish flow stays mocked until live storage, accounts, and team access are connected.")
+                }
+              >
                 Publish now
               </button>
             </div>
@@ -840,16 +958,16 @@ export function UploadBuilderClient({
           <PartCard part={previewPart} />
           <div className="upload-preview-meta">
             <div className="detail-stat-block">
-              <strong>{activeCreator?.teamNumber ?? "--"}</strong>
-              <span>team owner</span>
+              <strong>{activeOwner?.badge ?? "Profile"}</strong>
+              <span>{activeOwner?.title ?? formatOwnerLabel(ownerHandle)}</span>
             </div>
             <div className="detail-stat-block">
               <strong>{previewPart.files.length}</strong>
-              <span>file slots</span>
+              <span>model slots</span>
             </div>
             <div className="detail-stat-block">
               <strong>{previewPart.media.length}</strong>
-              <span>media slots</span>
+              <span>photo slots</span>
             </div>
             <div className="detail-stat-block">
               <strong>{previewPart.tags.length}</strong>
