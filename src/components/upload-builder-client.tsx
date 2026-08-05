@@ -11,6 +11,7 @@ import {
 } from "react";
 
 import { PartCard, UploadChecklist } from "@/components/ui";
+import { resolveAssetUrl } from "@/lib/assets";
 import type { CatalogPart, CatalogFile, Creator } from "@/lib/catalog";
 
 type SearchOptions = {
@@ -264,12 +265,14 @@ function formatBytes(size: number) {
 }
 
 function mediaFrameStyle(src: string | undefined): CSSProperties | undefined {
-  if (!src) {
+  const resolvedSrc = resolveAssetUrl(src);
+
+  if (!resolvedSrc) {
     return undefined;
   }
 
   return {
-    ["--media-image" as string]: `url("${src.replace(/"/g, '\\"')}")`
+    ["--media-image" as string]: `url("${resolvedSrc.replace(/"/g, '\\"')}")`
   };
 }
 
@@ -1041,9 +1044,9 @@ export function UploadBuilderClient({
                   <div className="upload-photo-frame" style={mediaFrameStyle(item.src)}>
                     {item.src ? (
                       item.kind === "video" ? (
-                        <video src={item.src} muted playsInline />
+                        <video src={resolveAssetUrl(item.src)} muted playsInline />
                       ) : (
-                        <img src={item.src} alt={item.title || ""} />
+                        <img src={resolveAssetUrl(item.src)} alt={item.title || ""} />
                       )
                     ) : (
                       <span>Preview</span>

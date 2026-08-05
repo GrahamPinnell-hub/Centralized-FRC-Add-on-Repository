@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 
+import { resolveAssetUrl } from "@/lib/assets";
 import type { CatalogPart, Creator, SearchFilters } from "@/lib/catalog";
 
 type FilterOptions = {
@@ -63,12 +64,14 @@ function previewStyle(key: string): CSSProperties {
 }
 
 function mediaFrameStyle(src?: string): CSSProperties | undefined {
-  if (!src) {
+  const resolvedSrc = resolveAssetUrl(src);
+
+  if (!resolvedSrc) {
     return undefined;
   }
 
   return {
-    ["--media-image" as string]: `url("${src.replace(/"/g, '\\"')}")`
+    ["--media-image" as string]: `url("${resolvedSrc.replace(/"/g, '\\"')}")`
   };
 }
 
@@ -301,7 +304,7 @@ export function PartCard({ part }: { part: CatalogPart }) {
         <div className={`card-preview${leadMedia ? " has-media" : ""}`}>
           {leadMedia?.src ? (
             <div className="card-preview-image" aria-hidden="true" style={mediaFrameStyle(leadMedia.src)}>
-              <img src={leadMedia.src} alt="" loading="lazy" />
+              <img src={resolveAssetUrl(leadMedia.src)} alt="" loading="lazy" />
             </div>
           ) : null}
           <div className="card-preview-meta">
@@ -511,7 +514,7 @@ export function ViewerShell({ part }: { part: CatalogPart }) {
         </div>
         {leadMedia?.src ? (
           <div className="viewer-stage-image" aria-hidden="true" style={mediaFrameStyle(leadMedia.src)}>
-            <img src={leadMedia.src} alt="" loading="lazy" />
+            <img src={resolveAssetUrl(leadMedia.src)} alt="" loading="lazy" />
           </div>
         ) : null}
         <div className="viewer-mesh">
@@ -533,7 +536,7 @@ export function ViewerShell({ part }: { part: CatalogPart }) {
               <div className="viewer-thumb-media">
                 {item.src ? (
                   <div className="viewer-thumb-media-image" style={mediaFrameStyle(item.src)}>
-                    <img src={item.src} alt={item.title} loading="lazy" />
+                    <img src={resolveAssetUrl(item.src)} alt={item.title} loading="lazy" />
                   </div>
                 ) : null}
                 <span className="viewer-thumb-kind">{item.kind === "video" ? "Video" : "Photo"}</span>
@@ -606,7 +609,7 @@ export function MediaGallery({ part }: { part: CatalogPart }) {
             <div className={`media-poster${item.src ? " has-media" : ""}`}>
               {item.src ? (
                 <div className="media-poster-image" style={mediaFrameStyle(item.src)}>
-                  <img src={item.src} alt={item.title} loading="lazy" />
+                  <img src={resolveAssetUrl(item.src)} alt={item.title} loading="lazy" />
                 </div>
               ) : null}
               <span className="media-kind-badge">{item.kind === "video" ? "Video" : "Photo"}</span>
