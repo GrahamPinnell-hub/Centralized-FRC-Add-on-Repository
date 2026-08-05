@@ -1398,6 +1398,32 @@ textarea {
   gap: 0.85rem;
 }
 
+.upload-owner-bar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.85rem;
+}
+
+.upload-owner-select {
+  flex: 1 1 18rem;
+}
+
+.upload-owner-select select {
+  width: 100%;
+}
+
+.upload-owner-actions {
+  display: flex;
+  align-items: center;
+  min-height: 3.125rem;
+}
+
+.upload-owner-note {
+  margin: 0;
+  color: var(--muted);
+}
+
 .upload-owner-card {
   display: grid;
   justify-items: start;
@@ -2051,6 +2077,12 @@ textarea {
   .upload-field-grid,
   .upload-preview-meta {
     grid-template-columns: 1fr;
+  }
+
+  .upload-owner-bar,
+  .upload-owner-actions {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .upload-owner-grid,

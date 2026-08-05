@@ -254,20 +254,24 @@ export function UploadBuilderClient({
   parts: CatalogPart[];
 }) {
   const ownerChoices = useMemo<OwnerChoice[]>(
-    () => [
-      {
-        handle: "graham-pinnell",
-        title: "Publish personally",
-        note: "Personal listings can work before a team code is attached.",
-        badge: "Personal"
-      },
-      ...creators.map((creator) => ({
-        handle: creator.handle,
-        title: `${creator.teamNumber} / ${creator.teamName}`,
-        note: "Use the signed-in team profile once team access codes are wired.",
-        badge: "Team"
-      }))
-    ],
+    () => {
+      const team31 = creators.find((creator) => creator.handle === "team-31");
+
+      return [
+        {
+          handle: "graham-pinnell",
+          title: "Publish personally",
+          note: "Personal listings can work before a team code is attached.",
+          badge: "Personal"
+        },
+        {
+          handle: team31?.handle ?? "team-31",
+          title: team31 ? `${team31.teamNumber} / ${team31.teamName}` : "31 / Prime Movers",
+          note: "Use the signed-in team profile once team access codes are wired.",
+          badge: "Team"
+        }
+      ];
+    },
     [creators]
   );
 
@@ -409,6 +413,12 @@ export function UploadBuilderClient({
 
   const activeOwner = ownerChoices.find((owner) => owner.handle === ownerHandle) ?? ownerChoices[0];
 
+  function normalizeOwnerHandle(handle: string) {
+    return ownerChoices.some((owner) => owner.handle === handle)
+      ? handle
+      : (ownerChoices[0]?.handle ?? "graham-pinnell");
+  }
+
   useEffect(() => {
     try {
       const stored = window.localStorage.getItem(draftsStorageKey);
@@ -432,6 +442,13 @@ export function UploadBuilderClient({
       objectUrlsRef.current = [];
     };
   }, []);
+
+  useEffect(() => {
+    const normalized = normalizeOwnerHandle(ownerHandle);
+    if (normalized !== ownerHandle) {
+      setOwnerHandle(normalized);
+    }
+  }, [ownerChoices, ownerHandle]);
 
   function updateFile(index: number, key: keyof DraftFile, value: string) {
     setFiles((current) =>
@@ -571,7 +588,7 @@ export function UploadBuilderClient({
   }
 
   function restoreDraft(snapshot: SavedDraftSnapshot) {
-    setOwnerHandle(snapshot.ownerHandle);
+    setOwnerHandle(normalizeOwnerHandle(snapshot.ownerHandle));
     setTitle(snapshot.title);
     setSummary(snapshot.summary);
     setCategory(snapshot.category);
@@ -597,6 +614,12 @@ export function UploadBuilderClient({
     setSaveMessage("Saved drafts cleared from this browser.");
   }
 
+  function requestTeamLink() {
+    setSaveMessage(
+      "Team linking stays mocked for V1. Later this button will attach another FRC team profile through an access code."
+    );
+  }
+
   return (
     <div className="upload-workbench">
       <div className="page-stack">
@@ -605,20 +628,24 @@ export function UploadBuilderClient({
             <p className="eyebrow">Step 1</p>
             <h3>Ownership and listing basics</h3>
           </div>
-          <div className="upload-owner-grid">
-            {ownerChoices.map((owner) => (
-              <button
-                key={owner.handle}
-                type="button"
-                className={`upload-owner-card${owner.handle === ownerHandle ? " is-active" : ""}`}
-                onClick={() => setOwnerHandle(owner.handle)}
-              >
-                <span className="chip">{owner.badge}</span>
-                <strong>{owner.title}</strong>
-                <span>{owner.note}</span>
+          <div className="upload-owner-bar">
+            <label className="upload-owner-select">
+              Owner
+              <select value={ownerHandle} onChange={(event) => setOwnerHandle(event.target.value)}>
+                {ownerChoices.map((owner) => (
+                  <option key={owner.handle} value={owner.handle}>
+                    {owner.badge === "Personal" ? "Personal" : owner.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="upload-owner-actions">
+              <button type="button" className="action-link" onClick={requestTeamLink}>
+                Add team
               </button>
-            ))}
+            </div>
           </div>
+          {activeOwner ? <p className="upload-owner-note">{activeOwner.note}</p> : null}
           <form className="upload-form">
             <label>
               Part title
