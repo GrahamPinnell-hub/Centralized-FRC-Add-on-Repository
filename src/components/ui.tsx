@@ -369,7 +369,7 @@ export function CategoryCard({
         <div className="card-meta">
           <span>{category.count} shared parts</span>
           <Link href={`/categories/${category.slug}`} className="ghost-link">
-            Open lane
+            Browse category
           </Link>
         </div>
       </div>
@@ -390,9 +390,9 @@ export function FilterPanel({
     <form className="panel filters" action="/parts">
       <input type="hidden" name="sort" value={filters.sort ?? "trending"} />
       <div className="page-stack">
-        <p className="eyebrow">Filter Stack</p>
-        <h3>Search like a builder</h3>
-        <p>Drill into vendors, teams, file types, and seasons without leaving the same browse lane.</p>
+        <p className="eyebrow">Filters</p>
+        <h3>Find the exact part</h3>
+        <p>Filter by vendor, team, file type, material, and season.</p>
       </div>
       <label>
         Search

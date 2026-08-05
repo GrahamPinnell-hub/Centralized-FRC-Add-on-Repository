@@ -17,7 +17,7 @@ export default async function PartsPage() {
       <SectionTitle
         eyebrow="Search"
         title="Browse reusable FRC add-ons"
-        body="Search like a builder, not like a librarian. This pass adds team filtering, stronger sort states, and a cleaner results page for finding the exact part lane faster."
+        body="Filter by team, vendor, file type, material, and season to find the exact part faster."
       />
       <Suspense fallback={<PartsBrowser filters={{}} options={options} creators={creators} results={parts} />}>
         <PartsBrowserClient options={options} parts={parts} creators={creators} />

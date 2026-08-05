@@ -29,10 +29,10 @@ export function ViewerShellClient({
         ? "Install clip"
         : "Installed view"
       : activeMedia.title
-    : "Preview lane";
+    : "Preview";
   const stageNote =
     activeMedia?.note ??
-    "V1 keeps the viewer shell ready for richer STL, STEP, DXF, and media previews once live asset uploads are connected.";
+    "Photo, video, and 3D previews will appear here as listing media and files are connected.";
 
   useEffect(() => {
     setActiveIndex(0);
@@ -105,8 +105,8 @@ export function ViewerShellClient({
             </button>
           ) : (
             <div className="viewer-mesh">
-              <span>3D / 2D preview slot</span>
-              <small>Viewer shell for STL, STEP, DXF, media, and source CAD.</small>
+              <span>3D / 2D preview</span>
+              <small>Supports STL, STEP, DXF, media, and source CAD.</small>
             </div>
           )}
           <div className="viewer-stage-caption">

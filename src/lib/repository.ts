@@ -121,7 +121,7 @@ function toCreator(team: {
     teamName: team.name,
     teamNumber: team.number ? String(team.number) : team.slug,
     location: locationParts.length > 0 ? locationParts.join(", ") : "Unknown",
-    bio: team.bio ?? "Community-maintained team library."
+    bio: team.bio ?? "Shared FRC team profile."
   };
 }
 

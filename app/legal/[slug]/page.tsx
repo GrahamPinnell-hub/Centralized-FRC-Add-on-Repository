@@ -37,7 +37,7 @@ const legalPages = {
   },
   dmca: {
     title: "DMCA",
-    body: "The repository needs a clear takedown lane when uploaded files or media should not be distributed.",
+    body: "The repository needs a clear takedown process when uploaded files or media should not be distributed.",
     sections: [
       {
         heading: "File complaints",

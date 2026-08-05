@@ -25,7 +25,7 @@ export default async function CategoryPage({
       <SectionTitle
         eyebrow="Category"
         title={category.label}
-        body={`${category.description} This lane exists so teams can stop hunting through scattered screenshots, forum replies, and dead CAD links for the same class of accessory.`}
+        body={`${category.description} Browse shared parts without digging through scattered screenshots, forum posts, and broken CAD links for the same kind of accessory.`}
       />
       <div className="card-grid">
         {category.parts.map((part) => (

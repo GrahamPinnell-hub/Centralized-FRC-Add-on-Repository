@@ -147,8 +147,8 @@ export function PartsBrowser({
         ) : (
           <section className="panel results-empty">
             <p className="eyebrow">No Matches</p>
-            <h3>Nothing matched that filter stack.</h3>
-            <p>Try clearing a lane, switching sort modes, or searching with a vendor, team, or subsystem instead.</p>
+            <h3>Nothing matched those filters.</h3>
+            <p>Try clearing filters, changing sort, or searching by vendor, team, or subsystem.</p>
             <Link href="/parts" className="button-link">
               Browse all listings
             </Link>

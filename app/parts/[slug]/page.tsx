@@ -63,7 +63,7 @@ export default async function PartDetailPage({
   const creatorName = creatorProfile
     ? `${creatorProfile.creator.teamNumber} / ${creatorProfile.creator.teamName}`
     : creatorLabel(part.creatorHandle);
-  const creatorLocation = creatorProfile?.creator.location ?? "Community-maintained listing";
+  const creatorLocation = creatorProfile?.creator.location ?? "Shared community listing";
   const creatorParts = creatorProfile?.parts.length ?? 1;
   const deliverableTypes = Array.from(new Set(part.files.map((file) => file.fileType)));
   const productSummary = part.products.join(", ");
@@ -125,7 +125,7 @@ export default async function PartDetailPage({
                 <strong>{deliverableTypes.join(" / ")}</strong>
               </div>
               <div className="detail-spec-card">
-                <span>Material lane</span>
+                <span>Material</span>
                 <strong>{materialSummary}</strong>
               </div>
               <div className="detail-spec-card">
@@ -188,7 +188,7 @@ export default async function PartDetailPage({
               <span>{currentRelease}</span>
             </div>
             <div className="detail-inline-block">
-              <strong>Repository owner</strong>
+              <strong>Published by</strong>
               <span>{creatorName}</span>
             </div>
             <div className="detail-inline-block">
@@ -221,7 +221,7 @@ export default async function PartDetailPage({
           <div className="section-title detail-section-title">
             <p className="eyebrow">Publisher</p>
             <h2>{creatorName}</h2>
-            <p>{creatorProfile?.creator.bio ?? "Community-maintained team library."}</p>
+            <p>{creatorProfile?.creator.bio ?? "Shared FRC team profile."}</p>
           </div>
           <div className="detail-stat-block">
             <strong>{creatorParts}</strong>
@@ -229,7 +229,7 @@ export default async function PartDetailPage({
           </div>
           <div className="detail-stat-block">
             <strong>{part.files.length}</strong>
-            <span>download and source files</span>
+            <span>files and source links</span>
           </div>
           <div className="detail-stat-block">
             <strong>{part.versions[0]?.label ?? "v1.0"}</strong>
@@ -237,7 +237,7 @@ export default async function PartDetailPage({
           </div>
           <div className="detail-stat-block">
             <strong>{part.materials.join(" / ")}</strong>
-            <span>material lane</span>
+            <span>materials</span>
           </div>
           <div className="detail-stat-block">
             <strong>{part.subsystem}</strong>
