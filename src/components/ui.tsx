@@ -306,7 +306,6 @@ export function PartCard({ part }: { part: CatalogPart }) {
       </Link>
       <div className="card-body">
         <div className="card-kicker-row">
-          <span className="card-category-pill">{part.categoryLabel}</span>
           <span className="card-product">{previewProduct}</span>
         </div>
         <h3>

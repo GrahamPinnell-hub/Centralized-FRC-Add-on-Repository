@@ -286,12 +286,16 @@ export const parts: CatalogPart[] = [
         accent: "#0f766e",
         src: exampleImages.cameraMount.src,
         framing: {
-          cardFit: "cover",
-          cardPosition: "center 44%",
+          cardFit: "contain",
+          cardPosition: "center 48%",
           detailFit: "contain",
           detailPosition: "center 48%",
-          galleryFit: "cover",
-          galleryPosition: "center 46%"
+          thumbFit: "contain",
+          thumbPosition: "center 48%",
+          galleryFit: "contain",
+          galleryPosition: "center 48%",
+          lightboxFit: "contain",
+          lightboxPosition: "center 48%"
         }
       }
     ],
