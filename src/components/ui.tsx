@@ -465,7 +465,7 @@ export function FileTable({ part }: { part: CatalogPart }) {
       <div className="section-title detail-section-title">
         <p className="eyebrow">Downloads</p>
         <h2>Files and source links</h2>
-        <p>Primary print files, fabrication outputs, source CAD, and sponsor-ready bundles.</p>
+        <p>Printable, fabrication, and source files.</p>
       </div>
       <div className="file-table">
         {part.files.map((file) => (
@@ -496,7 +496,7 @@ export function MediaGallery({ part }: { part: CatalogPart }) {
       <div className="section-title detail-section-title">
         <p className="eyebrow">Media</p>
         <h2>Gallery</h2>
-        <p>Installed photos, sponsor-facing fabrication shots, and short setup clips.</p>
+        <p>Installed views and short clips.</p>
       </div>
       <div className="media-grid">
         {part.media.map((item) => (

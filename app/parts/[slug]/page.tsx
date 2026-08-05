@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { FileTable, MediaGallery, ViewerShell } from "@/components/ui";
+import { FileTable, MediaGallery, PartCard, ViewerShell } from "@/components/ui";
 import {
   getCreatorProfileData,
   getPartData,
@@ -201,7 +201,7 @@ export default async function PartDetailPage({
           <div className="section-title detail-section-title">
             <p className="eyebrow">Reuse Notes</p>
             <h2>Design intent and fit</h2>
-            <p>What another team should understand before dropping this into CAD, print prep, or fabrication.</p>
+            <p>Fitment, intended use, and why another team would reuse this instead of redrawing it.</p>
           </div>
           <div className="detail-summary-copy">
             <p>
@@ -258,7 +258,7 @@ export default async function PartDetailPage({
           <div className="section-title detail-section-title">
             <p className="eyebrow">Install</p>
             <h2>Compatibility and install notes</h2>
-            <p>What another team needs to know before dropping this into robot CAD or fabrication.</p>
+            <p>Vendor fit, install callouts, and reuse tags.</p>
           </div>
           <div className="chip-row">
             {part.vendors.map((vendor) => (
@@ -282,7 +282,7 @@ export default async function PartDetailPage({
           <div className="section-title detail-section-title">
             <p className="eyebrow">Metadata</p>
             <h2>Materials and fabrication</h2>
-            <p>Search tags, supported seasons, and fabrication expectations for this listing.</p>
+            <p>Materials, seasons, and search-facing metadata.</p>
           </div>
           <div className="chip-row">
             {part.materials.map((material) => (
@@ -316,7 +316,7 @@ export default async function PartDetailPage({
           <div className="section-title detail-section-title">
             <p className="eyebrow">Fabrication</p>
             <h2>Print and fabrication notes</h2>
-            <p>Machine setup, print profile, and sponsor-facing fabrication guidance for reuse.</p>
+            <p>Quick setup notes for print or sponsor fabrication.</p>
           </div>
           {part.printProfile ? (
             <ul className="detail-list">
@@ -355,7 +355,7 @@ export default async function PartDetailPage({
           <div className="section-title detail-section-title">
             <p className="eyebrow">Changelog</p>
             <h2>Version history</h2>
-            <p>Track fitment updates, geometry changes, and release notes over time.</p>
+            <p>Release notes and geometry changes over time.</p>
           </div>
           <div className="file-table">
             {part.versions.map((version) => (
@@ -373,18 +373,11 @@ export default async function PartDetailPage({
           <div className="section-title detail-section-title">
             <p className="eyebrow">More Like This</p>
             <h2>Related parts</h2>
-            <p>Listings from the same category that solve similar packaging or service problems.</p>
+            <p>Other listings solving a similar packaging problem.</p>
           </div>
-          <div className="detail-related-grid">
+          <div className="detail-related-grid detail-related-card-grid">
             {related.map((candidate) => (
-              <article key={candidate.slug} className="detail-related-card">
-                <span className="chip">{candidate.categoryLabel}</span>
-                <strong>
-                  <Link href={`/parts/${candidate.slug}`}>{candidate.title}</Link>
-                </strong>
-                <p>{candidate.summary}</p>
-                <span className="muted">by {creatorLabel(candidate.creatorHandle)}</span>
-              </article>
+              <PartCard key={candidate.slug} part={candidate} />
             ))}
           </div>
         </section>

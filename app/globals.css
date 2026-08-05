@@ -3129,6 +3129,22 @@ textarea {
   gap: 0.85rem;
 }
 
+.detail-related-card-grid {
+  grid-template-columns: 1fr;
+}
+
+.detail-related-card-grid .listing-card {
+  height: 100%;
+}
+
+.detail-related-card-grid .card-preview {
+  aspect-ratio: 1.22;
+}
+
+.detail-related-card-grid .card-body {
+  gap: 0.58rem;
+}
+
 .detail-related-card {
   display: grid;
   gap: 0.55rem;
