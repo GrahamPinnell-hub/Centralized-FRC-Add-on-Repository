@@ -52,6 +52,7 @@ model Team {
   number      Int?
   name        String
   shortName   String?
+  bio         String?
   city        String?
   state       String?
   country     String?
@@ -144,10 +145,18 @@ model Part {
   summary        String
   subsystem      String
   material       String?
+  materialsJson  String?
   installNotes   String?
+  installNotesJson String?
   printSettings  String?
+  printProfileJson String?
+  viewerNote     String?
   status         PartStatus     @default(PUBLISHED)
   featured       Boolean        @default(false)
+  validated      Boolean        @default(false)
+  rating         Float          @default(0)
+  views          Int            @default(0)
+  downloads      Int            @default(0)
   categoryId     String
   licenseId      String
   ownerUserId    String?
@@ -187,6 +196,7 @@ model Asset {
   versionId      String?
   kind           AssetKind
   label          String
+  description    String?
   fileType       String
   url            String
   previewUrl     String?

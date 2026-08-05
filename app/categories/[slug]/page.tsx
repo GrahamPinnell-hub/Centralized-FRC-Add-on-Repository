@@ -1,10 +1,11 @@
 import { notFound } from "next/navigation";
 
 import { PartCard, SectionTitle } from "@/components/ui";
-import { categorySlugs, getCategory } from "@/lib/catalog";
+import { getCategoryData, getCategorySlugsData } from "@/lib/repository";
 
-export function generateStaticParams() {
-  return categorySlugs.map((slug) => ({ slug }));
+export async function generateStaticParams() {
+  const slugs = await getCategorySlugsData();
+  return slugs.map((slug) => ({ slug }));
 }
 
 export default async function CategoryPage({
@@ -13,7 +14,7 @@ export default async function CategoryPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const category = getCategory(slug);
+  const category = await getCategoryData(slug);
 
   if (!category) {
     notFound();

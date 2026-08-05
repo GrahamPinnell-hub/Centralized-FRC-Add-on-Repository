@@ -524,11 +524,15 @@ export function getSearchOptions() {
   };
 }
 
-export function filterParts(filters: SearchFilters) {
+export function filterPartsList(
+  partList: CatalogPart[],
+  creatorList: Creator[],
+  filters: SearchFilters
+) {
   const query = normalize(filters.q ?? "");
 
-  return parts.filter((part) => {
-    const creator = getCreator(part.creatorHandle);
+  return partList.filter((part) => {
+    const creator = creatorList.find((candidate) => candidate.handle === part.creatorHandle);
     const haystack = [
       part.title,
       part.summary,
@@ -554,4 +558,8 @@ export function filterParts(filters: SearchFilters) {
 
     return queryMatch && categoryMatch && vendorMatch && seasonMatch && materialMatch && fileTypeMatch;
   });
+}
+
+export function filterParts(filters: SearchFilters) {
+  return filterPartsList(parts, creators, filters);
 }

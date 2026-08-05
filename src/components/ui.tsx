@@ -78,6 +78,32 @@ function getLeadMedia(part: CatalogPart) {
   return part.media.find((item) => item.src) ?? null;
 }
 
+function getPrimaryDownload(part: CatalogPart) {
+  return part.files.find((file) => file.fileType !== "SOURCE") ?? part.files[0] ?? null;
+}
+
+function getSourceFile(part: CatalogPart) {
+  return part.files.find((file) => file.fileType === "SOURCE") ?? null;
+}
+
+function getFileSlotLabel(fileType: CatalogPart["files"][number]["fileType"]) {
+  switch (fileType) {
+    case "DXF":
+      return "Sheet metal / 2D fabrication";
+    case "STEP":
+      return "Neutral CAD reference";
+    case "STL":
+    case "3MF":
+      return "Print-ready model";
+    case "ZIP":
+      return "Bundle download";
+    case "SOURCE":
+      return "Editable source CAD";
+    default:
+      return "Reusable file";
+  }
+}
+
 export function SiteChrome({ children }: { children: ReactNode }) {
   return (
     <div className="app-shell">
@@ -382,12 +408,30 @@ export function FilterPanel({
 
 export function ViewerShell({ part }: { part: CatalogPart }) {
   const leadMedia = getLeadMedia(part);
+  const primaryDownload = getPrimaryDownload(part);
+  const sourceFile = getSourceFile(part);
+  const viewerModes = [
+    primaryDownload ? `3D / ${primaryDownload.fileType}` : null,
+    part.media.some((item) => item.kind === "image") ? "Photos" : null,
+    part.media.some((item) => item.kind === "video") ? "Video" : null,
+    sourceFile ? "Source CAD" : null
+  ].filter((mode): mode is string => Boolean(mode));
 
   return (
     <section className="panel viewer-shell" id="viewer" style={previewStyle(part.category)}>
       <div className="viewer-head">
-        <span className="chip chip-accent">Built-in 3D Viewer</span>
+        <div className="viewer-heading">
+          <span className="chip chip-accent">Built-in Viewer</span>
+          <strong>{primaryDownload ? `${primaryDownload.fileType} preview lane` : "Preview lane"}</strong>
+        </div>
         <span className="muted">{part.files.map((file) => file.fileType).join(" / ")}</span>
+      </div>
+      <div className="viewer-mode-bar">
+        {viewerModes.map((mode, index) => (
+          <span key={mode} className={`chip${index === 0 ? " chip-accent" : ""}`}>
+            {mode}
+          </span>
+        ))}
       </div>
       <div className={`viewer-stage${leadMedia ? " has-media" : ""}`}>
         {leadMedia?.src ? (
@@ -396,8 +440,20 @@ export function ViewerShell({ part }: { part: CatalogPart }) {
           </div>
         ) : null}
         <div className="viewer-mesh">
-          <span>{leadMedia ? "Interactive 3D preview layer" : "3D / 2D preview slot"}</span>
+          <span>{leadMedia ? "Interactive preview layer" : "3D / 2D preview slot"}</span>
         </div>
+        <div className="viewer-stage-note">
+          <strong>{leadMedia?.title ?? part.title}</strong>
+          <span>
+            {leadMedia?.note ??
+              "V1 keeps the viewer shell ready for richer STL, STEP, DXF, and media previews once live asset uploads are connected."}
+          </span>
+        </div>
+      </div>
+      <div className="viewer-callouts">
+        {primaryDownload ? <span className="chip">Primary file: {primaryDownload.fileType}</span> : null}
+        {sourceFile ? <span className="chip">Source available</span> : null}
+        <span className="chip">Season tags: {part.seasons.join(", ")}</span>
       </div>
       <p>{part.viewerNote}</p>
     </section>
@@ -411,13 +467,18 @@ export function FileTable({ part }: { part: CatalogPart }) {
       <div className="file-table">
         {part.files.map((file) => (
           <article key={`${part.slug}-${file.label}`} className="file-row">
-            <div>
+            <div className="file-row-copy">
               <strong>{file.label}</strong>
+              <div className="file-row-meta">
+                <span className={`chip${file.fileType === "SOURCE" ? " chip-accent" : ""}`}>{file.fileType}</span>
+                <span className="muted">{getFileSlotLabel(file.fileType)}</span>
+              </div>
               <p>{file.note}</p>
             </div>
             <div className="file-actions">
-              <span className="chip">{file.fileType}</span>
-              <a href={file.href}>Open slot</a>
+              <a href={file.href} target="_blank" rel="noreferrer">
+                {file.fileType === "SOURCE" ? "Open source" : `Open ${file.fileType}`}
+              </a>
             </div>
           </article>
         ))}
@@ -507,6 +568,7 @@ export function UploadChecklist() {
       <ul>
         <li>Publish immediately. Listings are auto-approved in V1.</li>
         <li>Accepted file types: STL, STEP, 3MF, DXF, ZIP, and source CAD links.</li>
+        <li>Use the drop zone for grouped robot files, then clean up labels and detected file types before publishing.</li>
         <li>Add enough compatibility metadata that another team can find the part without guessing.</li>
         <li>Use the report flow later for broken links, unsafe content, or bad metadata.</li>
       </ul>

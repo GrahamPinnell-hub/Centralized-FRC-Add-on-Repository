@@ -1,13 +1,20 @@
 import Link from "next/link";
 
-import { getCatalogStats, getCategorySummaries, getLatestParts, getTrendingParts } from "@/lib/catalog";
 import { CategoryCard, PartCard, SectionTitle } from "@/components/ui";
+import {
+  getCatalogStatsData,
+  getCategorySummariesData,
+  getLatestPartsData,
+  getTrendingPartsData
+} from "@/lib/repository";
 
-export default function HomePage() {
-  const stats = getCatalogStats();
-  const categories = getCategorySummaries();
-  const trending = getTrendingParts();
-  const latest = getLatestParts();
+export default async function HomePage() {
+  const [stats, categories, trending, latest] = await Promise.all([
+    getCatalogStatsData(),
+    getCategorySummariesData(),
+    getTrendingPartsData(),
+    getLatestPartsData()
+  ]);
 
   return (
     <>

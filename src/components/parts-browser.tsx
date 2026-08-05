@@ -1,27 +1,23 @@
-"use client";
-
-import { useSearchParams } from "next/navigation";
-
 import { FilterPanel, PartCard } from "@/components/ui";
-import { filterParts, getSearchOptions, type SearchFilters } from "@/lib/catalog";
+import type { CatalogPart, SearchFilters } from "@/lib/catalog";
 
-function one(value: string | null) {
-  return value ?? undefined;
-}
+type SearchOptions = {
+  categories: { slug: string; label: string }[];
+  vendors: string[];
+  seasons: string[];
+  fileTypes: string[];
+  materials: string[];
+};
 
-export function PartsBrowser() {
-  const searchParams = useSearchParams();
-  const filters: SearchFilters = {
-    q: one(searchParams.get("q")),
-    category: one(searchParams.get("category")),
-    vendor: one(searchParams.get("vendor")),
-    season: one(searchParams.get("season")),
-    fileType: one(searchParams.get("fileType")),
-    material: one(searchParams.get("material"))
-  };
-  const options = getSearchOptions();
-  const results = filterParts(filters);
-
+export function PartsBrowser({
+  filters,
+  options,
+  results
+}: {
+  filters: SearchFilters;
+  options: SearchOptions;
+  results: CatalogPart[];
+}) {
   return (
     <section className="results-shell">
       <FilterPanel filters={filters} options={options} />
@@ -29,8 +25,8 @@ export function PartsBrowser() {
         <section className="panel">
           <strong>{results.length} matching listings</strong>
           <p>
-            This is the exact place where flexible search can later evolve toward AI-assisted
-            queries like "mk4i swerve cover from team 31."
+            Search is now wired through the shared repository layer so the exact same filters can
+            read seeded Prisma data today and live submissions later.
           </p>
         </section>
         <div className="card-grid">

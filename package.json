@@ -3,13 +3,16 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
+    "postinstall": "prisma generate",
+    "prebuild": "prisma generate && prisma db push && npm run prisma:seed",
     "dev": "next dev",
     "build": "next build",
     "build:pages": "next build",
     "start": "next start",
     "lint": "next lint",
     "prisma:generate": "prisma generate",
-    "prisma:db-push": "prisma db push"
+    "prisma:db-push": "prisma db push",
+    "prisma:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.0.0",
@@ -22,6 +25,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "prisma": "^6.0.0",
+    "tsx": "^4.20.3",
     "typescript": "^5.0.0"
   }
 }

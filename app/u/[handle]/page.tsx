@@ -1,10 +1,11 @@
 import { notFound } from "next/navigation";
 
 import { CreatorBanner, PartCard } from "@/components/ui";
-import { creatorHandles, getCreatorProfile } from "@/lib/catalog";
+import { getCreatorHandlesData, getCreatorProfileData } from "@/lib/repository";
 
-export function generateStaticParams() {
-  return creatorHandles.map((handle) => ({ handle }));
+export async function generateStaticParams() {
+  const handles = await getCreatorHandlesData();
+  return handles.map((handle) => ({ handle }));
 }
 
 export default async function CreatorPage({
@@ -13,7 +14,7 @@ export default async function CreatorPage({
   params: Promise<{ handle: string }>;
 }) {
   const { handle } = await params;
-  const profile = getCreatorProfile(handle);
+  const profile = await getCreatorProfileData(handle);
 
   if (!profile) {
     notFound();

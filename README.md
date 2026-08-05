@@ -14,6 +14,7 @@ This is the clean V1 scaffold for a searchable FRC resource repository focused o
 - Report listing page
 - Seed sample catalog data
 - Prisma schema for the long-term data model
+- Seeded Prisma-backed repository layer with static fallback for Pages builds
 
 ## V1 scope in this scaffold
 
@@ -40,17 +41,16 @@ The deployment workflow lives in `.github/workflows/deploy-pages.yml`.
 
 ```bash
 npm install
-npx prisma generate
-npx prisma db push
 npm run dev
 ```
+
+`npm install` runs `prisma generate` automatically. The app reads the seeded sample catalog through the shared repository layer, so the same pages can move from demo data to live submissions later without a page rewrite.
 
 ## Build locally
 
 ```bash
 npm install
-npx prisma generate
-npm run build:pages
+npm run build
 ```
 
 If you want to test a project-repo path locally, set `BASE_PATH` before the build. Example:
@@ -59,6 +59,19 @@ If you want to test a project-repo path locally, set `BASE_PATH` before the buil
 $env:BASE_PATH='/Centralized-FRC-Add-on-Repository'
 npm run build:pages
 ```
+
+`npm run build` automatically runs:
+
+- `prisma generate`
+- `prisma db push`
+- `npm run prisma:seed`
+- `next build`
+
+## Notes
+
+- GitHub Pages remains valid for this V1 because the site exports statically.
+- Real uploads, team login, comments, and persistent moderation will need a live server deployment later.
+- If Windows reports the local `out/` folder is locked during export, the code is usually still fine. That is a filesystem issue, commonly from OneDrive sync or a local preview using the export folder.
 
 ## Design intent
 
