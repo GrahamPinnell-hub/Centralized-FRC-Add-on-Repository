@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { IBM_Plex_Mono, Manrope } from "next/font/google";
 import type { ReactNode } from "react";
 
-import { SiteChrome } from "@/components/ui";
+import { SiteChrome } from "@/components/site-chrome";
 
 import "./globals.css";
 
