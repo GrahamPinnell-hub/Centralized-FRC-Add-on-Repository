@@ -1,7 +1,7 @@
 import type { CatalogFile } from "@/lib/catalog";
 
 type ImportSource = {
-  key: "printables" | "thingiverse" | "grabcad" | "onshape" | "github";
+  key: "printables" | "thingiverse" | "onshape" | "github";
   label: string;
   hostnames: string[];
 };
@@ -80,7 +80,6 @@ export type ImportedListingData = {
 const supportedSources: ImportSource[] = [
   { key: "printables", label: "Printables", hostnames: ["printables.com"] },
   { key: "thingiverse", label: "Thingiverse", hostnames: ["thingiverse.com"] },
-  { key: "grabcad", label: "GrabCAD", hostnames: ["grabcad.com"] },
   { key: "onshape", label: "Onshape", hostnames: ["cad.onshape.com", "onshape.com"] },
   { key: "github", label: "GitHub", hostnames: ["github.com"] }
 ];
@@ -311,7 +310,6 @@ function cleanImportedTitle(rawTitle: string | undefined, source: ImportSource, 
     .replace(/\s+\|\s+Download free.*$/i, "")
     .replace(/\s+\|\s+Printables\.com.*$/i, "")
     .replace(/\s+\|\s+Thingiverse$/i, "")
-    .replace(/\s+\|\s+GrabCAD.*$/i, "")
     .replace(/\s+\|\s+Onshape.*$/i, "")
     .trim();
 
@@ -394,58 +392,11 @@ function microlinkFailureReason(payload: MicrolinkPayload) {
   return null;
 }
 
-function buildReferenceOnlyImport(
-  url: URL,
-  source: ImportSource,
-  reason: string,
-  fallbackTitle?: string
-): ImportedListingData {
-  const title =
-    fallbackTitle ||
-    cleanImportedTitle(undefined, source, url) ||
-    `${source.label} import`;
-  const description = `Reference-only import from ${source.label}. Rich metadata could not be fetched automatically.`;
-  const signals = deriveSignals(`${title} ${description}`.toLowerCase());
-
-  return {
-    sourceLabel: source.label,
-    sourceKey: source.key,
-    sourceUrl: url.toString(),
-    title,
-    description,
-    author: null,
-    publisher: source.label,
-    license: null,
-    categorySlug: signals.categorySlug,
-    tags: signals.tags,
-    products: signals.products,
-    vendors: signals.vendors,
-    files: [
-      {
-        label: `Original ${source.label} listing`,
-        fileType: "SOURCE",
-        href: url.toString(),
-        note: `Reference link back to the original ${source.label} page.`
-      }
-    ],
-    media: [],
-    warnings: [reason]
-  };
-}
-
 async function importFromMicrolink(url: URL, source: ImportSource): Promise<ImportedListingData> {
   const payload = await fetchMicrolinkPayload(url.toString());
   const failureReason = microlinkFailureReason(payload);
 
   if (failureReason) {
-    if (source.key === "grabcad") {
-      return buildReferenceOnlyImport(
-        url,
-        source,
-        "GrabCAD blocked automatic metadata import. The source link was kept, but title, media, and file details may need to be filled in manually."
-      );
-    }
-
     throw new Error(failureReason);
   }
 
@@ -624,7 +575,7 @@ export async function importListingFromUrl(rawUrl: string): Promise<ImportedList
   const source = detectSource(url);
 
   if (!source) {
-    throw new Error("This importer currently supports Printables, Thingiverse, GrabCAD, Onshape, and GitHub links.");
+    throw new Error("This importer currently supports Printables, Thingiverse, Onshape, and GitHub links.");
   }
 
   if (source.key === "github") {

@@ -759,7 +759,7 @@ export function UploadBuilderClient({
 
     if (!trimmedUrl) {
       setImportMessage(
-        "Paste a Printables, Thingiverse, GrabCAD, Onshape, or GitHub link to start from an existing listing."
+        "Paste a Printables, Thingiverse, Onshape, or GitHub link to start from an existing listing."
       );
       return;
     }
@@ -901,8 +901,8 @@ export function UploadBuilderClient({
               ))}
             </div>
             <p className="upload-owner-note">
-              Use this to prefill a listing from Printables, Thingiverse, GrabCAD, Onshape, or
-              GitHub before attaching your own local files and photos.
+              Use this to prefill a listing from Printables, Thingiverse, Onshape, or GitHub
+              before attaching your own local files and photos.
             </p>
             {importMessage ? <p className="upload-inline-note">{importMessage}</p> : null}
             {lastImport ? (
