@@ -2034,6 +2034,7 @@ textarea {
 
 .upload-photo-frame {
   position: relative;
+  isolation: isolate;
 }
 
 .upload-photo-frame::after {
@@ -2041,7 +2042,17 @@ textarea {
   position: absolute;
   inset: 0;
   background: linear-gradient(180deg, rgba(13, 14, 14, 0.06), rgba(13, 14, 14, 0.28));
-  z-index: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.upload-photo-frame img,
+.upload-photo-frame video {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .upload-photo-tile strong {
@@ -2054,28 +2065,37 @@ textarea {
   position: absolute;
   top: 0.45rem;
   left: 0.45rem;
-  z-index: 1;
+  z-index: 3;
 }
 
 .upload-photo-remove {
   position: absolute;
   top: 0.45rem;
   right: 0.45rem;
-  z-index: 1;
-  min-width: 1.8rem;
-  min-height: 1.8rem;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
   padding: 0;
-  border-radius: 999px;
-  border: 0;
-  background: rgba(112, 117, 123, 0.92);
-  color: #fff;
-  font-size: 1.2rem;
+  border-radius: 4px;
+  border: 1px solid rgba(9, 10, 10, 0.18);
+  background: rgba(248, 249, 250, 0.96);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.2);
+  color: #111;
+  font-size: 1.05rem;
   line-height: 1;
+  cursor: pointer;
 }
 
 .upload-photo-remove:hover {
-  background: rgba(146, 151, 157, 0.96);
-  border-color: transparent;
+  background: #fff;
+  border-color: rgba(9, 10, 10, 0.28);
+}
+
+.upload-photo-remove span {
+  transform: translateY(-1px);
+  font-weight: 800;
 }
 
 .upload-photo-add {
@@ -2590,6 +2610,90 @@ textarea {
   position: relative;
 }
 
+.upload-license-help {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid rgba(239, 214, 169, 0.16);
+  border-radius: 16px;
+  background: rgba(185, 137, 61, 0.08);
+}
+
+.upload-license-help strong,
+.upload-license-help p {
+  margin: 0;
+}
+
+.upload-license-help strong {
+  color: #fff;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.upload-license-help p,
+.upload-field-support {
+  color: rgba(227, 231, 236, 0.76);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.upload-tag-picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 3.65rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: rgba(19, 20, 21, 0.96);
+  cursor: text;
+}
+
+.upload-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 2px;
+  background: #f5f6f7;
+  color: #131516;
+  font-weight: 700;
+}
+
+.upload-tag-chip button {
+  display: grid;
+  place-items: center;
+  width: 1rem;
+  height: 1rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(19, 21, 22, 0.82);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.upload-tag-chip button:hover {
+  color: #000;
+  transform: none;
+}
+
+.upload-tag-picker input {
+  flex: 1 1 10rem;
+  min-width: 10rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.upload-tag-picker input:focus {
+  outline: none;
+}
+
 .upload-tag-suggestions {
   display: grid;
   gap: 0.1rem;
@@ -2601,6 +2705,8 @@ textarea {
 }
 
 .upload-tag-option {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
   min-height: 0;
   padding: 0.8rem 0.9rem;
@@ -2615,6 +2721,10 @@ textarea {
   background: rgba(220, 225, 231, 0.06);
   border-color: transparent;
   transform: none;
+}
+
+.upload-tag-option-create strong {
+  color: var(--accent-soft);
 }
 
 .upload-tag-option strong {

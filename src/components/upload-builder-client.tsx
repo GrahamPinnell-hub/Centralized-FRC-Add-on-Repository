@@ -4,6 +4,7 @@ import {
   type CSSProperties,
   type ChangeEvent,
   type DragEvent,
+  type KeyboardEvent,
   useEffect,
   useMemo,
   useRef,
@@ -71,6 +72,7 @@ type SavedDraftSnapshot = {
   title: string;
   summary: string;
   category: string;
+  categoryAddon: string;
   subsystem: string;
   products: string;
   vendors: string;
@@ -110,6 +112,7 @@ type DemoManifest = {
     summary: string;
     category: string;
     categoryLabel: string;
+    categoryAddon: string;
     subsystem: string;
     license: string;
     tags: string[];
@@ -134,6 +137,18 @@ type TagSuggestion = {
   count: number;
 };
 
+type CategoryAddonOption = {
+  value: string;
+  label: string;
+  note: string;
+};
+
+type LicenseDefinition = {
+  value: string;
+  summary: string;
+  description: string;
+};
+
 type OwnerChoice = {
   handle: string;
   title: string;
@@ -142,6 +157,7 @@ type OwnerChoice = {
 };
 
 const draftsStorageKey = "frc-addon-upload-drafts-v2";
+const customTagStorageKey = "frc-addon-custom-tags-v1";
 const defaultDraftTitle = "Mk4 Swerve Cover";
 const defaultDraftSummary =
   "A quick-swap cover that protects wires and encoder routing without slowing down module service.";
@@ -182,19 +198,134 @@ const defaultMedia: DraftMedia[] = [
   }
 ];
 
-const fallbackLicenses = [
-  "CC BY-NC 4.0",
-  "CC BY 4.0",
-  "CC BY-NC-SA 4.0",
-  "MIT",
-  "CERN-OHL-S"
+const fallbackLicenses: LicenseDefinition[] = [
+  {
+    value: "CC BY-NC 4.0",
+    summary: "Teams can remix and share it, but they must credit the creator and keep it non-commercial.",
+    description: "Best default for community robot add-ons that should stay open for teams while blocking resale."
+  },
+  {
+    value: "CC BY 4.0",
+    summary: "Anyone can share or adapt it as long as the original creator is credited.",
+    description: "Use this when you want the widest reuse path and are comfortable with commercial reuse."
+  },
+  {
+    value: "CC BY-NC-SA 4.0",
+    summary: "Reuse is allowed with credit, non-commercial limits, and the same license on remixes.",
+    description: "Good when you want future remixes to stay open under the same community terms."
+  },
+  {
+    value: "MIT",
+    summary: "Very permissive open-source license with attribution and few restrictions.",
+    description: "Useful for code, firmware helpers, and open tooling where you want minimal license friction."
+  },
+  {
+    value: "CERN-OHL-S",
+    summary: "Open hardware license that keeps modified hardware source under the same terms.",
+    description: "Fit for CAD and PCB work when you want strong share-back requirements for hardware derivatives."
+  }
 ] as const;
+
+const categoryAddonLibrary: Record<string, CategoryAddonOption[]> = {
+  "swerve-covers": [
+    {
+      value: "wire-cover",
+      label: "Wire cover",
+      note: "Use for cable routing shields, snap-on wire guards, and service-friendly top covers."
+    },
+    {
+      value: "encoder-guard",
+      label: "Encoder guard",
+      note: "Use for printed guards that protect encoders, leads, and small electronics near the module."
+    },
+    {
+      value: "motor-protector",
+      label: "Motor protector",
+      note: "Use for shells that shield exposed motors or terminals from bumper contact and debris."
+    },
+    {
+      value: "service-shield",
+      label: "Service shield",
+      note: "Use for plates or covers that stay on the robot while still allowing quick maintenance."
+    }
+  ],
+  "driver-station": [
+    {
+      value: "tablet-mount",
+      label: "Tablet mount",
+      note: "Use for display stands, scouting screens, and driver station tablet brackets."
+    },
+    {
+      value: "cable-organizer",
+      label: "Cable organizer",
+      note: "Use for joystick cable strain relief, USB guides, and portable wiring organizers."
+    },
+    {
+      value: "button-box",
+      label: "Button box",
+      note: "Use for operator button panels, switch pods, and labeled input housings."
+    },
+    {
+      value: "field-cart",
+      label: "Field cart accessory",
+      note: "Use for brackets, hooks, or fixtures that travel with the driver station setup."
+    }
+  ],
+  "electronics-mounts": [
+    {
+      value: "radio-mount",
+      label: "Radio mount",
+      note: "Use for brackets or enclosures made around team radio layouts."
+    },
+    {
+      value: "pdh-pdp-mount",
+      label: "Power mount",
+      note: "Use for PDH, PDP, or fused power distribution mounting solutions."
+    },
+    {
+      value: "sensor-bracket",
+      label: "Sensor bracket",
+      note: "Use for small electronics, expansion hubs, or protected sensor standoffs."
+    },
+    {
+      value: "bellypan-panel",
+      label: "Bellypan panel",
+      note: "Use for flat plates and hardware patterns that organize electronics on a robot pan."
+    }
+  ],
+  "vision-mounts": [
+    {
+      value: "camera-mount",
+      label: "Camera mount",
+      note: "Use for fixed mounts built around Limelight, PhotonVision, or USB cameras."
+    },
+    {
+      value: "adjustable-bracket",
+      label: "Adjustable bracket",
+      note: "Use for multi-angle mounts with slots, pivots, or shims for aiming."
+    },
+    {
+      value: "hood",
+      label: "Protective hood",
+      note: "Use for glare shields, impact guards, and protective camera housings."
+    },
+    {
+      value: "retrofit-plate",
+      label: "Retrofit plate",
+      note: "Use for adapters that let a team swap from one camera package to another."
+    }
+  ]
+};
 
 function splitList(value: string) {
   return value
     .split(",")
     .map((entry) => entry.trim())
     .filter(Boolean);
+}
+
+function joinList(values: string[]) {
+  return values.join(", ");
 }
 
 function slugify(value: string) {
@@ -316,14 +447,24 @@ function isPlaceholderFileSet(files: DraftFile[]) {
   );
 }
 
-function replaceTrailingTag(tags: string, nextTag: string) {
-  const existing = tags
-    .split(",")
-    .slice(0, -1)
-    .map((tag) => tag.trim())
-    .filter(Boolean);
-
-  return [...existing, nextTag].join(", ") + ", ";
+function buildFallbackCategoryAddons(categoryLabel: string): CategoryAddonOption[] {
+  return [
+    {
+      value: "mount",
+      label: "Mount",
+      note: `Use for general ${categoryLabel.toLowerCase()} brackets and mounting plates.`
+    },
+    {
+      value: "guard",
+      label: "Guard",
+      note: `Use for protective ${categoryLabel.toLowerCase()} covers and shields.`
+    },
+    {
+      value: "organizer",
+      label: "Organizer",
+      note: `Use for small reusable ${categoryLabel.toLowerCase()} helpers and support pieces.`
+    }
+  ];
 }
 
 function mergeImportedFiles(currentFiles: DraftFile[], importedFiles: ImportedFileCandidate[]) {
@@ -390,6 +531,7 @@ export function UploadBuilderClient({
   parts: CatalogPart[];
 }) {
   const [joinedTeams, setJoinedTeams] = useState<PreviewJoinedTeam[]>([]);
+  const [customTagSuggestions, setCustomTagSuggestions] = useState<TagSuggestion[]>([]);
   const ownerChoices = useMemo<OwnerChoice[]>(
     () => {
       const team31 = creators.find((creator) => creator.handle === "team-31");
@@ -426,7 +568,10 @@ export function UploadBuilderClient({
   );
 
   const licenseOptions = useMemo(
-    () => Array.from(new Set([...parts.map((part) => part.license), ...fallbackLicenses])).sort(),
+    () =>
+      Array.from(
+        new Set([...parts.map((part) => part.license), ...fallbackLicenses.map((option) => option.value)])
+      ).sort(),
     [parts]
   );
 
@@ -439,22 +584,28 @@ export function UploadBuilderClient({
       }
     }
 
+    for (const tag of customTagSuggestions) {
+      counts.set(tag.label, Math.max(counts.get(tag.label) ?? 0, tag.count));
+    }
+
     return [...counts.entries()]
       .map(([label, count]) => ({ label, count }))
       .sort((left, right) => right.count - left.count || left.label.localeCompare(right.label));
-  }, [parts]);
+  }, [customTagSuggestions, parts]);
 
   const [ownerHandle, setOwnerHandle] = useState(ownerChoices[0]?.handle ?? "graham-pinnell");
   const [sourceUrl, setSourceUrl] = useState("");
   const [title, setTitle] = useState(defaultDraftTitle);
   const [summary, setSummary] = useState(defaultDraftSummary);
   const [category, setCategory] = useState(options.categories[0]?.slug ?? "swerve-covers");
+  const [categoryAddon, setCategoryAddon] = useState("");
   const [subsystem, setSubsystem] = useState("Drivetrain");
   const [products, setProducts] = useState("MK4i");
   const [vendors, setVendors] = useState("SDS");
   const [seasons, setSeasons] = useState("2026, General");
   const [materials, setMaterials] = useState("PETG, ABS");
   const [tags, setTags] = useState(defaultDraftTags);
+  const [tagInput, setTagInput] = useState("");
   const [license, setLicense] = useState(licenseOptions[0] ?? "CC BY-NC 4.0");
   const [printNotes, setPrintNotes] = useState(defaultPrintNotes);
   const [installNotes, setInstallNotes] = useState(defaultInstallNotes);
@@ -474,10 +625,21 @@ export function UploadBuilderClient({
   const [demoState, setDemoState] = useState<DemoPublishState>("draft");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const mediaInputRef = useRef<HTMLInputElement | null>(null);
+  const tagInputRef = useRef<HTMLInputElement | null>(null);
   const objectUrlsRef = useRef<string[]>([]);
 
-  const currentTagQuery = tags.split(",").at(-1)?.trim().toLowerCase() ?? "";
-  const selectedTags = splitList(tags).map((tag) => tag.toLowerCase());
+  const activeCategoryAddons = useMemo(() => {
+    const activeCategory = options.categories.find((option) => option.slug === category);
+
+    return categoryAddonLibrary[category] ?? buildFallbackCategoryAddons(activeCategory?.label ?? "General");
+  }, [category, options.categories]);
+
+  const activeCategoryAddon =
+    activeCategoryAddons.find((option) => option.value === categoryAddon) ?? activeCategoryAddons[0];
+  const activeLicense = fallbackLicenses.find((option) => option.value === license);
+  const tagEntries = splitList(tags);
+  const currentTagQuery = tagInput.trim().toLowerCase();
+  const selectedTags = tagEntries.map((tag) => tag.toLowerCase());
   const matchingTags = currentTagQuery
     ? tagSuggestions
         .filter(
@@ -487,6 +649,10 @@ export function UploadBuilderClient({
         )
         .slice(0, 8)
     : [];
+  const canCreateTag =
+    tagInput.trim().length > 0 &&
+    !selectedTags.includes(tagInput.trim().toLowerCase()) &&
+    !tagSuggestions.some((suggestion) => suggestion.label.toLowerCase() === tagInput.trim().toLowerCase());
 
   const previewPart = useMemo<CatalogPart>(() => {
     const activeCategory = options.categories.find((option) => option.slug === category);
@@ -504,7 +670,7 @@ export function UploadBuilderClient({
       vendors: splitList(vendors),
       products: splitList(products),
       seasons: splitList(seasons),
-      tags: splitList(tags),
+      tags: tagEntries,
       license: license || "License not set",
       rating: 0,
       views: 0,
@@ -592,6 +758,31 @@ export function UploadBuilderClient({
   }, []);
 
   useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(customTagStorageKey);
+
+      if (!stored) {
+        return;
+      }
+
+      const parsed = JSON.parse(stored) as TagSuggestion[];
+
+      if (Array.isArray(parsed)) {
+        setCustomTagSuggestions(
+          parsed
+            .filter((tag): tag is TagSuggestion => Boolean(tag?.label))
+            .map((tag) => ({
+              label: tag.label,
+              count: Math.max(1, Number.isFinite(tag.count) ? tag.count : 1)
+            }))
+        );
+      }
+    } catch {
+      setCustomTagSuggestions([]);
+    }
+  }, []);
+
+  useEffect(() => {
     function syncJoinedTeams() {
       const session = parsePreviewSession(window.localStorage.getItem(previewSessionStorageKey));
       setJoinedTeams(session?.joinedTeams ?? []);
@@ -620,6 +811,19 @@ export function UploadBuilderClient({
       setOwnerHandle(normalized);
     }
   }, [ownerChoices, ownerHandle]);
+
+  useEffect(() => {
+    if (activeCategoryAddons.length === 0) {
+      if (categoryAddon) {
+        setCategoryAddon("");
+      }
+      return;
+    }
+
+    if (!activeCategoryAddons.some((option) => option.value === categoryAddon)) {
+      setCategoryAddon(activeCategoryAddons[0].value);
+    }
+  }, [activeCategoryAddons, categoryAddon]);
 
   function queueFiles(incoming: File[]) {
     if (incoming.length === 0) {
@@ -692,7 +896,69 @@ export function UploadBuilderClient({
   }
 
   function applyTagSuggestion(tag: string) {
-    setTags((current) => replaceTrailingTag(current, tag));
+    setTags((current) => {
+      const nextEntries = splitList(current);
+      const normalized = tag.toLowerCase();
+
+      if (!nextEntries.some((entry) => entry.toLowerCase() === normalized)) {
+        nextEntries.push(tag);
+      }
+
+      return joinList(nextEntries);
+    });
+    setTagInput("");
+  }
+
+  function commitTag(tag: string) {
+    const normalizedTag = tag.replace(/,+$/g, "").trim();
+
+    if (!normalizedTag) {
+      return;
+    }
+
+    setTags((current) => {
+      const nextEntries = splitList(current);
+
+      if (nextEntries.some((entry) => entry.toLowerCase() === normalizedTag.toLowerCase())) {
+        return current;
+      }
+
+      return joinList([...nextEntries, normalizedTag]);
+    });
+    setCustomTagSuggestions((current) => {
+      const existingIndex = current.findIndex(
+        (entry) => entry.label.toLowerCase() === normalizedTag.toLowerCase()
+      );
+      const nextSuggestions =
+        existingIndex >= 0
+          ? current.map((entry, index) =>
+              index === existingIndex ? { ...entry, count: entry.count + 1 } : entry
+            )
+          : [...current, { label: normalizedTag, count: 1 }];
+
+      window.localStorage.setItem(customTagStorageKey, JSON.stringify(nextSuggestions));
+      return nextSuggestions;
+    });
+    setTagInput("");
+  }
+
+  function removeTag(tag: string) {
+    setTags((current) =>
+      joinList(splitList(current).filter((entry) => entry.toLowerCase() !== tag.toLowerCase()))
+    );
+  }
+
+  function onTagInputKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (["Enter", ",", "Tab"].includes(event.key) && tagInput.trim()) {
+      event.preventDefault();
+      commitTag(tagInput);
+      return;
+    }
+
+    if (event.key === "Backspace" && !tagInput && tagEntries.length > 0) {
+      event.preventDefault();
+      removeTag(tagEntries[tagEntries.length - 1]);
+    }
   }
 
   function removeMedia(index: number) {
@@ -736,6 +1002,7 @@ export function UploadBuilderClient({
         summary: previewPart.summary,
         category: previewPart.category,
         categoryLabel: previewPart.categoryLabel,
+        categoryAddon,
         subsystem: previewPart.subsystem,
         license: previewPart.license,
         tags: previewPart.tags,
@@ -775,6 +1042,7 @@ export function UploadBuilderClient({
       title,
       summary,
       category,
+      categoryAddon,
       subsystem,
       products,
       vendors,
@@ -835,12 +1103,14 @@ export function UploadBuilderClient({
     setTitle(snapshot.title);
     setSummary(snapshot.summary);
     setCategory(snapshot.category);
+    setCategoryAddon(snapshot.categoryAddon ?? "");
     setSubsystem(snapshot.subsystem);
     setProducts(snapshot.products);
     setVendors(snapshot.vendors);
     setSeasons(snapshot.seasons);
     setMaterials(snapshot.materials);
     setTags(snapshot.tags);
+    setTagInput("");
     setLicense(snapshot.license);
     setPrintNotes(snapshot.printNotes);
     setInstallNotes(snapshot.installNotes);
@@ -923,6 +1193,7 @@ export function UploadBuilderClient({
       } else if (tags === defaultDraftTags) {
         setTags(defaultDraftTags);
       }
+      setTagInput("");
 
       if (imported.license && licenseOptions.includes(imported.license)) {
         setLicense(imported.license);
@@ -1109,10 +1380,21 @@ export function UploadBuilderClient({
                 </select>
               </label>
               <label>
+                Category add-on
+                <select value={categoryAddon} onChange={(event) => setCategoryAddon(event.target.value)}>
+                  {activeCategoryAddons.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <span className="upload-field-support">{activeCategoryAddon?.note}</span>
+              </label>
+            </div>
+            <label>
                 Subsystem
                 <input value={subsystem} onChange={(event) => setSubsystem(event.target.value)} />
               </label>
-            </div>
           </form>
         </section>
 
@@ -1131,16 +1413,48 @@ export function UploadBuilderClient({
                   </option>
                 ))}
               </select>
+              <div className="upload-license-help">
+                <strong>{activeLicense?.summary ?? "Use a license that makes reuse expectations clear."}</strong>
+                <p>
+                  {activeLicense?.description ??
+                    "If you use a custom or imported license, make sure teams can tell whether remixing, resale, or required attribution are allowed."}
+                </p>
+              </div>
             </label>
             <label className="upload-tag-field">
               Search tags
-              <input
-                value={tags}
-                onChange={(event) => setTags(event.target.value)}
-                placeholder="mk4i, swerve cover, limelight mount"
-              />
-              {matchingTags.length > 0 ? (
+              <div className="upload-tag-picker" onClick={() => tagInputRef.current?.focus()}>
+                {tagEntries.map((tag) => (
+                  <span key={tag} className="upload-tag-chip">
+                    {tag}
+                    <button type="button" aria-label={`Remove ${tag}`} onClick={() => removeTag(tag)}>
+                      x
+                    </button>
+                  </span>
+                ))}
+                <input
+                  ref={tagInputRef}
+                  value={tagInput}
+                  onChange={(event) => setTagInput(event.target.value)}
+                  onKeyDown={onTagInputKeyDown}
+                  placeholder={tagEntries.length === 0 ? "mk4i, swerve cover, limelight mount" : "Add a tag"}
+                />
+              </div>
+              <span className="upload-field-support">
+                Pick from existing tags or press Enter to add a new one, like Printables.
+              </span>
+              {matchingTags.length > 0 || canCreateTag ? (
                 <div className="upload-tag-suggestions">
+                  {canCreateTag ? (
+                    <button
+                      type="button"
+                      className="upload-tag-option upload-tag-option-create"
+                      onClick={() => commitTag(tagInput)}
+                    >
+                      <strong>Create "{tagInput.trim()}"</strong>
+                      <span>New tag</span>
+                    </button>
+                  ) : null}
                   {matchingTags.map((suggestion) => (
                     <button
                       key={suggestion.label}
@@ -1255,7 +1569,7 @@ export function UploadBuilderClient({
                     aria-label={`Remove ${item.title || `media ${index + 1}`}`}
                     onClick={() => removeMedia(index)}
                   >
-                    x
+                    <span aria-hidden="true">x</span>
                   </button>
                   <span className={`chip${item.kind === "video" ? " chip-accent" : ""}`}>{item.kind}</span>
                   <div className="upload-photo-frame" style={mediaFrameStyle(item.src)}>
@@ -1301,7 +1615,7 @@ export function UploadBuilderClient({
             <div className="upload-section-head">
               <div>
                 <h4>Fabrication Files</h4>
-                <p>.stl, .3mf, .step, .dxf, .zip, and source CAD</p>
+                <p>.stl, .3mf, .step, .dxf, .zip, source CAD, and fabrication bundles</p>
               </div>
             </div>
             <div className="upload-file-actions">
