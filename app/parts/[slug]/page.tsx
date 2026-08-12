@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { FileTable, MediaGallery, PartCard, ViewerShell } from "@/components/ui";
+import { countLabels } from "@/lib/discovery";
 import {
   getCreatorProfileData,
   getPartData,
@@ -71,6 +72,12 @@ export default async function PartDetailPage({
   const materialSummary = part.materials.join(" / ");
   const currentRelease = part.versions[0]?.label ?? "v1.0";
   const hasMedia = part.media.some((item) => item.src);
+  const creatorCategories = creatorProfile
+    ? countLabels(creatorProfile.parts.map((entry) => entry.categoryLabel), 4)
+    : [];
+  const creatorTags = creatorProfile
+    ? countLabels(creatorProfile.parts.flatMap((entry) => entry.tags), 6)
+    : [];
 
   return (
     <div className="page-stack detail-page">
@@ -202,19 +209,38 @@ export default async function PartDetailPage({
       <div className="detail-stage-grid">
         <section className="detail-stage-panel">
           <div className="section-title detail-section-title">
-            <p className="eyebrow">Reuse Notes</p>
-            <h2>Design intent and fit</h2>
-            <p>Fitment, intended use, and why another team would reuse this instead of redrawing it.</p>
+            <p className="eyebrow">Overview</p>
+            <h2>What another team gets from this listing</h2>
+            <p>Fit, files, install notes, and quick jumps without digging through extra filler.</p>
           </div>
           <div className="detail-summary-copy">
+            <p>{part.summary}</p>
             <p>
-              Built around {productSummary} with fitment for {vendorSummary}{" "}
-              hardware and intended for {part.subsystem.toLowerCase()} packaging.
+              This release is aimed at {part.subsystem.toLowerCase()} packaging, built around
+              {` ${productSummary}`} hardware, and currently ships {deliverableTypes.join(" / ")}
+              files for direct reuse.
             </p>
-            <p>
-              This listing is tagged for {part.tags.join(", ")} and is meant to save another team
-              from rebuilding the same mount, cover, tray, or guard from scratch.
-            </p>
+          </div>
+          <ul className="detail-highlight-list">
+            {part.installNotes.slice(0, 4).map((note) => (
+              <li key={note}>{note}</li>
+            ))}
+          </ul>
+          <div className="chip-row detail-jump-row">
+            <a href="#files" className="chip chip-accent">
+              Files
+            </a>
+            {hasMedia ? (
+              <a href="#media" className="chip">
+                Gallery
+              </a>
+            ) : null}
+            <a href="#related" className="chip">
+              Related parts
+            </a>
+            <Link href={`/u/${part.creatorHandle}`} className="chip">
+              Team library
+            </Link>
           </div>
         </section>
         <aside className="panel detail-team-panel">
@@ -250,6 +276,30 @@ export default async function PartDetailPage({
               </span>
             ))}
           </div>
+          {creatorCategories.length > 0 ? (
+            <div className="detail-team-cluster">
+              <strong>Common categories</strong>
+              <div className="chip-row">
+                {creatorCategories.map((category) => (
+                  <span key={category.label} className="chip">
+                    {category.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : null}
+          {creatorTags.length > 0 ? (
+            <div className="detail-team-cluster">
+              <strong>Common tags</strong>
+              <div className="chip-row">
+                {creatorTags.map((tag) => (
+                  <span key={tag.label} className="chip">
+                    {tag.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : null}
           <Link href={`/u/${part.creatorHandle}`} className="ghost-link">
             Open team profile
           </Link>

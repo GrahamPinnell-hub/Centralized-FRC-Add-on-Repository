@@ -980,12 +980,86 @@ textarea {
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
 }
 
+.discovery-grid,
+.browse-launchpad-grid,
+.category-insight-grid,
+.creator-insight-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}
+
 .category-grid {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 .detail-grid {
   grid-template-columns: 1.35fr 1fr;
+}
+
+.browse-chip-strip {
+  margin-top: -0.15rem;
+}
+
+.discovery-panel,
+.browse-launchpad-panel {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.discovery-panel-head,
+.browse-launchpad-panel {
+  gap: 0.35rem;
+}
+
+.discovery-panel-head h3,
+.browse-launchpad-panel h3 {
+  margin: 0;
+  line-height: 1.05;
+}
+
+.discovery-panel-head p,
+.browse-launchpad-panel p {
+  margin: 0;
+}
+
+.discovery-link-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.discovery-link-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  padding: 0.88rem 0.95rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(31, 33, 33, 0.24);
+  color: var(--text);
+}
+
+.discovery-link-row strong {
+  color: #fff;
+}
+
+.discovery-link-row span {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.discovery-link-row:hover {
+  border-color: rgba(191, 144, 69, 0.45);
+  color: var(--text);
+}
+
+.chip-count {
+  margin-left: 0.32rem;
+  color: rgba(220, 225, 231, 0.62);
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 .two-column {
@@ -3203,6 +3277,22 @@ textarea {
   margin: 0;
 }
 
+.detail-highlight-list {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--muted);
+}
+
+.detail-jump-row {
+  margin-top: 0.15rem;
+}
+
+.detail-jump-row .chip {
+  text-decoration: none;
+}
+
 .detail-stat-block {
   display: grid;
   gap: 0.15rem;
@@ -3224,6 +3314,16 @@ textarea {
   display: flex;
   flex-wrap: wrap;
   gap: 0.65rem;
+}
+
+.detail-team-cluster {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.detail-team-cluster strong {
+  color: #fff;
+  font-size: 0.92rem;
 }
 
 .detail-related-grid {
@@ -3619,6 +3719,11 @@ textarea {
 @media (max-width: 720px) {
   .detail-spec-grid {
     grid-template-columns: 1fr;
+  }
+
+  .discovery-link-row {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .card-preview {
