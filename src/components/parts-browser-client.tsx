@@ -19,6 +19,13 @@ type SearchOptions = {
   materials: string[];
 };
 
+type BrowseHeroData = {
+  quickSearches: { href: string; label: string }[];
+  popularTags: { label: string; count: number }[];
+  fileTypes: { label: string; count: number }[];
+  activeTeams: { handle: string; label: string; count: number }[];
+};
+
 function readFilters(searchParams: URLSearchParams): SearchFilters {
   const value = (key: string) => searchParams.get(key) ?? undefined;
 
@@ -35,10 +42,12 @@ function readFilters(searchParams: URLSearchParams): SearchFilters {
 }
 
 export function PartsBrowserClient({
+  browseData,
   options,
   parts,
   creators
 }: {
+  browseData: BrowseHeroData;
   options: SearchOptions;
   parts: CatalogPart[];
   creators: Creator[];
@@ -47,5 +56,13 @@ export function PartsBrowserClient({
   const filters = readFilters(searchParams);
   const results = sortPartsList(filterPartsList(parts, creators, filters), filters.sort);
 
-  return <PartsBrowser filters={filters} options={options} creators={creators} results={results} />;
+  return (
+    <PartsBrowser
+      browseData={browseData}
+      filters={filters}
+      options={options}
+      creators={creators}
+      results={results}
+    />
+  );
 }

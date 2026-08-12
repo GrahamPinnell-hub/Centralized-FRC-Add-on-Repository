@@ -388,16 +388,18 @@ export function FilterPanel({
 }) {
   return (
     <form className="panel filters" action="/parts">
+      {filters.q ? <input type="hidden" name="q" value={filters.q} /> : null}
       <input type="hidden" name="sort" value={filters.sort ?? "trending"} />
       <div className="page-stack">
         <p className="eyebrow">Filters</p>
-        <h3>Find the exact part</h3>
-        <p>Filter by vendor, team, file type, material, and season.</p>
+        <h3>Refine results</h3>
+        <p>Narrow the current listing set by category, team, vendor, file type, material, and season.</p>
+        {filters.q ? (
+          <div className="chip-row">
+            <span className="chip chip-accent">Search: {filters.q}</span>
+          </div>
+        ) : null}
       </div>
-      <label>
-        Search
-        <input name="q" defaultValue={filters.q ?? ""} placeholder="mk4i swerve cover from team 31" />
-      </label>
       <label>
         Category
         <select name="category" defaultValue={filters.category ?? ""}>
