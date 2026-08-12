@@ -71,12 +71,24 @@ function BrowseSearchHero({
             placeholder={'Search "mk4i swerve cover from team 31"'}
             aria-label="Search reusable FRC add-ons"
           />
-          <button type="submit" className="browse-search-submit">
+          <button type="submit" className="browse-search-submit" aria-label="Search">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <circle cx="10.5" cy="10.5" r="5.8" fill="none" stroke="currentColor" strokeWidth="1.8" />
               <path d="m15 15 5 5" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="1.8" />
             </svg>
-            <span>Search</span>
+          </button>
+          <button type="button" className="browse-search-helper" aria-label="AI search helper">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 3.5 13.8 8l4.7 1.8-4.7 1.8L12 16.1l-1.8-4.5-4.7-1.8L10.2 8 12 3.5Z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinejoin="round"
+              />
+              <path d="M18.5 15.5 19.4 17.8l2.3.9-2.3.9-.9 2.3-.9-2.3-2.3-.9 2.3-.9.9-2.3Z" fill="currentColor" />
+              <path d="M5.2 14.8 5.9 16.5l1.7.7-1.7.7-.7 1.7-.7-1.7-1.7-.7 1.7-.7.7-1.7Z" fill="currentColor" />
+            </svg>
           </button>
         </div>
       </form>
