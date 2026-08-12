@@ -394,11 +394,58 @@ function microlinkFailureReason(payload: MicrolinkPayload) {
   return null;
 }
 
+function buildReferenceOnlyImport(
+  url: URL,
+  source: ImportSource,
+  reason: string,
+  fallbackTitle?: string
+): ImportedListingData {
+  const title =
+    fallbackTitle ||
+    cleanImportedTitle(undefined, source, url) ||
+    `${source.label} import`;
+  const description = `Reference-only import from ${source.label}. Rich metadata could not be fetched automatically.`;
+  const signals = deriveSignals(`${title} ${description}`.toLowerCase());
+
+  return {
+    sourceLabel: source.label,
+    sourceKey: source.key,
+    sourceUrl: url.toString(),
+    title,
+    description,
+    author: null,
+    publisher: source.label,
+    license: null,
+    categorySlug: signals.categorySlug,
+    tags: signals.tags,
+    products: signals.products,
+    vendors: signals.vendors,
+    files: [
+      {
+        label: `Original ${source.label} listing`,
+        fileType: "SOURCE",
+        href: url.toString(),
+        note: `Reference link back to the original ${source.label} page.`
+      }
+    ],
+    media: [],
+    warnings: [reason]
+  };
+}
+
 async function importFromMicrolink(url: URL, source: ImportSource): Promise<ImportedListingData> {
   const payload = await fetchMicrolinkPayload(url.toString());
   const failureReason = microlinkFailureReason(payload);
 
   if (failureReason) {
+    if (source.key === "grabcad") {
+      return buildReferenceOnlyImport(
+        url,
+        source,
+        "GrabCAD blocked automatic metadata import. The source link was kept, but title, media, and file details may need to be filled in manually."
+      );
+    }
+
     throw new Error(failureReason);
   }
 
