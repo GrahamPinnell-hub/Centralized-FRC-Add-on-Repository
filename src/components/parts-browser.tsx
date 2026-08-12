@@ -41,22 +41,17 @@ function buildPartsHref(filters: SearchFilters, overrides: Partial<SearchFilters
 
 function BrowseSearchHero({
   browseData,
-  filters,
-  options
+  filters
 }: {
   browseData: BrowseHeroData;
   filters: SearchFilters;
-  options: SearchOptions;
 }) {
   return (
     <section className="panel browse-search-hero">
       <div className="browse-search-copy">
         <p className="eyebrow">Search</p>
         <h1>Find the exact FRC part fast</h1>
-        <p>
-          Search by team, vendor, tag, subsystem, product, or file type, then refine the results
-          below.
-        </p>
+        <p>Search first, then refine the results below by team, vendor, material, season, or file type.</p>
       </div>
 
       <form className="browse-search-form" action="/parts">
@@ -73,7 +68,7 @@ function BrowseSearchHero({
             name="q"
             defaultValue={filters.q ?? ""}
             className="browse-search-input"
-            placeholder="Search “mk4i swerve cover from team 31”"
+            placeholder={'Search "mk4i swerve cover from team 31"'}
             aria-label="Search reusable FRC add-ons"
           />
           <button type="submit" className="browse-search-submit">
@@ -89,8 +84,8 @@ function BrowseSearchHero({
       <div className="browse-hero-grid">
         <section className="browse-hero-section">
           <div className="browse-hero-label">
-            <strong>Try searching</strong>
-            <span>common asks</span>
+            <strong>Popular searches</strong>
+            <span>start here</span>
           </div>
           <div className="chip-row">
             {browseData.quickSearches.map((item, index) => (
@@ -103,26 +98,8 @@ function BrowseSearchHero({
 
         <section className="browse-hero-section">
           <div className="browse-hero-label">
-            <strong>Browse categories</strong>
-            <span>robot problem first</span>
-          </div>
-          <div className="chip-row">
-            {options.categories.map((category, index) => (
-              <Link
-                key={category.slug}
-                href={`/parts?category=${category.slug}`}
-                className={`chip${index === 0 ? " chip-accent" : ""}`}
-              >
-                {category.label}
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        <section className="browse-hero-section">
-          <div className="browse-hero-label">
             <strong>Popular tags</strong>
-            <span>high-signal keywords</span>
+            <span>search language</span>
           </div>
           <div className="chip-row">
             {browseData.popularTags.map((tag, index) => (
@@ -139,36 +116,31 @@ function BrowseSearchHero({
 
         <section className="browse-hero-section">
           <div className="browse-hero-label">
-            <strong>Deliverables</strong>
-            <span>fabrication output</span>
+            <strong>Formats and teams</strong>
+            <span>browse lanes</span>
           </div>
-          <div className="chip-row">
-            {browseData.fileTypes.map((fileType, index) => (
-              <Link
-                key={fileType.label}
-                href={`/parts?fileType=${encodeURIComponent(fileType.label)}`}
-                className={`chip${index === 0 ? " chip-accent" : ""}`}
-              >
-                {fileType.label} <span className="chip-count">{fileType.count}</span>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        <section className="browse-hero-section browse-hero-section-teams">
-          <div className="browse-hero-label">
-            <strong>Team libraries</strong>
-            <span>active demo collections</span>
-          </div>
-          <div className="browse-team-links">
-            {browseData.activeTeams.map((team) => (
-              <Link key={team.handle} href={`/u/${team.handle}`} className="browse-team-link">
-                <strong>{team.label}</strong>
-                <span>
-                  {team.count} listing{team.count === 1 ? "" : "s"}
-                </span>
-              </Link>
-            ))}
+          <div className="page-stack browse-hero-subgroups">
+            <div className="chip-row">
+              {browseData.fileTypes.map((fileType, index) => (
+                <Link
+                  key={fileType.label}
+                  href={`/parts?fileType=${encodeURIComponent(fileType.label)}`}
+                  className={`chip${index === 0 ? " chip-accent" : ""}`}
+                >
+                  {fileType.label} <span className="chip-count">{fileType.count}</span>
+                </Link>
+              ))}
+            </div>
+            <div className="browse-team-links">
+              {browseData.activeTeams.map((team) => (
+                <Link key={team.handle} href={`/u/${team.handle}`} className="browse-team-link">
+                  <strong>{team.label}</strong>
+                  <span>
+                    {team.count} listing{team.count === 1 ? "" : "s"}
+                  </span>
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
       </div>
@@ -228,7 +200,7 @@ export function PartsBrowser({
 
   return (
     <>
-      <BrowseSearchHero browseData={browseData} filters={filters} options={options} />
+      <BrowseSearchHero browseData={browseData} filters={filters} />
       <section className="results-shell">
         <FilterPanel filters={filters} options={options} creators={creators} />
         <div className="page-stack">
