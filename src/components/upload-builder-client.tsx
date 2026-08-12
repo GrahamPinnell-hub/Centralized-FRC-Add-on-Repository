@@ -60,9 +60,12 @@ type StagedMediaUpload = {
   sizeLabel: string;
 };
 
+type DemoPublishState = "draft" | "published-preview";
+
 type SavedDraftSnapshot = {
   id: string;
   savedAt: string;
+  demoState?: DemoPublishState;
   ownerHandle: string;
   sourceUrl: string;
   title: string;
@@ -81,6 +84,49 @@ type SavedDraftSnapshot = {
   media: DraftMedia[];
   stagedUploads: StagedUpload[];
   stagedMediaUploads: StagedMediaUpload[];
+  lastImport?: ImportedListingData | null;
+};
+
+type DemoManifest = {
+  manifestVersion: "demo-upload-manifest-v1";
+  generatedAt: string;
+  state: DemoPublishState;
+  owner: {
+    handle: string;
+    label: string;
+    badge: string;
+  };
+  importPreview: {
+    sourceLabel: string;
+    sourceUrl: string;
+    author: string | null;
+    warnings: string[];
+    importedFiles: number;
+    importedMedia: number;
+  } | null;
+  listing: {
+    slug: string;
+    title: string;
+    summary: string;
+    category: string;
+    categoryLabel: string;
+    subsystem: string;
+    license: string;
+    tags: string[];
+    products: string[];
+    vendors: string[];
+    seasons: string[];
+    materials: string[];
+  };
+  deliverables: {
+    files: DraftFile[];
+    media: DraftMedia[];
+    stagedUploads: StagedUpload[];
+    stagedMediaUploads: StagedMediaUpload[];
+    printNotes: string;
+    installNotes: string[];
+  };
+  demoNotes: string[];
 };
 
 type TagSuggestion = {
@@ -425,6 +471,7 @@ export function UploadBuilderClient({
   const [isDraggingMedia, setIsDraggingMedia] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [publishMode, setPublishMode] = useState<"draft" | "publish">("draft");
+  const [demoState, setDemoState] = useState<DemoPublishState>("draft");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const mediaInputRef = useRef<HTMLInputElement | null>(null);
   const objectUrlsRef = useRef<string[]>([]);
@@ -519,6 +566,7 @@ export function UploadBuilderClient({
       ? "Personal"
       : (activeOwner?.title ?? formatOwnerLabel(ownerHandle));
   const isPublishMode = publishMode === "publish";
+  const manifestFileName = `${previewPart.slug || "new-listing"}-${demoState}.json`;
 
   function normalizeOwnerHandle(handle: string) {
     return ownerChoices.some((owner) => owner.handle === handle)
@@ -662,10 +710,66 @@ export function UploadBuilderClient({
     setStagedUploads((current) => [...current].sort((left, right) => left.name.localeCompare(right.name)));
   }
 
-  function buildSnapshot(): SavedDraftSnapshot {
+  function buildManifest(state: DemoPublishState, generatedAt = new Date().toISOString()): DemoManifest {
+    return {
+      manifestVersion: "demo-upload-manifest-v1",
+      generatedAt,
+      state,
+      owner: {
+        handle: ownerHandle,
+        label: activeOwner?.title ?? formatOwnerLabel(ownerHandle),
+        badge: activeOwner?.badge ?? "Profile"
+      },
+      importPreview: lastImport
+        ? {
+            sourceLabel: lastImport.sourceLabel,
+            sourceUrl: lastImport.sourceUrl,
+            author: lastImport.author,
+            warnings: lastImport.warnings,
+            importedFiles: lastImport.files.length,
+            importedMedia: lastImport.media.length
+          }
+        : null,
+      listing: {
+        slug: previewPart.slug,
+        title: previewPart.title,
+        summary: previewPart.summary,
+        category: previewPart.category,
+        categoryLabel: previewPart.categoryLabel,
+        subsystem: previewPart.subsystem,
+        license: previewPart.license,
+        tags: previewPart.tags,
+        products: previewPart.products,
+        vendors: previewPart.vendors,
+        seasons: previewPart.seasons,
+        materials: previewPart.materials
+      },
+      deliverables: {
+        files,
+        media: media.map((item) => ({
+          ...item,
+          src: item.src.startsWith("blob:") ? "" : item.src
+        })),
+        stagedUploads,
+        stagedMediaUploads,
+        printNotes,
+        installNotes: previewPart.installNotes
+      },
+      demoNotes: [
+        "This export is a demo-mode manifest only.",
+        "Listings are stored locally in this browser until a live backend is added.",
+        "Publish preview simulates a repository publish state without creating a real public record."
+      ]
+    };
+  }
+
+  function buildSnapshot(state: DemoPublishState): SavedDraftSnapshot {
+    const savedAt = new Date().toISOString();
+
     return {
       id: `${slugify(title || "untitled")}-${Date.now()}`,
-      savedAt: new Date().toISOString(),
+      savedAt,
+      demoState: state,
       ownerHandle,
       sourceUrl,
       title,
@@ -686,21 +790,46 @@ export function UploadBuilderClient({
         src: item.src.startsWith("blob:") ? "" : item.src
       })),
       stagedUploads,
-      stagedMediaUploads
+      stagedMediaUploads,
+      lastImport
     };
   }
 
-  function saveDraft() {
-    const snapshot = buildSnapshot();
+  function persistSnapshot(state: DemoPublishState) {
+    const snapshot = buildSnapshot(state);
     const nextDrafts = [snapshot, ...savedDrafts].slice(0, 5);
     setSavedDrafts(nextDrafts);
     window.localStorage.setItem(draftsStorageKey, JSON.stringify(nextDrafts));
+    setDemoState(state);
+    return snapshot;
+  }
+
+  function downloadManifest(state: DemoPublishState) {
+    const generatedAt = new Date().toISOString();
+    const manifest = buildManifest(state, generatedAt);
+    const blob = new Blob([JSON.stringify(manifest, null, 2)], {
+      type: "application/json"
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${previewPart.slug || "new-listing"}-${state}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    setSaveMessage(`Downloaded demo manifest for ${state === "draft" ? "draft" : "published preview"}.`);
+  }
+
+  function saveDraft() {
+    const snapshot = persistSnapshot("draft");
     setSaveMessage(
       `Draft saved at ${new Date(snapshot.savedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}.`
     );
   }
 
   function restoreDraft(snapshot: SavedDraftSnapshot) {
+    const restoredState = snapshot.demoState ?? "draft";
     setOwnerHandle(normalizeOwnerHandle(snapshot.ownerHandle));
     setSourceUrl(snapshot.sourceUrl ?? "");
     setTitle(snapshot.title);
@@ -719,6 +848,9 @@ export function UploadBuilderClient({
     setMedia(snapshot.media.length > 0 ? snapshot.media : defaultMedia);
     setStagedUploads(snapshot.stagedUploads);
     setStagedMediaUploads(snapshot.stagedMediaUploads);
+    setLastImport(snapshot.lastImport ?? null);
+    setDemoState(restoredState);
+    setPublishMode(restoredState === "published-preview" ? "publish" : "draft");
     setSaveMessage(`Restored draft from ${new Date(snapshot.savedAt).toLocaleString()}.`);
   }
 
@@ -745,12 +877,9 @@ export function UploadBuilderClient({
   }
 
   function publishListing() {
-    const snapshot = buildSnapshot();
-    const nextDrafts = [snapshot, ...savedDrafts].slice(0, 5);
-    setSavedDrafts(nextDrafts);
-    window.localStorage.setItem(draftsStorageKey, JSON.stringify(nextDrafts));
+    const snapshot = persistSnapshot("published-preview");
     setSaveMessage(
-      `Published preview updated at ${new Date(snapshot.savedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}.`
+      `Published preview updated at ${new Date(snapshot.savedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}. Demo mode did not create a live listing.`
     );
   }
 
@@ -852,6 +981,13 @@ export function UploadBuilderClient({
               </button>
               <span className={`upload-mode-label${isPublishMode ? " is-active" : ""}`}>Published</span>
             </div>
+            <button
+              type="button"
+              className="action-link upload-compose-manifest"
+              onClick={() => downloadManifest(isPublishMode ? "published-preview" : "draft")}
+            >
+              Export manifest
+            </button>
             <button type="button" className="action-link upload-compose-close" onClick={closeComposer}>
               Close
             </button>
@@ -860,7 +996,7 @@ export function UploadBuilderClient({
               className="upload-compose-primary"
               onClick={isPublishMode ? publishListing : saveDraft}
             >
-              {isPublishMode ? "Publish Listing" : "Save Draft"}
+              {isPublishMode ? "Publish Preview" : "Save Draft"}
             </button>
           </div>
         </div>
@@ -1257,11 +1393,12 @@ export function UploadBuilderClient({
           <div className="upload-submission-meta">
             <span
               className={`submission-status${
-                isPublishMode ? " submission-status-pending" : " submission-status-draft"
+                demoState === "published-preview" ? " submission-status-published" : " submission-status-draft"
               }`}
             >
-              {isPublishMode ? "Ready to publish" : "Draft"}
+              {demoState === "published-preview" ? "Published demo preview" : "Local draft"}
             </span>
+            <span className="chip">{manifestFileName}</span>
           </div>
           <div className="upload-preview-meta">
             <div className="detail-stat-block">
@@ -1281,6 +1418,74 @@ export function UploadBuilderClient({
               <span>search tags</span>
             </div>
           </div>
+        </section>
+
+        <section className="panel upload-preview-panel">
+          <div className="upload-slot-head">
+            <div className="upload-step-head">
+              <p className="eyebrow">Demo Package</p>
+              <h3>Local draft and manifest handoff</h3>
+            </div>
+            <button
+              type="button"
+              className="action-link"
+              onClick={() => downloadManifest(demoState)}
+            >
+              Download JSON
+            </button>
+          </div>
+          <div className="upload-manifest-card">
+            <div className="detail-stat-block">
+              <strong>{manifestFileName}</strong>
+              <span>manifest file name</span>
+            </div>
+            <div className="detail-stat-block">
+              <strong>{demoState === "published-preview" ? "Published preview" : "Draft"}</strong>
+              <span>demo state</span>
+            </div>
+            <div className="detail-stat-block">
+              <strong>{sourceUrl ? "Linked import" : "Manual entry"}</strong>
+              <span>starting point</span>
+            </div>
+          </div>
+          <p className="muted">
+            Export the manifest to package this demo listing as structured JSON before a live backend exists.
+          </p>
+        </section>
+
+        <section className="panel upload-preview-panel">
+          <div className="upload-step-head">
+            <p className="eyebrow">Import Preview</p>
+            <h3>What came in from the source link</h3>
+          </div>
+          {lastImport ? (
+            <div className="page-stack">
+              <div className="chip-row">
+                <span className="chip chip-accent">{lastImport.sourceLabel}</span>
+                {lastImport.author ? <span className="chip">By {lastImport.author}</span> : null}
+                <span className="chip">{lastImport.files.length} links</span>
+                <span className="chip">{lastImport.media.length} media</span>
+              </div>
+              <a href={lastImport.sourceUrl} target="_blank" rel="noreferrer" className="ghost-link">
+                Open imported source
+              </a>
+              {lastImport.warnings.length > 0 ? (
+                <div className="page-stack upload-import-warnings">
+                  {lastImport.warnings.map((warning) => (
+                    <p key={warning}>{warning}</p>
+                  ))}
+                </div>
+              ) : (
+                <p className="muted">
+                  Imported metadata is staged locally. Review it before saving the draft or publishing the preview.
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="muted">
+              No imported source yet. Paste a supported listing link above to prefill the title, files, media, and metadata.
+            </p>
+          )}
         </section>
 
         <section className="panel upload-preview-panel">
@@ -1327,6 +1532,16 @@ export function UploadBuilderClient({
                   <div>
                     <strong>{draft.title || "Untitled draft"}</strong>
                     <p>{new Date(draft.savedAt).toLocaleString()}</p>
+                    <div className="chip-row">
+                      <span
+                        className={`chip${
+                          (draft.demoState ?? "draft") === "published-preview" ? " chip-accent" : ""
+                        }`}
+                      >
+                        {(draft.demoState ?? "draft") === "published-preview" ? "Published preview" : "Draft"}
+                      </span>
+                      {draft.lastImport?.sourceLabel ? <span className="chip">{draft.lastImport.sourceLabel}</span> : null}
+                    </div>
                   </div>
                   <button type="button" className="action-link" onClick={() => restoreDraft(draft)}>
                     Restore
