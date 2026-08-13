@@ -36,6 +36,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Validate listing manifests
+        run: npm run validate:listings
+
       - name: Generate Prisma client
         run: npx prisma generate
 
