@@ -25,8 +25,32 @@ const genericSourcePlaceholders = new Set([
 
 type ValidationIssue = {
   file: string;
+  code: string;
   message: string;
 };
+
+type ManifestStatus = {
+  file: string;
+  slug: string;
+  errorCount: number;
+  warningCount: number;
+  submissionReady: boolean;
+};
+
+const submissionBlockingWarningCodes = new Set([
+  "placeholder-file-href",
+  "generic-source-placeholder",
+  "missing-media-src"
+]);
+
+function pushIssue(
+  issues: ValidationIssue[],
+  file: string,
+  code: string,
+  message: string
+) {
+  issues.push({ file, code, message });
+}
 
 function normalizeText(value: string) {
   return value.trim().toLowerCase();
@@ -62,7 +86,7 @@ function isLocalAsset(value: string) {
 
 function validateString(value: unknown, field: string, issues: ValidationIssue[], file: string) {
   if (typeof value !== "string" || value.trim().length === 0) {
-    issues.push({ file, message: `${field} must be a non-empty string.` });
+    pushIssue(issues, file, "empty-string", `${field} must be a non-empty string.`);
     return "";
   }
 
@@ -71,7 +95,7 @@ function validateString(value: unknown, field: string, issues: ValidationIssue[]
 
 function validateStringArray(value: unknown, field: string, issues: ValidationIssue[], file: string) {
   if (!Array.isArray(value) || value.some((entry) => typeof entry !== "string" || entry.trim().length === 0)) {
-    issues.push({ file, message: `${field} must be an array of non-empty strings.` });
+    pushIssue(issues, file, "invalid-string-array", `${field} must be an array of non-empty strings.`);
     return [] as string[];
   }
 
@@ -87,12 +111,12 @@ function validateLocalAssetPath(
   const targetPath = resolve(publicDirectory, `.${assetPath}`);
 
   if (!targetPath.startsWith(resolve(publicDirectory))) {
-    errors.push({ file, message: `${field} points outside /public: ${assetPath}` });
+    pushIssue(errors, file, "asset-outside-public", `${field} points outside /public: ${assetPath}`);
     return;
   }
 
   if (!existsSync(targetPath)) {
-    errors.push({ file, message: `${field} references a missing public asset: ${assetPath}` });
+    pushIssue(errors, file, "missing-public-asset", `${field} references a missing public asset: ${assetPath}`);
   }
 }
 
@@ -104,17 +128,19 @@ function validateFileRecords(
   discoveredSourceUrls: string[]
 ) {
   if (!Array.isArray(value)) {
-    errors.push({ file, message: "files must be an array." });
+    pushIssue(errors, file, "files-not-array", "files must be an array.");
     return;
   }
 
   if (value.length === 0) {
-    errors.push({ file, message: "files must contain at least one entry." });
+    pushIssue(errors, file, "files-empty", "files must contain at least one entry.");
   }
+
+  const seenFileKeys = new Set<string>();
 
   for (const [index, item] of value.entries()) {
     if (!item || typeof item !== "object") {
-      errors.push({ file, message: `files[${index}] must be an object.` });
+      pushIssue(errors, file, "file-not-object", `files[${index}] must be an object.`);
       continue;
     }
 
@@ -124,11 +150,18 @@ function validateFileRecords(
     validateString(record.note, `files[${index}].note`, errors, file);
 
     if (!allowedFileTypes.has(record.fileType)) {
-      errors.push({ file, message: `files[${index}].fileType is not allowed: ${String(record.fileType)}` });
+      pushIssue(errors, file, "invalid-file-type", `files[${index}].fileType is not allowed: ${String(record.fileType)}`);
+    }
+
+    const fileKey = `${normalizeText(label)}::${normalizeUrl(href)}`;
+    if (label && href && seenFileKeys.has(fileKey)) {
+      pushIssue(warnings, file, "duplicate-file-entry", `files[${index}] duplicates another file label/href pair in the manifest.`);
+    } else if (label && href) {
+      seenFileKeys.add(fileKey);
     }
 
     if (href === "#") {
-      warnings.push({ file, message: `files[${index}] (${label || "unnamed"}) still uses a placeholder href.` });
+      pushIssue(warnings, file, "placeholder-file-href", `files[${index}] (${label || "unnamed"}) still uses a placeholder href.`);
       continue;
     }
 
@@ -138,7 +171,7 @@ function validateFileRecords(
     }
 
     if (!isRemoteUrl(href)) {
-      errors.push({ file, message: `files[${index}].href must be '#', a local /public asset, or an http(s) URL.` });
+      pushIssue(errors, file, "invalid-file-href", `files[${index}].href must be '#', a local /public asset, or an http(s) URL.`);
       continue;
     }
 
@@ -147,7 +180,7 @@ function validateFileRecords(
     if (!genericSourcePlaceholders.has(normalizedHref)) {
       discoveredSourceUrls.push(normalizedHref);
     } else {
-      warnings.push({ file, message: `files[${index}] uses a generic source placeholder URL: ${normalizedHref}` });
+      pushIssue(warnings, file, "generic-source-placeholder", `files[${index}] uses a generic source placeholder URL: ${normalizedHref}`);
     }
   }
 }
@@ -159,17 +192,19 @@ function validateMediaRecords(
   warnings: ValidationIssue[]
 ) {
   if (!Array.isArray(value)) {
-    errors.push({ file, message: "media must be an array." });
+    pushIssue(errors, file, "media-not-array", "media must be an array.");
     return;
   }
 
   if (value.length === 0) {
-    errors.push({ file, message: "media must contain at least one entry." });
+    pushIssue(errors, file, "media-empty", "media must contain at least one entry.");
   }
+
+  const seenMediaKeys = new Set<string>();
 
   for (const [index, item] of value.entries()) {
     if (!item || typeof item !== "object") {
-      errors.push({ file, message: `media[${index}] must be an object.` });
+      pushIssue(errors, file, "media-not-object", `media[${index}] must be an object.`);
       continue;
     }
 
@@ -178,15 +213,21 @@ function validateMediaRecords(
     validateString(record.note, `media[${index}].note`, errors, file);
 
     if (!allowedMediaKinds.has(record.kind)) {
-      errors.push({ file, message: `media[${index}].kind is not allowed: ${String(record.kind)}` });
+      pushIssue(errors, file, "invalid-media-kind", `media[${index}].kind is not allowed: ${String(record.kind)}`);
     }
 
     if (!record.src || record.src.trim().length === 0) {
-      warnings.push({ file, message: `media[${index}] is missing src and will render as a fallback preview.` });
+      pushIssue(warnings, file, "missing-media-src", `media[${index}] is missing src and will render as a fallback preview.`);
       continue;
     }
 
     const src = record.src.trim();
+    const mediaKey = `${record.kind}::${normalizeText(record.title)}::${normalizeUrl(src)}`;
+    if (seenMediaKeys.has(mediaKey)) {
+      pushIssue(warnings, file, "duplicate-media-entry", `media[${index}] duplicates another media item in the manifest.`);
+    } else {
+      seenMediaKeys.add(mediaKey);
+    }
 
     if (isLocalAsset(src)) {
       validateLocalAssetPath(src, `media[${index}].src`, file, errors);
@@ -194,7 +235,7 @@ function validateMediaRecords(
     }
 
     if (!isRemoteUrl(src)) {
-      errors.push({ file, message: `media[${index}].src must be a local /public asset or an http(s) URL.` });
+      pushIssue(errors, file, "invalid-media-src", `media[${index}].src must be a local /public asset or an http(s) URL.`);
     }
   }
 }
@@ -212,63 +253,120 @@ function validateManifest(
   const expectedFileName = `${slug}.json`;
 
   if (slug && fileName !== expectedFileName) {
-    errors.push({ file, message: `file name must match slug. Expected ${expectedFileName}.` });
+    pushIssue(errors, file, "filename-slug-mismatch", `file name must match slug. Expected ${expectedFileName}.`);
   }
 
-  validateString(content.title, "title", errors, file);
-  validateString(content.summary, "summary", errors, file);
+  if (slug && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+    pushIssue(errors, file, "invalid-slug-format", "slug must be lower-case kebab-case.");
+  }
+
+  const title = validateString(content.title, "title", errors, file);
+  const summary = validateString(content.summary, "summary", errors, file);
   validateString(content.category, "category", errors, file);
   validateString(content.categoryLabel, "categoryLabel", errors, file);
   validateString(content.subsystem, "subsystem", errors, file);
   validateString(content.creatorHandle, "creatorHandle", errors, file);
   validateString(content.license, "license", errors, file);
   validateString(content.viewerNote, "viewerNote", errors, file);
-  validateString(content.publishedAt, "publishedAt", errors, file);
-  validateString(content.updatedAt, "updatedAt", errors, file);
+  const publishedAt = validateString(content.publishedAt, "publishedAt", errors, file);
+  const updatedAt = validateString(content.updatedAt, "updatedAt", errors, file);
   validateStringArray(content.materials, "materials", errors, file);
-  validateStringArray(content.vendors, "vendors", errors, file);
-  validateStringArray(content.products, "products", errors, file);
+  const vendors = validateStringArray(content.vendors, "vendors", errors, file);
+  const products = validateStringArray(content.products, "products", errors, file);
   validateStringArray(content.seasons, "seasons", errors, file);
-  validateStringArray(content.tags, "tags", errors, file);
+  const tags = validateStringArray(content.tags, "tags", errors, file);
   validateStringArray(content.installNotes, "installNotes", errors, file);
 
+  if (title.length > 0 && title.length < 6) {
+    pushIssue(warnings, file, "short-title", "title is very short and may be hard to browse.");
+  }
+
+  if (summary.length > 0 && summary.length < 40) {
+    pushIssue(warnings, file, "short-summary", "summary is very short. Add enough context for another team to understand the part.");
+  }
+
+  if (tags.length < 2) {
+    pushIssue(warnings, file, "low-tag-count", "use at least two tags so the listing is easier to discover.");
+  }
+
+  if (new Set(tags.map(normalizeText)).size !== tags.length) {
+    pushIssue(warnings, file, "duplicate-tags", "tags contains duplicates when normalized.");
+  }
+
+  if (new Set(vendors.map(normalizeText)).size !== vendors.length) {
+    pushIssue(warnings, file, "duplicate-vendors", "vendors contains duplicates when normalized.");
+  }
+
+  if (new Set(products.map(normalizeText)).size !== products.length) {
+    pushIssue(warnings, file, "duplicate-products", "products contains duplicates when normalized.");
+  }
+
   if (typeof content.featured !== "boolean") {
-    errors.push({ file, message: "featured must be a boolean." });
+    pushIssue(errors, file, "featured-not-boolean", "featured must be a boolean.");
   }
 
   if (content.validated !== undefined && typeof content.validated !== "boolean") {
-    errors.push({ file, message: "validated must be a boolean when provided." });
+    pushIssue(errors, file, "validated-not-boolean", "validated must be a boolean when provided.");
   }
 
   for (const metric of ["rating", "views", "downloads"] as const) {
     if (typeof content[metric] !== "number" || !Number.isFinite(content[metric]) || content[metric] < 0) {
-      errors.push({ file, message: `${metric} must be a non-negative number.` });
+      pushIssue(errors, file, "invalid-metric", `${metric} must be a non-negative number.`);
     }
+  }
+
+  if (typeof content.rating === "number" && content.rating > 5) {
+    pushIssue(errors, file, "rating-out-of-range", "rating cannot be greater than 5.");
+  }
+
+  const publishedDate = new Date(publishedAt);
+  const updatedDate = new Date(updatedAt);
+
+  if (publishedAt && Number.isNaN(publishedDate.getTime())) {
+    pushIssue(errors, file, "invalid-published-date", "publishedAt must be a valid date string.");
+  }
+
+  if (updatedAt && Number.isNaN(updatedDate.getTime())) {
+    pushIssue(errors, file, "invalid-updated-date", "updatedAt must be a valid date string.");
+  }
+
+  if (
+    publishedAt &&
+    updatedAt &&
+    !Number.isNaN(publishedDate.getTime()) &&
+    !Number.isNaN(updatedDate.getTime()) &&
+    updatedDate.getTime() < publishedDate.getTime()
+  ) {
+    pushIssue(errors, file, "updated-before-published", "updatedAt cannot be earlier than publishedAt.");
   }
 
   const categoryDefinition = validCategories.get(content.category);
 
   if (!categoryDefinition) {
-    errors.push({ file, message: `category is not recognized: ${content.category}` });
+    pushIssue(errors, file, "unknown-category", `category is not recognized: ${content.category}`);
   } else if (content.categoryLabel !== categoryDefinition.label) {
-    errors.push({
+    pushIssue(
+      errors,
       file,
-      message: `categoryLabel does not match category ${content.category}. Expected "${categoryDefinition.label}".`
-    });
+      "category-label-mismatch",
+      `categoryLabel does not match category ${content.category}. Expected "${categoryDefinition.label}".`
+    );
   }
 
   if (!validCreators.has(content.creatorHandle)) {
-    errors.push({ file, message: `creatorHandle is not recognized: ${content.creatorHandle}` });
+    pushIssue(errors, file, "unknown-creator", `creatorHandle is not recognized: ${content.creatorHandle}`);
   }
 
   const titleOwnerKey = `${normalizeText(content.creatorHandle)}::${normalizeText(content.title)}`;
   const existingTitleOwner = titleOwnerIndex.get(titleOwnerKey);
 
   if (existingTitleOwner && existingTitleOwner !== slug) {
-    errors.push({
+    pushIssue(
+      errors,
       file,
-      message: `duplicate title detected for creator ${content.creatorHandle}. Also used by ${existingTitleOwner}.`
-    });
+      "duplicate-title-owner",
+      `duplicate title detected for creator ${content.creatorHandle}. Also used by ${existingTitleOwner}.`
+    );
   } else if (slug) {
     titleOwnerIndex.set(titleOwnerKey, slug);
   }
@@ -278,7 +376,7 @@ function validateManifest(
   validateMediaRecords(content.media, file, errors, warnings);
 
   if (!Array.isArray(content.versions) || content.versions.length === 0) {
-    errors.push({ file, message: "versions must contain at least one entry." });
+    pushIssue(errors, file, "versions-empty", "versions must contain at least one entry.");
   } else {
     for (const [index, version] of content.versions.entries()) {
       validateString(version?.label, `versions[${index}].label`, errors, file);
@@ -291,10 +389,12 @@ function validateManifest(
     const existingSourceOwner = sourceUrlIndex.get(sourceUrl);
 
     if (existingSourceOwner && existingSourceOwner !== slug) {
-      errors.push({
+      pushIssue(
+        errors,
         file,
-        message: `source URL is already used by another listing: ${sourceUrl} (also in ${existingSourceOwner}).`
-      });
+        "duplicate-source-url",
+        `source URL is already used by another listing: ${sourceUrl} (also in ${existingSourceOwner}).`
+      );
       continue;
     }
 
@@ -310,6 +410,7 @@ function main() {
     .sort((left, right) => left.localeCompare(right));
   const errors: ValidationIssue[] = [];
   const warnings: ValidationIssue[] = [];
+  const manifestStatuses: ManifestStatus[] = [];
   const seenSlugs = new Set<string>();
   const titleOwnerIndex = new Map<string, string>();
   const sourceUrlIndex = new Map<string, string>();
@@ -327,35 +428,57 @@ function main() {
       parsed = JSON.parse(readFileSync(fullPath, "utf8")) as CatalogPart;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown JSON parse error.";
-      errors.push({ file: `src/data/listings/${fileName}`, message: `invalid JSON: ${message}` });
+      pushIssue(errors, `src/data/listings/${fileName}`, "invalid-json", `invalid JSON: ${message}`);
       continue;
     }
 
     if (typeof parsed.slug === "string" && parsed.slug.trim()) {
       if (seenSlugs.has(parsed.slug)) {
-        errors.push({
-          file: `src/data/listings/${fileName}`,
-          message: `duplicate slug detected across manifests: ${parsed.slug}`
-        });
+        pushIssue(
+          errors,
+          `src/data/listings/${fileName}`,
+          "duplicate-slug",
+          `duplicate slug detected across manifests: ${parsed.slug}`
+        );
       } else {
         seenSlugs.add(parsed.slug);
       }
     }
 
+    const beforeErrors = errors.length;
+    const beforeWarnings = warnings.length;
     validateManifest(fileName, parsed, errors, warnings, titleOwnerIndex, sourceUrlIndex);
+    const manifestErrors = errors.slice(beforeErrors).filter((issue) => issue.file === `src/data/listings/${fileName}`);
+    const manifestWarnings = warnings.slice(beforeWarnings).filter((issue) => issue.file === `src/data/listings/${fileName}`);
+    manifestStatuses.push({
+      file: `src/data/listings/${fileName}`,
+      slug: parsed.slug,
+      errorCount: manifestErrors.length,
+      warningCount: manifestWarnings.length,
+      submissionReady:
+        manifestErrors.length === 0 &&
+        manifestWarnings.every((issue) => !submissionBlockingWarningCodes.has(issue.code))
+    });
   }
 
   for (const warning of warnings) {
-    console.warn(`WARNING ${warning.file}: ${warning.message}`);
+    console.warn(`WARNING [${warning.code}] ${warning.file}: ${warning.message}`);
   }
 
   if (errors.length > 0) {
     for (const error of errors) {
-      console.error(`ERROR ${error.file}: ${error.message}`);
+      console.error(`ERROR [${error.code}] ${error.file}: ${error.message}`);
     }
 
     console.error(`Listing validation failed with ${errors.length} error${errors.length === 1 ? "" : "s"}.`);
     process.exit(1);
+  }
+
+  console.log("Submission readiness:");
+  for (const status of manifestStatuses) {
+    console.log(
+      `- ${status.slug}: ${status.submissionReady ? "ready" : "beta-only"} (${status.errorCount} errors, ${status.warningCount} warnings)`
+    );
   }
 
   console.log(
