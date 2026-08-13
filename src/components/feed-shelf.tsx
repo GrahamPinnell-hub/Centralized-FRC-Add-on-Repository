@@ -37,8 +37,12 @@ export function FeedShelf({
 
   const HeadingTag = headingLevel === 1 ? "h1" : "h2";
 
+  function handlePreviousPage() {
+    setPage((current) => Math.max(0, current - 1));
+  }
+
   function handleNextPage() {
-    setPage((current) => (current + 1) % totalPages);
+    setPage((current) => Math.min(totalPages - 1, current + 1));
   }
 
   return (
@@ -51,10 +55,23 @@ export function FeedShelf({
         </div>
         {totalPages > 1 ? (
           <div className="feed-pager" aria-label={`${title} page controls`}>
+            <button
+              type="button"
+              className="feed-page-button"
+              onClick={handlePreviousPage}
+              disabled={currentPage === 0}
+            >
+              Previous
+            </button>
             <span className="feed-page-indicator" aria-current="page">
               Page {currentPage + 1} / {totalPages}
             </span>
-            <button type="button" className="feed-next-button" onClick={handleNextPage}>
+            <button
+              type="button"
+              className="feed-page-button"
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages - 1}
+            >
               Next
             </button>
           </div>

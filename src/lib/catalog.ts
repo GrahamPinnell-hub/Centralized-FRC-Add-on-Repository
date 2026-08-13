@@ -579,7 +579,25 @@ export const parts: CatalogPart[] = [
         note: "Reference link back to the original Printables page."
       }
     ],
-    media: [],
+    media: [
+      {
+        kind: "image",
+        title: exampleImages.radioRslMount.title,
+        note: "Demo preview image for the imported radio holder listing.",
+        accent: "#d0a458",
+        src: exampleImages.radioRslMount.src,
+        framing: {
+          cardFit: "cover",
+          cardPosition: "center 48%",
+          detailFit: "contain",
+          detailPosition: "center 50%",
+          galleryFit: "contain",
+          galleryPosition: "center 50%",
+          lightboxFit: "contain",
+          lightboxPosition: "center 50%"
+        }
+      }
+    ],
     versions: [{ label: "beta import", date: "2026-08-13", summary: "Imported into the beta repository from a public Printables listing." }],
     printProfile: {
       material: "PETG",
@@ -630,7 +648,25 @@ export const parts: CatalogPart[] = [
         note: "Reference link back to the original Printables page."
       }
     ],
-    media: [],
+    media: [
+      {
+        kind: "image",
+        title: exampleImages.pulleyGenerator.title,
+        note: "Demo preview image for the imported bearing checker listing.",
+        accent: "#d0a458",
+        src: exampleImages.pulleyGenerator.src,
+        framing: {
+          cardFit: "contain",
+          cardPosition: "center 52%",
+          detailFit: "contain",
+          detailPosition: "center 52%",
+          galleryFit: "contain",
+          galleryPosition: "center 52%",
+          lightboxFit: "contain",
+          lightboxPosition: "center 52%"
+        }
+      }
+    ],
     versions: [{ label: "beta import", date: "2026-08-13", summary: "Imported into the beta repository from a public Printables listing." }],
     printProfile: {
       material: "PLA+",
@@ -681,7 +717,25 @@ export const parts: CatalogPart[] = [
         note: "Reference link back to the original Printables page."
       }
     ],
-    media: [],
+    media: [
+      {
+        kind: "image",
+        title: exampleImages.pulleyGenerator.title,
+        note: "Demo preview image for the imported Charged Up medal listing.",
+        accent: "#d0a458",
+        src: exampleImages.pulleyGenerator.src,
+        framing: {
+          cardFit: "contain",
+          cardPosition: "center 50%",
+          detailFit: "contain",
+          detailPosition: "center 50%",
+          galleryFit: "contain",
+          galleryPosition: "center 50%",
+          lightboxFit: "contain",
+          lightboxPosition: "center 50%"
+        }
+      }
+    ],
     versions: [{ label: "beta import", date: "2026-08-13", summary: "Imported into the beta repository from a public Printables listing." }],
     printProfile: {
       material: "PLA+",
@@ -732,7 +786,25 @@ export const parts: CatalogPart[] = [
         note: "Reference link back to the original Printables page."
       }
     ],
-    media: [],
+    media: [
+      {
+        kind: "image",
+        title: exampleImages.intakeWheels.title,
+        note: "Demo preview image for the imported TPU wheels listing.",
+        accent: "#d0a458",
+        src: exampleImages.intakeWheels.src,
+        framing: {
+          cardFit: "cover",
+          cardPosition: "center 52%",
+          detailFit: "contain",
+          detailPosition: "center 50%",
+          galleryFit: "contain",
+          galleryPosition: "center 50%",
+          lightboxFit: "contain",
+          lightboxPosition: "center 50%"
+        }
+      }
+    ],
     versions: [{ label: "beta import", date: "2026-08-13", summary: "Imported into the beta repository from a public Printables listing." }],
     printProfile: {
       material: "TPU",
@@ -783,7 +855,25 @@ export const parts: CatalogPart[] = [
         note: "Reference link back to the original Printables page."
       }
     ],
-    media: [],
+    media: [
+      {
+        kind: "image",
+        title: exampleImages.intakeWheels.title,
+        note: "Demo preview image for the imported mecanum wheel listing.",
+        accent: "#d0a458",
+        src: exampleImages.intakeWheels.src,
+        framing: {
+          cardFit: "cover",
+          cardPosition: "center 52%",
+          detailFit: "contain",
+          detailPosition: "center 50%",
+          galleryFit: "contain",
+          galleryPosition: "center 50%",
+          lightboxFit: "contain",
+          lightboxPosition: "center 50%"
+        }
+      }
+    ],
     versions: [{ label: "beta import", date: "2026-08-13", summary: "Imported into the beta repository from a public Printables listing." }],
     printProfile: {
       material: "PLA+",
@@ -834,7 +924,25 @@ export const parts: CatalogPart[] = [
         note: "Reference link back to the original Printables page."
       }
     ],
-    media: [],
+    media: [
+      {
+        kind: "image",
+        title: exampleImages.cameraMount.title,
+        note: "Demo preview image for the imported robot hook listing.",
+        accent: "#d0a458",
+        src: exampleImages.cameraMount.src,
+        framing: {
+          cardFit: "cover",
+          cardPosition: "center 45%",
+          detailFit: "contain",
+          detailPosition: "center 48%",
+          galleryFit: "contain",
+          galleryPosition: "center 48%",
+          lightboxFit: "contain",
+          lightboxPosition: "center 48%"
+        }
+      }
+    ],
     versions: [{ label: "beta import", date: "2026-08-13", summary: "Imported into the beta repository from a public Printables listing." }],
     printProfile: {
       material: "PETG",

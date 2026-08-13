@@ -787,7 +787,7 @@ textarea {
 }
 
 .feed-page-indicator,
-.feed-next-button {
+.feed-page-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -805,7 +805,7 @@ textarea {
   color: rgba(227, 231, 236, 0.42);
 }
 
-.feed-next-button {
+.feed-page-button {
   min-width: 0;
   border: 1px solid rgba(116, 123, 133, 0.55);
   background: rgba(31, 33, 33, 0.14);
@@ -815,14 +815,23 @@ textarea {
   transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
 }
 
-.feed-next-button:hover {
+.feed-page-button:hover:not(:disabled) {
   border-color: rgba(220, 225, 231, 0.72);
   background: rgba(42, 45, 45, 0.72);
 }
 
-.feed-next-button:focus-visible {
+.feed-page-button:focus-visible {
   outline: 2px solid rgba(212, 165, 78, 0.72);
   outline-offset: 2px;
+}
+
+.feed-page-button:disabled {
+  cursor: default;
+  opacity: 0.38;
+  border-color: rgba(113, 120, 129, 0.22);
+  color: rgba(227, 231, 236, 0.34);
+  background: rgba(29, 31, 31, 0.22);
+  box-shadow: none;
 }
 
 .panel,
@@ -4476,7 +4485,7 @@ textarea {
   }
 
   .feed-page-indicator,
-  .feed-next-button {
+  .feed-page-button {
     min-height: 2.78rem;
     padding: 0.56rem 1rem;
     border-radius: 16px;
