@@ -61,6 +61,15 @@ type StagedMediaUpload = {
   sizeLabel: string;
 };
 
+type FileLaneDefinition = {
+  id: "models" | "sheet-metal" | "source";
+  title: string;
+  note: string;
+  helper: string;
+  recommendation: string;
+  fileTypes: CatalogFile["fileType"][];
+};
+
 type DemoPublishState = "draft" | "published-preview";
 
 type SavedDraftSnapshot = {
@@ -101,10 +110,15 @@ type DemoManifest = {
   importPreview: {
     sourceLabel: string;
     sourceUrl: string;
+    sourceKey: ImportedListingData["sourceKey"];
     author: string | null;
+    publisher: string | null;
+    license: string | null;
     warnings: string[];
     importedFiles: number;
     importedMedia: number;
+    files: ImportedFileCandidate[];
+    media: ImportedMediaCandidate[];
   } | null;
   listing: {
     slug: string;
@@ -135,6 +149,11 @@ type DemoManifest = {
 type TagSuggestion = {
   label: string;
   count: number;
+};
+
+type ReadinessFinding = {
+  level: "blocker" | "warning";
+  message: string;
 };
 
 type CategoryAddonOption = {
@@ -195,6 +214,36 @@ const defaultMedia: DraftMedia[] = [
     title: "Mk4 Swerve Cover",
     note: "Show the part mounted on the robot if possible.",
     src: "/example-images/mk4-swerve-cover.png"
+  }
+];
+
+const acceptedFabricationFiles =
+  ".stl,.3mf,.step,.stp,.iges,.igs,.dxf,.zip,.7z,.rar,.f3d,.f3z,.sldprt,.sldasm,.ipt,.iam,.fcstd,.scad,.dwg,.ai,.svg";
+
+const fileLaneDefinitions: FileLaneDefinition[] = [
+  {
+    id: "models",
+    title: "3D Models",
+    note: "STL, 3MF, and neutral 3D geometry",
+    helper: "Primary print files and robot fit-check geometry teams download first.",
+    recommendation: "Use this lane for the main files another team can print or drop into robot CAD immediately.",
+    fileTypes: ["STL", "3MF", "STEP"]
+  },
+  {
+    id: "sheet-metal",
+    title: "Sheet Metal",
+    note: "DXF flat patterns and cut profiles",
+    helper: "Use this lane for waterjet, router, laser, or brake-ready flat geometry.",
+    recommendation: "Use this lane when the add-on includes bent plates, brackets, gussets, or flat stock fabrication.",
+    fileTypes: ["DXF"]
+  },
+  {
+    id: "source",
+    title: "Source CAD + Bundles",
+    note: "Editable CAD, archives, and package handoff files",
+    helper: "Use this lane for native CAD, linked docs, zipped project exports, and remix source.",
+    recommendation: "Use this lane to preserve editability for remixes, version updates, and vendor-specific CAD source.",
+    fileTypes: ["SOURCE", "ZIP"]
   }
 ];
 
@@ -346,6 +395,41 @@ function formatOwnerLabel(handle: string) {
     .join(" ");
 }
 
+function normalizeText(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function restoreImportedListing(
+  importPreview: DemoManifest["importPreview"]
+): ImportedListingData | null {
+  if (!importPreview) {
+    return null;
+  }
+
+  const sourceKey = importPreview.sourceKey ?? (() => {
+    const matched = supportedImportSources.find((source) => source.label === importPreview.sourceLabel);
+    return matched?.key ?? "printables";
+  })();
+
+  return {
+    sourceLabel: importPreview.sourceLabel,
+    sourceKey,
+    sourceUrl: importPreview.sourceUrl,
+    title: "",
+    description: "",
+    author: importPreview.author,
+    publisher: importPreview.publisher,
+    license: importPreview.license,
+    categorySlug: null,
+    tags: [],
+    products: [],
+    vendors: [],
+    files: importPreview.files ?? [],
+    media: importPreview.media ?? [],
+    warnings: importPreview.warnings ?? []
+  };
+}
+
 function inferFileType(name: string): CatalogFile["fileType"] {
   const extension = name.split(".").pop()?.toLowerCase() ?? "";
 
@@ -465,6 +549,17 @@ function buildFallbackCategoryAddons(categoryLabel: string): CategoryAddonOption
       note: `Use for small reusable ${categoryLabel.toLowerCase()} helpers and support pieces.`
     }
   ];
+}
+
+function getFileLane(fileType: CatalogFile["fileType"]) {
+  return (
+    fileLaneDefinitions.find((lane) => lane.fileTypes.includes(fileType)) ??
+    fileLaneDefinitions[fileLaneDefinitions.length - 1]
+  );
+}
+
+function formatFileTypeLabel(fileType: CatalogFile["fileType"]) {
+  return fileType === "SOURCE" ? "Source CAD" : fileType;
 }
 
 function mergeImportedFiles(currentFiles: DraftFile[], importedFiles: ImportedFileCandidate[]) {
@@ -625,6 +720,7 @@ export function UploadBuilderClient({
   const [demoState, setDemoState] = useState<DemoPublishState>("draft");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const mediaInputRef = useRef<HTMLInputElement | null>(null);
+  const manifestInputRef = useRef<HTMLInputElement | null>(null);
   const tagInputRef = useRef<HTMLInputElement | null>(null);
   const objectUrlsRef = useRef<string[]>([]);
 
@@ -653,6 +749,22 @@ export function UploadBuilderClient({
     tagInput.trim().length > 0 &&
     !selectedTags.includes(tagInput.trim().toLowerCase()) &&
     !tagSuggestions.some((suggestion) => suggestion.label.toLowerCase() === tagInput.trim().toLowerCase());
+  const filesByLane = useMemo(
+    () =>
+      fileLaneDefinitions.map((lane) => ({
+        ...lane,
+        files: files.filter((file) => getFileLane(file.fileType).id === lane.id)
+      })),
+    [files]
+  );
+  const stagedUploadsByLane = useMemo(
+    () =>
+      fileLaneDefinitions.map((lane) => ({
+        ...lane,
+        uploads: stagedUploads.filter((upload) => getFileLane(upload.fileType).id === lane.id)
+      })),
+    [stagedUploads]
+  );
 
   const previewPart = useMemo<CatalogPart>(() => {
     const activeCategory = options.categories.find((option) => option.slug === category);
@@ -733,6 +845,74 @@ export function UploadBuilderClient({
       : (activeOwner?.title ?? formatOwnerLabel(ownerHandle));
   const isPublishMode = publishMode === "publish";
   const manifestFileName = `${previewPart.slug || "new-listing"}-${demoState}.json`;
+  const readinessFindings = useMemo<ReadinessFinding[]>(() => {
+    const findings: ReadinessFinding[] = [];
+    const trimmedTitle = title.trim();
+    const trimmedSummary = summary.trim();
+    const linkedSource = sourceUrl.trim();
+    const effectiveFiles = files.filter((file) => file.label.trim());
+    const effectiveMedia = media.filter((item) => item.title.trim() || item.src.trim());
+
+    if (trimmedTitle.length < 4) {
+      findings.push({ level: "blocker", message: "Add a clear listing title before publishing." });
+    }
+
+    if (trimmedSummary.length < 24) {
+      findings.push({ level: "blocker", message: "Write a short summary that explains what the part does." });
+    }
+
+    if (!categoryAddon.trim()) {
+      findings.push({ level: "blocker", message: "Pick a category add-on so the listing fits a browse lane." });
+    }
+
+    if (effectiveFiles.length === 0) {
+      findings.push({ level: "blocker", message: "Attach at least one fabrication or source file." });
+    }
+
+    if (effectiveMedia.length === 0) {
+      findings.push({ level: "blocker", message: "Add at least one photo or clip for the gallery." });
+    }
+
+    if (tagEntries.length < 2) {
+      findings.push({ level: "blocker", message: "Use at least two search tags so the part can be found." });
+    }
+
+    if (!installNotes.trim()) {
+      findings.push({ level: "warning", message: "Install notes are empty. Teams will not know how to mount it." });
+    }
+
+    if (!linkedSource) {
+      findings.push({ level: "warning", message: "No source link is attached. Importing from an existing listing stays optional, but it helps trace provenance." });
+    }
+
+    if (effectiveFiles.some((file) => file.href === "#")) {
+      findings.push({ level: "warning", message: "Some files are local placeholders only. They are fine for demo mode, but they are not real downloadable URLs yet." });
+    }
+
+    if (lastImport?.warnings?.length) {
+      findings.push(...lastImport.warnings.map((warning) => ({ level: "warning" as const, message: warning })));
+    }
+
+    return findings;
+  }, [categoryAddon, files, installNotes, lastImport?.warnings, media, sourceUrl, summary, tagEntries, title]);
+  const blockingFindings = readinessFindings.filter((item) => item.level === "blocker");
+  const warningFindings = readinessFindings.filter((item) => item.level === "warning");
+  const duplicateMatches = useMemo(() => {
+    const normalizedTitle = normalizeText(previewPart.title);
+    const normalizedSource = normalizeText(sourceUrl);
+
+    return parts
+      .filter((part) => {
+        const titleMatch = normalizeText(part.title) === normalizedTitle;
+        const slugMatch = part.slug === previewPart.slug;
+        const sourceMatch =
+          normalizedSource.length > 0 &&
+          part.files.some((file) => normalizeText(file.href) === normalizedSource);
+
+        return titleMatch || slugMatch || sourceMatch;
+      })
+      .slice(0, 3);
+  }, [parts, previewPart.slug, previewPart.title, sourceUrl]);
 
   function normalizeOwnerHandle(handle: string) {
     return ownerChoices.some((owner) => owner.handle === handle)
@@ -972,8 +1152,22 @@ export function UploadBuilderClient({
   }
 
   function sortFilesAlphabetically() {
-    setFiles((current) => [...current].sort((left, right) => left.label.localeCompare(right.label)));
-    setStagedUploads((current) => [...current].sort((left, right) => left.name.localeCompare(right.name)));
+    setFiles((current) =>
+      [...current].sort((left, right) => {
+        const laneOrder = fileLaneDefinitions.findIndex((lane) => lane.id === getFileLane(left.fileType).id) -
+          fileLaneDefinitions.findIndex((lane) => lane.id === getFileLane(right.fileType).id);
+
+        return laneOrder !== 0 ? laneOrder : left.label.localeCompare(right.label);
+      })
+    );
+    setStagedUploads((current) =>
+      [...current].sort((left, right) => {
+        const laneOrder = fileLaneDefinitions.findIndex((lane) => lane.id === getFileLane(left.fileType).id) -
+          fileLaneDefinitions.findIndex((lane) => lane.id === getFileLane(right.fileType).id);
+
+        return laneOrder !== 0 ? laneOrder : left.name.localeCompare(right.name);
+      })
+    );
   }
 
   function buildManifest(state: DemoPublishState, generatedAt = new Date().toISOString()): DemoManifest {
@@ -990,10 +1184,15 @@ export function UploadBuilderClient({
         ? {
             sourceLabel: lastImport.sourceLabel,
             sourceUrl: lastImport.sourceUrl,
+            sourceKey: lastImport.sourceKey,
             author: lastImport.author,
+            publisher: lastImport.publisher,
+            license: lastImport.license,
             warnings: lastImport.warnings,
             importedFiles: lastImport.files.length,
-            importedMedia: lastImport.media.length
+            importedMedia: lastImport.media.length,
+            files: lastImport.files,
+            media: lastImport.media
           }
         : null,
       listing: {
@@ -1122,6 +1321,57 @@ export function UploadBuilderClient({
     setDemoState(restoredState);
     setPublishMode(restoredState === "published-preview" ? "publish" : "draft");
     setSaveMessage(`Restored draft from ${new Date(snapshot.savedAt).toLocaleString()}.`);
+  }
+
+  async function importManifestFile(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) {
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(await file.text()) as DemoManifest;
+
+      if (parsed.manifestVersion !== "demo-upload-manifest-v1") {
+        throw new Error("That JSON is not a supported demo manifest.");
+      }
+
+      setOwnerHandle(normalizeOwnerHandle(parsed.owner.handle));
+      setSourceUrl(parsed.importPreview?.sourceUrl ?? "");
+      setTitle(parsed.listing.title);
+      setSummary(parsed.listing.summary);
+      setCategory(parsed.listing.category);
+      setCategoryAddon(parsed.listing.categoryAddon);
+      setSubsystem(parsed.listing.subsystem);
+      setProducts(joinList(parsed.listing.products));
+      setVendors(joinList(parsed.listing.vendors));
+      setSeasons(joinList(parsed.listing.seasons));
+      setMaterials(joinList(parsed.listing.materials));
+      setTags(joinList(parsed.listing.tags));
+      setTagInput("");
+      setLicense(parsed.listing.license);
+      setPrintNotes(parsed.deliverables?.printNotes ?? "");
+      setInstallNotes(joinList(parsed.deliverables?.installNotes ?? []));
+      setFiles(parsed.deliverables?.files ?? defaultFiles);
+      setMedia(parsed.deliverables?.media?.length ? parsed.deliverables.media : defaultMedia);
+      setStagedUploads(parsed.deliverables?.stagedUploads ?? []);
+      setStagedMediaUploads(parsed.deliverables?.stagedMediaUploads ?? []);
+      setLastImport(restoreImportedListing(parsed.importPreview));
+      setDemoState(parsed.state);
+      setPublishMode(parsed.state === "published-preview" ? "publish" : "draft");
+      setImportMessage(
+        parsed.importPreview
+          ? `Imported manifest package for ${parsed.importPreview.sourceLabel}.`
+          : "Imported manifest package from local JSON."
+      );
+      setSaveMessage(
+        `Imported manifest from ${new Date(parsed.generatedAt).toLocaleString()}. Review the listing before saving or publishing again.`
+      );
+    } catch (error) {
+      setSaveMessage(error instanceof Error ? error.message : "Manifest import failed.");
+    }
   }
 
   function clearSavedDrafts() {
@@ -1266,6 +1516,7 @@ export function UploadBuilderClient({
               type="button"
               className="upload-compose-primary"
               onClick={isPublishMode ? publishListing : saveDraft}
+              disabled={isPublishMode && blockingFindings.length > 0}
             >
               {isPublishMode ? "Publish Preview" : "Save Draft"}
             </button>
@@ -1281,6 +1532,13 @@ export function UploadBuilderClient({
             <p className="eyebrow">Quick Start</p>
             <h3>Import from an existing listing link</h3>
           </div>
+          <input
+            ref={manifestInputRef}
+            type="file"
+            accept="application/json,.json"
+            className="upload-hidden-input"
+            onChange={importManifestFile}
+          />
           <div className="upload-form upload-import-grid">
             <label>
               Listing URL
@@ -1306,10 +1564,13 @@ export function UploadBuilderClient({
                   {source.label}
                 </span>
               ))}
+              <button type="button" className="action-link" onClick={() => manifestInputRef.current?.click()}>
+                Import manifest JSON
+              </button>
             </div>
             <p className="upload-owner-note">
               Use this to prefill a listing from Printables, Thingiverse, Onshape, or GitHub
-              before attaching your own local files and photos.
+              before attaching your own local files and photos. You can also restore a previously exported demo manifest.
             </p>
             {importMessage ? <p className="upload-inline-note">{importMessage}</p> : null}
             {lastImport ? (
@@ -1608,6 +1869,7 @@ export function UploadBuilderClient({
             ref={fileInputRef}
             type="file"
             multiple
+            accept={acceptedFabricationFiles}
             className="upload-hidden-input"
             onChange={onFileInputChange}
           />
@@ -1629,6 +1891,26 @@ export function UploadBuilderClient({
                 Sort files alphabetically
               </button>
             </div>
+            <div className="upload-file-lanes">
+              {filesByLane.map((lane) => (
+                <article key={lane.id} className="upload-file-lane-card">
+                  <div className="upload-file-lane-head">
+                    <strong>{lane.title}</strong>
+                    <span className="chip">{lane.files.length}</span>
+                  </div>
+                  <p>{lane.note}</p>
+                  <span>{lane.helper}</span>
+                  <div className="chip-row upload-file-format-row">
+                    {lane.fileTypes.map((fileType) => (
+                      <span key={`${lane.id}-${fileType}`} className="chip">
+                        {formatFileTypeLabel(fileType)}
+                      </span>
+                    ))}
+                  </div>
+                  <small>{lane.recommendation}</small>
+                </article>
+              ))}
+            </div>
             <div
               className={`upload-dropzone upload-dropzone-inline${isDraggingFiles ? " is-dragging" : ""}`}
               onDragEnter={(event) => {
@@ -1647,36 +1929,80 @@ export function UploadBuilderClient({
               }}
               onDrop={onFileDrop}
             >
-              <p>Drag files here to add them to the root</p>
+              <p>Drag files here and the builder will sort them into 3D models, sheet metal, or source CAD.</p>
             </div>
             <div className="upload-file-list">
-              {files.map((file, index) => (
-                <article key={`file-${index}`} className="upload-file-row">
-                  <div className="upload-file-meta">
-                    <strong>{file.label}</strong>
-                    <p>{file.note}</p>
+              {filesByLane.map((lane) => (
+                <section key={lane.id} className="upload-file-group">
+                  <div className="upload-file-group-head">
+                    <div>
+                      <strong>{lane.title}</strong>
+                      <p>{lane.helper}</p>
+                    </div>
+                    <span className="chip">{lane.files.length} file{lane.files.length === 1 ? "" : "s"}</span>
                   </div>
-                  <div className="upload-file-row-actions">
-                    <span className="chip">{file.fileType}</span>
-                    <button
-                      type="button"
-                      className="action-link"
-                      aria-label={`Remove ${file.label}`}
-                      onClick={() => removeFile(index)}
-                    >
-                      Remove
-                    </button>
+                  <div className="chip-row upload-file-format-row">
+                    {lane.fileTypes.map((fileType) => (
+                      <span key={`${lane.id}-group-${fileType}`} className="chip">
+                        {formatFileTypeLabel(fileType)}
+                      </span>
+                    ))}
                   </div>
-                </article>
+                  {lane.files.length > 0 ? (
+                    lane.files.map((file) => {
+                      const fileIndex = files.findIndex(
+                        (candidate) =>
+                          candidate.label === file.label &&
+                          candidate.fileType === file.fileType &&
+                          candidate.note === file.note &&
+                          candidate.href === file.href
+                      );
+
+                      return (
+                        <article key={`${lane.id}-${file.label}-${file.fileType}-${file.href}`} className="upload-file-row">
+                          <div className="upload-file-meta">
+                            <strong>{file.label}</strong>
+                            <p>{file.note}</p>
+                          </div>
+                          <div className="upload-file-row-actions">
+                            <span className="chip">{file.fileType}</span>
+                            <button
+                              type="button"
+                              className="action-link"
+                              aria-label={`Remove ${file.label}`}
+                              onClick={() => removeFile(fileIndex)}
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </article>
+                      );
+                    })
+                  ) : (
+                    <p className="upload-file-group-empty">No files in this lane yet.</p>
+                  )}
+                </section>
               ))}
             </div>
             {stagedUploads.length > 0 ? (
-              <div className="upload-upload-summary">
-                {stagedUploads.map((upload, index) => (
-                  <span key={`${upload.name}-${index}`} className="chip">
-                    {upload.name} - {upload.sizeLabel}
-                  </span>
-                ))}
+              <div className="upload-staged-groups">
+                {stagedUploadsByLane
+                  .filter((lane) => lane.uploads.length > 0)
+                  .map((lane) => (
+                    <section key={`${lane.id}-uploads`} className="upload-staged-group">
+                      <div className="upload-staged-group-head">
+                        <strong>{lane.title}</strong>
+                        <span className="chip">{lane.uploads.length} new</span>
+                      </div>
+                      <div className="upload-upload-summary">
+                        {lane.uploads.map((upload, index) => (
+                          <span key={`${lane.id}-${upload.name}-${index}`} className="chip">
+                            {upload.name} - {upload.sizeLabel}
+                          </span>
+                        ))}
+                      </div>
+                    </section>
+                  ))}
               </div>
             ) : null}
           </section>
@@ -1698,6 +2024,50 @@ export function UploadBuilderClient({
         </div>
 
         <div className="page-stack upload-preview-column">
+        <section className="panel upload-preview-panel">
+          <div className="upload-step-head">
+            <p className="eyebrow">Publish Readiness</p>
+            <h3>Background validation and duplicate checks</h3>
+          </div>
+          <div className="upload-submission-meta">
+            <span className={`submission-status${blockingFindings.length === 0 ? " submission-status-published" : ""}`}>
+              {blockingFindings.length === 0 ? "Ready for published preview" : `${blockingFindings.length} publish blocker${blockingFindings.length === 1 ? "" : "s"}`}
+            </span>
+            <span className="chip">{warningFindings.length} warning{warningFindings.length === 1 ? "" : "s"}</span>
+          </div>
+          {readinessFindings.length > 0 ? (
+            <ul className="detail-list">
+              {readinessFindings.map((finding, index) => (
+                <li key={`${finding.level}-${index}`}>
+                  <strong>{finding.level === "blocker" ? "Blocker:" : "Warning:"}</strong> {finding.message}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="muted">This listing has the minimum metadata, media, and file structure to move through the demo publish flow.</p>
+          )}
+          {duplicateMatches.length > 0 ? (
+            <div className="page-stack">
+              <p className="muted">Possible duplicates already in the repository:</p>
+              <div className="upload-queue-grid">
+                {duplicateMatches.map((match) => (
+                  <article key={match.slug} className="upload-queue-item upload-saved-draft">
+                    <div>
+                      <strong>{match.title}</strong>
+                      <p>{match.categoryLabel}</p>
+                    </div>
+                    <a href={`/parts/${match.slug}`} className="action-link">
+                      Open
+                    </a>
+                  </article>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="muted">No obvious duplicate match by slug, title, or imported source URL.</p>
+          )}
+        </section>
+
         <section className="panel upload-preview-panel">
           <div className="upload-step-head">
             <p className="eyebrow">Live Preview</p>
@@ -1740,13 +2110,22 @@ export function UploadBuilderClient({
               <p className="eyebrow">Demo Package</p>
               <h3>Local draft and manifest handoff</h3>
             </div>
-            <button
-              type="button"
-              className="action-link"
-              onClick={() => downloadManifest(demoState)}
-            >
-              Download JSON
-            </button>
+            <div className="chip-row">
+              <button
+                type="button"
+                className="action-link"
+                onClick={() => manifestInputRef.current?.click()}
+              >
+                Import JSON
+              </button>
+              <button
+                type="button"
+                className="action-link"
+                onClick={() => downloadManifest(demoState)}
+              >
+                Download JSON
+              </button>
+            </div>
           </div>
           <div className="upload-manifest-card">
             <div className="detail-stat-block">
