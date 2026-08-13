@@ -126,6 +126,16 @@ const categoryMeta = [
     slug: "driver-station",
     label: "Driver Station",
     description: "Controller trays, cable organizers, labels, and field-side workflow helpers."
+  },
+  {
+    slug: "pit-tools",
+    label: "Pit Tools",
+    description: "Bearing checkers, robot hooks, medals, and team-side accessories used around the pit."
+  },
+  {
+    slug: "mechanism-components",
+    label: "Mechanism Components",
+    description: "Reusable wheels, rollers, and printed mechanism components teams can adapt quickly."
   }
 ];
 
@@ -161,6 +171,46 @@ export const creators: Creator[] = [
     teamNumber: "5940",
     location: "Westford, MA",
     bio: "Driver station and service tools with a focus on fast pit use, visual clarity, and durable prints."
+  },
+  {
+    handle: "printables-imports",
+    displayName: "Printables Imports",
+    teamName: "Printables Imports",
+    teamNumber: "0",
+    location: "Community Library, Online",
+    bio: "Community listings imported into the beta catalog from public Printables pages so teams can discover them alongside team-hosted add-ons."
+  },
+  {
+    handle: "black-unicorns-5135",
+    displayName: "Black Unicorns 5135",
+    teamName: "Black Unicorns 5135",
+    teamNumber: "5135",
+    location: "Community Library, Online",
+    bio: "Imported community author profile used for beta-only Printables examples."
+  },
+  {
+    handle: "shyavans",
+    displayName: "ShyavanS",
+    teamName: "ShyavanS",
+    teamNumber: "0",
+    location: "Community Library, Online",
+    bio: "Imported community author profile used for beta-only Printables examples."
+  },
+  {
+    handle: "shadowtigerus",
+    displayName: "ShadowTigerus",
+    teamName: "ShadowTigerus",
+    teamNumber: "0",
+    location: "Community Library, Online",
+    bio: "Imported community author profile used for beta-only Printables examples."
+  },
+  {
+    handle: "arimb",
+    displayName: "AriMB",
+    teamName: "AriMB",
+    teamNumber: "0",
+    location: "Community Library, Online",
+    bio: "Imported community author profile used for beta-only Printables examples."
   }
 ];
 
@@ -495,6 +545,312 @@ export const parts: CatalogPart[] = [
     viewerNote: "This viewer slot can later support alternate tray layouts and driver station accessory kits.",
     publishedAt: "2026-05-11",
     updatedAt: "2026-07-14"
+  },
+  {
+    slug: "frc-radio-holder-printables",
+    title: "FRC Radio holder",
+    summary: "Beta import from Printables for a compact FRC radio holder teams can mount on a robot bellypan or electronics panel.",
+    category: "electronics-mounts",
+    categoryLabel: "Electronics Mounts",
+    subsystem: "Electrical",
+    creatorHandle: "black-unicorns-5135",
+    featured: false,
+    materials: ["PETG"],
+    vendors: ["Community"],
+    products: ["Radio Holder"],
+    seasons: ["General"],
+    tags: ["radio", "holder", "electronics", "mount", "printables"],
+    license: "CC BY-NC 4.0",
+    rating: 4.8,
+    views: 0,
+    downloads: 0,
+    uploadedAgo: "Imported from Printables",
+    files: [
+      {
+        label: "Printables download page",
+        fileType: "STL",
+        href: "https://www.printables.com/model/112526-frc-radio-holder",
+        note: "Use the original Printables listing to access the uploaded printable files."
+      },
+      {
+        label: "Original Printables listing",
+        fileType: "SOURCE",
+        href: "https://www.printables.com/model/112526-frc-radio-holder",
+        note: "Reference link back to the original Printables page."
+      }
+    ],
+    media: [],
+    versions: [{ label: "beta import", date: "2026-08-13", summary: "Imported into the beta repository from a public Printables listing." }],
+    printProfile: {
+      material: "PETG",
+      nozzle: "0.4 mm",
+      layerHeight: "0.2 mm",
+      infill: "25%",
+      supports: "Check original listing",
+      notes: "This beta entry points teams back to the original Printables files and documentation."
+    },
+    installNotes: [
+      "Review the original Printables page for the exact hardware and mounting pattern.",
+      "Useful as a starting point for radio packaging on electronics trays or bellypans."
+    ],
+    viewerNote: "This beta import currently links back to Printables for the downloadable geometry.",
+    publishedAt: "2026-08-13",
+    updatedAt: "2026-08-13"
+  },
+  {
+    slug: "frc-bearing-checker-printables",
+    title: "FRC Bearing Checker",
+    summary: "Beta import from Printables for a simple FRC bearing checker that fits pit inspection and quick hardware sorting workflows.",
+    category: "pit-tools",
+    categoryLabel: "Pit Tools",
+    subsystem: "Pit",
+    creatorHandle: "printables-imports",
+    featured: false,
+    materials: ["PLA+"],
+    vendors: ["Community"],
+    products: ["Bearing Checker"],
+    seasons: ["General"],
+    tags: ["bearing", "checker", "pit tool", "inspection", "printables"],
+    license: "CC BY-NC 4.0",
+    rating: 4.8,
+    views: 0,
+    downloads: 0,
+    uploadedAgo: "Imported from Printables",
+    files: [
+      {
+        label: "Printables download page",
+        fileType: "STL",
+        href: "https://www.printables.com/model/531405-frc-bearing-checker",
+        note: "Use the original Printables listing to access the uploaded printable files."
+      },
+      {
+        label: "Original Printables listing",
+        fileType: "SOURCE",
+        href: "https://www.printables.com/model/531405-frc-bearing-checker",
+        note: "Reference link back to the original Printables page."
+      }
+    ],
+    media: [],
+    versions: [{ label: "beta import", date: "2026-08-13", summary: "Imported into the beta repository from a public Printables listing." }],
+    printProfile: {
+      material: "PLA+",
+      nozzle: "0.4 mm",
+      layerHeight: "0.2 mm",
+      infill: "20%",
+      supports: "No",
+      notes: "Good candidate for fast pit prints and organizer boards."
+    },
+    installNotes: [
+      "Keep it in the pit drawer or inspection cart for quick bearing checks.",
+      "Review the original Printables listing for fitment details and supported bearing sizes."
+    ],
+    viewerNote: "This beta import currently links back to Printables for the downloadable geometry.",
+    publishedAt: "2026-08-13",
+    updatedAt: "2026-08-13"
+  },
+  {
+    slug: "charged-up-frc-2023-medal-printables",
+    title: "Charged Up FRC 2023 Medal",
+    summary: "Beta import from Printables for a Charged Up themed FRC medal teams can print as a keepsake, award, or event-side accessory.",
+    category: "pit-tools",
+    categoryLabel: "Pit Tools",
+    subsystem: "Team Accessory",
+    creatorHandle: "arimb",
+    featured: false,
+    materials: ["PLA+"],
+    vendors: ["Community"],
+    products: ["Team Medal"],
+    seasons: ["2023"],
+    tags: ["charged up", "medal", "award", "team accessory", "printables"],
+    license: "CC BY-NC 4.0",
+    rating: 4.7,
+    views: 0,
+    downloads: 0,
+    uploadedAgo: "Imported from Printables",
+    files: [
+      {
+        label: "Printables download page",
+        fileType: "STL",
+        href: "https://www.printables.com/model/517717-charged-up-frc-2023-medal",
+        note: "Use the original Printables listing to access the uploaded printable files."
+      },
+      {
+        label: "Original Printables listing",
+        fileType: "SOURCE",
+        href: "https://www.printables.com/model/517717-charged-up-frc-2023-medal",
+        note: "Reference link back to the original Printables page."
+      }
+    ],
+    media: [],
+    versions: [{ label: "beta import", date: "2026-08-13", summary: "Imported into the beta repository from a public Printables listing." }],
+    printProfile: {
+      material: "PLA+",
+      nozzle: "0.4 mm",
+      layerHeight: "0.2 mm",
+      infill: "15%",
+      supports: "Check original listing",
+      notes: "Great for fast single-color prints or simple multi-color swaps."
+    },
+    installNotes: [
+      "Good fit for team awards, offseason keepsakes, or event table displays.",
+      "Review the original Printables listing for scaling and lanyard-hole details."
+    ],
+    viewerNote: "This beta import currently links back to Printables for the downloadable geometry.",
+    publishedAt: "2026-08-13",
+    updatedAt: "2026-08-13"
+  },
+  {
+    slug: "frc-tpu-wheels-printables",
+    title: "FRC TPU Wheels",
+    summary: "Beta import from Printables for reusable TPU wheels teams can adapt for lightweight rollers, intake prototypes, or compliant wheel experiments.",
+    category: "mechanism-components",
+    categoryLabel: "Mechanism Components",
+    subsystem: "Mechanism",
+    creatorHandle: "printables-imports",
+    featured: false,
+    materials: ["TPU"],
+    vendors: ["Community"],
+    products: ["TPU Wheels"],
+    seasons: ["General"],
+    tags: ["tpu", "wheels", "roller", "mechanism", "printables"],
+    license: "CC BY-NC 4.0",
+    rating: 4.8,
+    views: 0,
+    downloads: 0,
+    uploadedAgo: "Imported from Printables",
+    files: [
+      {
+        label: "Printables download page",
+        fileType: "STL",
+        href: "https://www.printables.com/model/268121-frc-tpu-wheels",
+        note: "Use the original Printables listing to access the uploaded printable files."
+      },
+      {
+        label: "Original Printables listing",
+        fileType: "SOURCE",
+        href: "https://www.printables.com/model/268121-frc-tpu-wheels",
+        note: "Reference link back to the original Printables page."
+      }
+    ],
+    media: [],
+    versions: [{ label: "beta import", date: "2026-08-13", summary: "Imported into the beta repository from a public Printables listing." }],
+    printProfile: {
+      material: "TPU",
+      nozzle: "0.4 mm",
+      layerHeight: "0.24 mm",
+      infill: "100%",
+      supports: "No",
+      notes: "Review the original listing for shore hardness, hub fit, and wheel sizing guidance."
+    },
+    installNotes: [
+      "Useful as a prototype lane for compliant rollers or lightweight wheel concepts.",
+      "Review the original Printables page for bore details and recommended printer setup."
+    ],
+    viewerNote: "This beta import currently links back to Printables for the downloadable geometry.",
+    publishedAt: "2026-08-13",
+    updatedAt: "2026-08-13"
+  },
+  {
+    slug: "small-mecanum-wheel-hex-bore-printables",
+    title: "Small Mecanum Wheel - 3/8 inch Hex bore for FRC",
+    summary: "Beta import from Printables for a small mecanum wheel with a 3/8 in hex bore, useful for compact mechanism or drivetrain experiments.",
+    category: "mechanism-components",
+    categoryLabel: "Mechanism Components",
+    subsystem: "Drivetrain",
+    creatorHandle: "shadowtigerus",
+    featured: false,
+    materials: ["PLA+"],
+    vendors: ["Community"],
+    products: ["Mecanum Wheel"],
+    seasons: ["General"],
+    tags: ["mecanum", "wheel", "hex bore", "drivetrain", "printables"],
+    license: "CC BY-NC 4.0",
+    rating: 4.7,
+    views: 0,
+    downloads: 0,
+    uploadedAgo: "Imported from Printables",
+    files: [
+      {
+        label: "Printables download page",
+        fileType: "STL",
+        href: "https://www.printables.com/model/124414-small-mecanum-wheel-38-inch-hex-bore-for-frc",
+        note: "Use the original Printables listing to access the uploaded printable files."
+      },
+      {
+        label: "Original Printables listing",
+        fileType: "SOURCE",
+        href: "https://www.printables.com/model/124414-small-mecanum-wheel-38-inch-hex-bore-for-frc",
+        note: "Reference link back to the original Printables page."
+      }
+    ],
+    media: [],
+    versions: [{ label: "beta import", date: "2026-08-13", summary: "Imported into the beta repository from a public Printables listing." }],
+    printProfile: {
+      material: "PLA+",
+      nozzle: "0.4 mm",
+      layerHeight: "0.2 mm",
+      infill: "35%",
+      supports: "Check original listing",
+      notes: "Review the original listing for hub hardware, roller geometry, and axle fit."
+    },
+    installNotes: [
+      "Useful for compact prototypes where a full-size mecanum is too large.",
+      "Review the original Printables listing for exact bore fit and roller assembly details."
+    ],
+    viewerNote: "This beta import currently links back to Printables for the downloadable geometry.",
+    publishedAt: "2026-08-13",
+    updatedAt: "2026-08-13"
+  },
+  {
+    slug: "frc-robot-hanging-hook-printables",
+    title: "Hook for Hanging FIRST Robotics Competition (FRC) Robot",
+    summary: "Beta import from Printables for a hanging hook teams can use around robot transport, storage, or pit organization workflows.",
+    category: "pit-tools",
+    categoryLabel: "Pit Tools",
+    subsystem: "Pit",
+    creatorHandle: "shyavans",
+    featured: false,
+    materials: ["PETG"],
+    vendors: ["Community"],
+    products: ["Robot Hook"],
+    seasons: ["General"],
+    tags: ["hook", "hanging", "robot", "pit tool", "printables"],
+    license: "CC BY-NC 4.0",
+    rating: 4.7,
+    views: 0,
+    downloads: 0,
+    uploadedAgo: "Imported from Printables",
+    files: [
+      {
+        label: "Printables download page",
+        fileType: "STL",
+        href: "https://www.printables.com/model/24037-hook-for-hanging-first-robotics-competition-frc-ro",
+        note: "Use the original Printables listing to access the uploaded printable files."
+      },
+      {
+        label: "Original Printables listing",
+        fileType: "SOURCE",
+        href: "https://www.printables.com/model/24037-hook-for-hanging-first-robotics-competition-frc-ro",
+        note: "Reference link back to the original Printables page."
+      }
+    ],
+    media: [],
+    versions: [{ label: "beta import", date: "2026-08-13", summary: "Imported into the beta repository from a public Printables listing." }],
+    printProfile: {
+      material: "PETG",
+      nozzle: "0.4 mm",
+      layerHeight: "0.24 mm",
+      infill: "40%",
+      supports: "Check original listing",
+      notes: "Review the original listing before using it in any real robot handling workflow."
+    },
+    installNotes: [
+      "Treat this as a sourced beta listing and verify load safety before any real robot use.",
+      "Review the original Printables page for intended use, print orientation, and load warnings."
+    ],
+    viewerNote: "This beta import currently links back to Printables for the downloadable geometry.",
+    publishedAt: "2026-08-13",
+    updatedAt: "2026-08-13"
   }
 ];
 

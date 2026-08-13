@@ -64,10 +64,11 @@ async function seedReferenceData() {
 
   for (const creator of creators) {
     const location = splitLocation(creator.location);
+    const parsedTeamNumber = Number.parseInt(creator.teamNumber, 10);
     const created = await prisma.team.create({
       data: {
         slug: creator.handle,
-        number: Number.parseInt(creator.teamNumber, 10),
+        number: Number.isNaN(parsedTeamNumber) ? null : parsedTeamNumber,
         name: creator.teamName,
         shortName: creator.displayName,
         bio: creator.bio,

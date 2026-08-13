@@ -19,6 +19,8 @@ const previewThemes: Record<string, { accent: string; glow: string; deep: string
   "electronics-mounts": { accent: "#ab813d", glow: "#9e7735", deep: "#241c0e" },
   "battery-hardware": { accent: "#c4b896", glow: "#9ea5ad", deep: "#2b313a" },
   "driver-station": { accent: "#bf9045", glow: "#ab813d", deep: "#241c0e" },
+  "pit-tools": { accent: "#d7dce2", glow: "#8f98a4", deep: "#2a3037" },
+  "mechanism-components": { accent: "#d8ab58", glow: "#ba8531", deep: "#24180b" },
   default: { accent: "#d4a54e", glow: "#bf9045", deep: "#241c0e" }
 };
 
@@ -73,6 +75,12 @@ function creatorLabel(handle: string) {
     .split("-")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
+}
+
+function creatorDisplayName(creator: Creator) {
+  return creator.teamNumber && creator.teamNumber !== "0"
+    ? `${creator.teamNumber} / ${creator.teamName}`
+    : creator.teamName;
 }
 
 function formatMetric(value: number) {
@@ -428,7 +436,7 @@ export function FilterPanel({
           <option value="">All teams</option>
           {creators.map((creator) => (
             <option key={creator.handle} value={creator.handle}>
-              {creator.teamNumber} / {creator.teamName}
+              {creatorDisplayName(creator)}
             </option>
           ))}
         </select>
@@ -569,7 +577,7 @@ export function CreatorBanner({
       <div>
         <p className="eyebrow">Team Profile</p>
         <h1>
-          {creator.teamNumber} / {creator.teamName}
+          {creatorDisplayName(creator)}
         </h1>
         <p>{creator.bio}</p>
       </div>

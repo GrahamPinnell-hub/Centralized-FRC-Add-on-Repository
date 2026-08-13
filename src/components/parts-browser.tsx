@@ -192,7 +192,7 @@ export function PartsBrowser({
           value:
             creatorMap.get(filters.creator)?.teamNumber && creatorMap.get(filters.creator)?.teamName
               ? `${creatorMap.get(filters.creator)?.teamNumber} / ${creatorMap.get(filters.creator)?.teamName}`
-              : filters.creator
+              : (creatorMap.get(filters.creator)?.teamName ?? filters.creator)
         }
       : null,
     filters.season ? { key: "season", label: "Season", value: filters.season } : null,
