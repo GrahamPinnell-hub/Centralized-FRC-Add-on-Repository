@@ -1,0 +1,75 @@
+name: Listing submission
+description: Submit a beta listing manifest for repository review
+title: "Listing submission: "
+labels:
+  - submission
+  - beta-listing
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form when a listing is ready for beta repository intake.
+        
+        Export the manifest from the upload builder first, then attach it to this issue or paste the JSON in a comment.
+  - type: input
+    id: title
+    attributes:
+      label: Listing title
+      description: The exact title shown in the manifest
+      placeholder: Mk4 Swerve Cover
+    validations:
+      required: true
+  - type: input
+    id: slug
+    attributes:
+      label: Listing slug
+      description: Must match the manifest slug and target file name
+      placeholder: team-31-mk4i-wire-cover
+    validations:
+      required: true
+  - type: input
+    id: owner
+    attributes:
+      label: Publisher
+      description: Team or personal profile that should own the listing
+      placeholder: 31 / Prime Movers
+    validations:
+      required: true
+  - type: input
+    id: category
+    attributes:
+      label: Category
+      placeholder: Swerve Covers
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Source link
+      description: Printables, Thingiverse, Onshape, GitHub, or other source URL
+      placeholder: https://www.printables.com/model/...
+  - type: textarea
+    id: manifest
+    attributes:
+      label: Manifest handoff
+      description: Paste the exported manifest JSON here if you are not attaching the file separately
+      placeholder: "{\n  \"manifestVersion\": \"demo-upload-manifest-v1\"\n}"
+      render: json
+    validations:
+      required: false
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Submission checklist
+      options:
+        - label: I reviewed duplicate warnings before opening this issue
+          required: true
+        - label: I confirmed the file and media links are intentional for beta review
+          required: true
+        - label: I understand this issue does not publish automatically
+          required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Reviewer notes
+      description: Hardware notes, licensing clarifications, print notes, or anything else the maintainers should know

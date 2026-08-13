@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Beta Repository
+    url: https://github.com/GrahamPinnell-hub/Centralized-FRC-Add-on-Repository
+    about: Browse the beta repository source and current listing manifests.

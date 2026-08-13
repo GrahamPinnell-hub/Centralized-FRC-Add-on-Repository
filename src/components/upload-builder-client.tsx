@@ -19,6 +19,14 @@ import {
   type PreviewJoinedTeam
 } from "@/lib/account-preview";
 import {
+  betaIssueTemplateUrl,
+  betaPullRequestUrl,
+  betaRepositoryUrl,
+  buildPullRequestBody,
+  buildSubmissionIssueBody,
+  buildSubmissionIssueTitle
+} from "@/lib/submission-workflow";
+import {
   getSupportedImportSources,
   importListingFromUrl,
   type ImportedFileCandidate,
@@ -711,6 +719,7 @@ export function UploadBuilderClient({
   const [savedDrafts, setSavedDrafts] = useState<SavedDraftSnapshot[]>([]);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [importMessage, setImportMessage] = useState<string | null>(null);
+  const [submissionMessage, setSubmissionMessage] = useState<string | null>(null);
   const [lastImport, setLastImport] = useState<ImportedListingData | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [isDraggingFiles, setIsDraggingFiles] = useState(false);
@@ -845,6 +854,14 @@ export function UploadBuilderClient({
       : (activeOwner?.title ?? formatOwnerLabel(ownerHandle));
   const isPublishMode = publishMode === "publish";
   const manifestFileName = `${previewPart.slug || "new-listing"}-${demoState}.json`;
+  const submissionDraftInput = {
+    part: previewPart,
+    ownerLabel,
+    manifestFileName,
+    categoryAddon,
+    sourceUrl,
+    importSourceLabel: lastImport?.sourceLabel ?? null
+  } as const;
   const readinessFindings = useMemo<ReadinessFinding[]>(() => {
     const findings: ReadinessFinding[] = [];
     const trimmedTitle = title.trim();
@@ -1288,11 +1305,37 @@ export function UploadBuilderClient({
     setSaveMessage(`Downloaded demo manifest for ${state === "draft" ? "draft" : "published preview"}.`);
   }
 
+  async function copyTextToClipboard(value: string, successMessage: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+      setSubmissionMessage(successMessage);
+    } catch {
+      setSubmissionMessage("Clipboard access failed. Copy the generated text manually from the repo workflow panel.");
+    }
+  }
+
+  function openSubmissionIssueDraft() {
+    const title = buildSubmissionIssueTitle(submissionDraftInput);
+    const body = buildSubmissionIssueBody(submissionDraftInput);
+    const query = new URLSearchParams({
+      title,
+      body
+    });
+    window.open(`${betaIssueTemplateUrl}&${query.toString()}`, "_blank", "noopener,noreferrer");
+    setSubmissionMessage("Opened the GitHub submission issue draft in a new tab.");
+  }
+
+  function openPullRequestDraft() {
+    window.open(betaPullRequestUrl, "_blank", "noopener,noreferrer");
+    setSubmissionMessage("Opened the GitHub compare page for a submission PR.");
+  }
+
   function saveDraft() {
     const snapshot = persistSnapshot("draft");
     setSaveMessage(
       `Draft saved at ${new Date(snapshot.savedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}.`
     );
+    setSubmissionMessage(null);
   }
 
   function restoreDraft(snapshot: SavedDraftSnapshot) {
@@ -1321,6 +1364,7 @@ export function UploadBuilderClient({
     setDemoState(restoredState);
     setPublishMode(restoredState === "published-preview" ? "publish" : "draft");
     setSaveMessage(`Restored draft from ${new Date(snapshot.savedAt).toLocaleString()}.`);
+    setSubmissionMessage(null);
   }
 
   async function importManifestFile(event: ChangeEvent<HTMLInputElement>) {
@@ -1369,6 +1413,7 @@ export function UploadBuilderClient({
       setSaveMessage(
         `Imported manifest from ${new Date(parsed.generatedAt).toLocaleString()}. Review the listing before saving or publishing again.`
       );
+      setSubmissionMessage(null);
     } catch (error) {
       setSaveMessage(error instanceof Error ? error.message : "Manifest import failed.");
     }
@@ -1401,6 +1446,7 @@ export function UploadBuilderClient({
     setSaveMessage(
       `Published preview updated at ${new Date(snapshot.savedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}. Demo mode did not create a live listing.`
     );
+    setSubmissionMessage("Published preview is ready for GitHub submission. Download the JSON, then open an issue or PR handoff.");
   }
 
   async function importFromListingLink() {
@@ -2108,7 +2154,7 @@ export function UploadBuilderClient({
           <div className="upload-slot-head">
             <div className="upload-step-head">
               <p className="eyebrow">Demo Package</p>
-              <h3>Local draft and manifest handoff</h3>
+              <h3>GitHub submission handoff</h3>
             </div>
             <div className="chip-row">
               <button
@@ -2142,8 +2188,49 @@ export function UploadBuilderClient({
             </div>
           </div>
           <p className="muted">
-            Export the manifest to package this demo listing as structured JSON before a live backend exists.
+            Export the manifest, then hand the listing into GitHub through either an issue intake or a pull request that adds the manifest under <code>src/data/listings/</code>.
           </p>
+          <div className="upload-file-actions">
+            <button
+              type="button"
+              className="upload-file-action"
+              onClick={() =>
+                copyTextToClipboard(
+                  buildSubmissionIssueBody(submissionDraftInput),
+                  "Copied the GitHub submission issue draft."
+                )
+              }
+            >
+              Copy issue draft
+            </button>
+            <button type="button" className="upload-file-action" onClick={openSubmissionIssueDraft}>
+              Open issue draft
+            </button>
+            <button
+              type="button"
+              className="upload-file-action"
+              onClick={() =>
+                copyTextToClipboard(
+                  buildPullRequestBody(submissionDraftInput),
+                  "Copied the pull request handoff draft."
+                )
+              }
+            >
+              Copy PR body
+            </button>
+            <button type="button" className="upload-file-action" onClick={openPullRequestDraft}>
+              Open PR page
+            </button>
+          </div>
+          <div className="page-stack">
+            <p className="muted">
+              Repository path: <code>src/data/listings/{previewPart.slug}.json</code>
+            </p>
+            <a href={betaRepositoryUrl} target="_blank" rel="noreferrer" className="ghost-link">
+              Open beta repository
+            </a>
+            {submissionMessage ? <p className="upload-inline-note">{submissionMessage}</p> : null}
+          </div>
         </section>
 
         <section className="panel upload-preview-panel">
