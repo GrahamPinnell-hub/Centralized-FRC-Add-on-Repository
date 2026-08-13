@@ -286,8 +286,7 @@ export async function getTrendingPartsData() {
   }
 
   return [...state.parts]
-    .sort((a, b) => b.downloads - a.downloads || b.views - a.views)
-    .slice(0, 6);
+    .sort((a, b) => b.downloads - a.downloads || b.views - a.views);
 }
 
 export async function getLatestPartsData() {
@@ -298,8 +297,7 @@ export async function getLatestPartsData() {
   }
 
   return [...state.parts]
-    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
-    .slice(0, 4);
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }
 
 export async function getFeaturedPartsData() {

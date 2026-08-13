@@ -1,6 +1,7 @@
 import Link from "next/link";
 
-import { CategoryCard, PartCard, SectionTitle } from "@/components/ui";
+import { FeedShelf } from "@/components/feed-shelf";
+import { CategoryCard, SectionTitle } from "@/components/ui";
 import { countLabels, creatorDisplayLabel, topTeamsByParts } from "@/lib/discovery";
 import {
   getAllPartsData,
@@ -35,33 +36,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <section className="page-stack feed-section">
-        <div className="feed-header">
-          <div className="feed-title-row">
-            <h1 className="feed-title">
-              Trending <span className="feed-arrow" aria-hidden="true">&rarr;</span>
-            </h1>
-          </div>
-          <div className="feed-pager" aria-label="Trending page controls">
-            <span className="feed-page-indicator" aria-current="page">
-              Page 1
-            </span>
-            <span className="feed-next-button">Next</span>
-          </div>
-        </div>
-        <div className="chip-row browse-chip-strip">
-          {quickSearches.map((item, index) => (
-            <Link key={item.href} href={item.href} className={`chip${index === 0 ? " chip-accent" : ""}`}>
-              {item.label}
-            </Link>
-          ))}
-        </div>
-        <div className="card-grid listing-grid">
-          {trending.map((part) => (
-            <PartCard key={part.slug} part={part} />
-          ))}
-        </div>
-      </section>
+      <FeedShelf title="Trending" items={trending} chips={quickSearches} pageSize={8} headingLevel={1} />
 
       <section className="discovery-grid">
         <section className="panel discovery-panel">
@@ -131,37 +106,15 @@ export default async function HomePage() {
         </section>
       </section>
 
-      <section className="page-stack">
-        <div className="feed-header">
-          <div className="feed-title-row">
-            <h2 className="feed-title">
-              Latest <span className="feed-arrow" aria-hidden="true">&rarr;</span>
-            </h2>
-          </div>
-          <div className="feed-pager" aria-label="Latest page controls">
-            <span className="feed-page-indicator" aria-current="page">
-              Page 1
-            </span>
-            <span className="feed-next-button">Next</span>
-          </div>
-        </div>
-        <div className="chip-row browse-chip-strip">
-          {topTags.slice(0, 6).map((tag, index) => (
-            <Link
-              key={`latest-${tag.label}`}
-              href={`/parts?q=${encodeURIComponent(tag.label)}&sort=latest`}
-              className={`chip${index === 0 ? " chip-accent" : ""}`}
-            >
-              {tag.label}
-            </Link>
-          ))}
-        </div>
-        <div className="card-grid listing-grid">
-          {latest.map((part) => (
-            <PartCard key={part.slug} part={part} />
-          ))}
-        </div>
-      </section>
+      <FeedShelf
+        title="Latest"
+        items={latest}
+        chips={topTags.slice(0, 6).map((tag) => ({
+          href: `/parts?q=${encodeURIComponent(tag.label)}&sort=latest`,
+          label: tag.label
+        }))}
+        pageSize={4}
+      />
 
       <section className="page-stack">
         <SectionTitle

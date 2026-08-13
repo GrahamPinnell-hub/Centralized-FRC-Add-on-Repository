@@ -888,14 +888,12 @@ export function getFeaturedParts() {
 
 export function getTrendingParts() {
   return [...parts]
-    .sort((a, b) => b.downloads - a.downloads || b.views - a.views)
-    .slice(0, 6);
+    .sort((a, b) => b.downloads - a.downloads || b.views - a.views);
 }
 
 export function getLatestParts() {
   return [...parts]
-    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
-    .slice(0, 4);
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }
 
 export function getCatalogStats() {

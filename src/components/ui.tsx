@@ -95,6 +95,10 @@ function getLeadMedia(part: CatalogPart) {
   return part.media.find((item) => item.src) ?? null;
 }
 
+function isExternalImport(part: CatalogPart) {
+  return part.files.some((file) => /printables\.com/i.test(file.href));
+}
+
 function getPrimaryDownload(part: CatalogPart) {
   return part.files.find((file) => file.fileType !== "SOURCE") ?? part.files[0] ?? null;
 }
@@ -313,16 +317,38 @@ export function StatStrip({
 
 export function PartCard({ part }: { part: CatalogPart }) {
   const leadMedia = getLeadMedia(part);
+  const externalImport = isExternalImport(part);
+  const previewFileTypes = [...new Set(part.files.map((file) => file.fileType))].slice(0, 2);
 
   return (
     <article className="panel card listing-card" style={previewStyle(part.category)}>
       <Link href={`/parts/${part.slug}`} className="card-media">
-        <div className={`card-preview card-preview-clean${leadMedia ? " has-media" : ""}`}>
+        <div className={`card-preview card-preview-clean${leadMedia ? " has-media" : " is-fallback"}`}>
           {leadMedia?.src ? (
             <div className="card-preview-image" aria-hidden="true" style={mediaSurfaceStyle(leadMedia, "card")}>
               <img src={mediaSource(leadMedia)} alt="" loading="lazy" />
             </div>
-          ) : null}
+          ) : (
+            <div className="card-preview-fallback" aria-hidden="true">
+              <div className="card-preview-meta">
+                <span className="preview-badge">{part.categoryLabel}</span>
+                <span className="preview-owner">{externalImport ? "Imported" : part.subsystem}</span>
+              </div>
+              <div className="card-preview-fallback-copy">
+                <span className="card-preview-kicker">
+                  {externalImport ? "Printables beta import" : part.subsystem}
+                </span>
+                <strong className="card-preview-fallback-title">{part.title}</strong>
+              </div>
+              <div className="card-preview-fallback-files">
+                {previewFileTypes.map((fileType) => (
+                  <span key={`${part.slug}-${fileType}`} className="chip">
+                    {fileType}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </Link>
       <div className="card-body">
