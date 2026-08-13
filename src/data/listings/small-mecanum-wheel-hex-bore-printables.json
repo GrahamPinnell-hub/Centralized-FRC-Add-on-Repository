@@ -1,0 +1,89 @@
+{
+  "slug": "small-mecanum-wheel-hex-bore-printables",
+  "title": "Small Mecanum Wheel - 3/8 inch Hex bore for FRC",
+  "summary": "Beta import from Printables for a small mecanum wheel with a 3/8 in hex bore, useful for compact mechanism or drivetrain experiments.",
+  "category": "mechanism-components",
+  "categoryLabel": "Mechanism Components",
+  "subsystem": "Drivetrain",
+  "creatorHandle": "shadowtigerus",
+  "featured": false,
+  "materials": [
+    "PLA+"
+  ],
+  "vendors": [
+    "Community"
+  ],
+  "products": [
+    "Mecanum Wheel"
+  ],
+  "seasons": [
+    "General"
+  ],
+  "tags": [
+    "mecanum",
+    "wheel",
+    "hex bore",
+    "drivetrain",
+    "printables"
+  ],
+  "license": "CC BY-NC 4.0",
+  "rating": 4.7,
+  "views": 0,
+  "downloads": 0,
+  "uploadedAgo": "Imported from Printables",
+  "files": [
+    {
+      "label": "Printables download page",
+      "fileType": "STL",
+      "href": "https://www.printables.com/model/124414-small-mecanum-wheel-38-inch-hex-bore-for-frc",
+      "note": "Use the original Printables listing to access the uploaded printable files."
+    },
+    {
+      "label": "Original Printables listing",
+      "fileType": "SOURCE",
+      "href": "https://www.printables.com/model/124414-small-mecanum-wheel-38-inch-hex-bore-for-frc",
+      "note": "Reference link back to the original Printables page."
+    }
+  ],
+  "media": [
+    {
+      "kind": "image",
+      "title": "Vectored Intake Wheels for FRC",
+      "note": "Demo preview image for the imported mecanum wheel listing.",
+      "accent": "#d0a458",
+      "src": "/example-images/vectored-intake-wheels-for-frc.png",
+      "framing": {
+        "cardFit": "cover",
+        "cardPosition": "center 52%",
+        "detailFit": "contain",
+        "detailPosition": "center 50%",
+        "galleryFit": "contain",
+        "galleryPosition": "center 50%",
+        "lightboxFit": "contain",
+        "lightboxPosition": "center 50%"
+      }
+    }
+  ],
+  "versions": [
+    {
+      "label": "beta import",
+      "date": "2026-08-13",
+      "summary": "Imported into the beta repository from a public Printables listing."
+    }
+  ],
+  "printProfile": {
+    "material": "PLA+",
+    "nozzle": "0.4 mm",
+    "layerHeight": "0.2 mm",
+    "infill": "35%",
+    "supports": "Check original listing",
+    "notes": "Review the original listing for hub hardware, roller geometry, and axle fit."
+  },
+  "installNotes": [
+    "Useful for compact prototypes where a full-size mecanum is too large.",
+    "Review the original Printables listing for exact bore fit and roller assembly details."
+  ],
+  "viewerNote": "This beta import currently links back to Printables for the downloadable geometry.",
+  "publishedAt": "2026-08-13",
+  "updatedAt": "2026-08-13"
+}

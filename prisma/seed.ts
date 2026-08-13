@@ -1,7 +1,8 @@
 import type { Prisma } from "@prisma/client";
 import { AssetKind, PrismaClient } from "@prisma/client";
 
-import { creators, getCategorySummaries, parts } from "../src/lib/catalog";
+import { categoryDefinitions, creators } from "../src/lib/catalog";
+import { parts } from "../src/lib/catalog-source";
 
 const prisma = new PrismaClient();
 
@@ -51,7 +52,7 @@ async function seedReferenceData() {
   const tagMap = new Map<string, string>();
   const teamMap = new Map<string, string>();
 
-  for (const category of getCategorySummaries()) {
+  for (const category of categoryDefinitions) {
     const created = await prisma.category.create({
       data: {
         slug: category.slug,

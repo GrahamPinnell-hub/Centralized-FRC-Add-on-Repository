@@ -1,0 +1,89 @@
+{
+  "slug": "frc-tpu-wheels-printables",
+  "title": "FRC TPU Wheels",
+  "summary": "Beta import from Printables for reusable TPU wheels teams can adapt for lightweight rollers, intake prototypes, or compliant wheel experiments.",
+  "category": "mechanism-components",
+  "categoryLabel": "Mechanism Components",
+  "subsystem": "Mechanism",
+  "creatorHandle": "printables-imports",
+  "featured": false,
+  "materials": [
+    "TPU"
+  ],
+  "vendors": [
+    "Community"
+  ],
+  "products": [
+    "TPU Wheels"
+  ],
+  "seasons": [
+    "General"
+  ],
+  "tags": [
+    "tpu",
+    "wheels",
+    "roller",
+    "mechanism",
+    "printables"
+  ],
+  "license": "CC BY-NC 4.0",
+  "rating": 4.8,
+  "views": 0,
+  "downloads": 0,
+  "uploadedAgo": "Imported from Printables",
+  "files": [
+    {
+      "label": "Printables download page",
+      "fileType": "STL",
+      "href": "https://www.printables.com/model/268121-frc-tpu-wheels",
+      "note": "Use the original Printables listing to access the uploaded printable files."
+    },
+    {
+      "label": "Original Printables listing",
+      "fileType": "SOURCE",
+      "href": "https://www.printables.com/model/268121-frc-tpu-wheels",
+      "note": "Reference link back to the original Printables page."
+    }
+  ],
+  "media": [
+    {
+      "kind": "image",
+      "title": "Vectored Intake Wheels for FRC",
+      "note": "Demo preview image for the imported TPU wheels listing.",
+      "accent": "#d0a458",
+      "src": "/example-images/vectored-intake-wheels-for-frc.png",
+      "framing": {
+        "cardFit": "cover",
+        "cardPosition": "center 52%",
+        "detailFit": "contain",
+        "detailPosition": "center 50%",
+        "galleryFit": "contain",
+        "galleryPosition": "center 50%",
+        "lightboxFit": "contain",
+        "lightboxPosition": "center 50%"
+      }
+    }
+  ],
+  "versions": [
+    {
+      "label": "beta import",
+      "date": "2026-08-13",
+      "summary": "Imported into the beta repository from a public Printables listing."
+    }
+  ],
+  "printProfile": {
+    "material": "TPU",
+    "nozzle": "0.4 mm",
+    "layerHeight": "0.24 mm",
+    "infill": "100%",
+    "supports": "No",
+    "notes": "Review the original listing for shore hardness, hub fit, and wheel sizing guidance."
+  },
+  "installNotes": [
+    "Useful as a prototype lane for compliant rollers or lightweight wheel concepts.",
+    "Review the original Printables page for bore details and recommended printer setup."
+  ],
+  "viewerNote": "This beta import currently links back to Printables for the downloadable geometry.",
+  "publishedAt": "2026-08-13",
+  "updatedAt": "2026-08-13"
+}

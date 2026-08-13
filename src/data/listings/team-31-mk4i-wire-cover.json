@@ -1,0 +1,108 @@
+{
+  "slug": "team-31-mk4i-wire-cover",
+  "title": "Mk4 Swerve Cover",
+  "summary": "A snap-on cover for SDS MK4i modules that shields motor and encoder leads without blocking fast maintenance access.",
+  "category": "swerve-covers",
+  "categoryLabel": "Swerve Covers",
+  "subsystem": "Drivetrain",
+  "creatorHandle": "team-31",
+  "featured": true,
+  "materials": [
+    "PETG",
+    "ABS"
+  ],
+  "vendors": [
+    "SDS"
+  ],
+  "products": [
+    "MK4i"
+  ],
+  "seasons": [
+    "2025",
+    "2026"
+  ],
+  "tags": [
+    "swerve",
+    "wire management",
+    "encoder guard",
+    "service access"
+  ],
+  "license": "CC BY-NC 4.0",
+  "rating": 4.9,
+  "views": 1642,
+  "downloads": 418,
+  "uploadedAgo": "14 days ago",
+  "validated": true,
+  "files": [
+    {
+      "label": "Print-ready body",
+      "fileType": "STL",
+      "href": "#",
+      "note": "Primary printable geometry for fast pit replacements."
+    },
+    {
+      "label": "High-strength profile",
+      "fileType": "3MF",
+      "href": "#",
+      "note": "Tuned slicer profile with support blockers and wall count notes."
+    },
+    {
+      "label": "Master CAD export",
+      "fileType": "STEP",
+      "href": "#",
+      "note": "For editing around alternate motor routing or standoff spacing."
+    },
+    {
+      "label": "Onshape source",
+      "fileType": "SOURCE",
+      "href": "https://cad.onshape.com/",
+      "note": "Reference slot for the editable source document."
+    }
+  ],
+  "media": [
+    {
+      "kind": "image",
+      "title": "Mk4 Swerve Cover",
+      "note": "Example listing photo for the installed wire cover and its clearance around the module hardware.",
+      "accent": "#f97316",
+      "src": "/example-images/mk4-swerve-cover.png",
+      "framing": {
+        "cardFit": "cover",
+        "cardPosition": "center 54%",
+        "detailFit": "contain",
+        "galleryFit": "cover",
+        "galleryPosition": "center 54%",
+        "thumbFit": "cover",
+        "thumbPosition": "center 54%"
+      }
+    }
+  ],
+  "versions": [
+    {
+      "label": "v1.2",
+      "date": "2026-07-21",
+      "summary": "Opened up clearance for bolt heads and added a cable relief notch."
+    },
+    {
+      "label": "v1.0",
+      "date": "2026-05-18",
+      "summary": "Initial release used on the 2026 offseason drivetrain."
+    }
+  ],
+  "printProfile": {
+    "material": "PETG or ABS",
+    "nozzle": "0.4 mm",
+    "layerHeight": "0.24 mm",
+    "infill": "35%",
+    "supports": "Only for cable clip overhang",
+    "notes": "Four walls recommended. Print face-down for cleaner outer surfaces."
+  },
+  "installNotes": [
+    "Snaps around the module top plate without needing new hardware.",
+    "Clearances assume standard MK4i hardware stack and low-profile zip tie heads.",
+    "Best fit comes from slightly deburring the cable slot after printing."
+  ],
+  "viewerNote": "Viewer shell is meant for STL, 3MF, or STEP previews once local asset uploads are wired in.",
+  "publishedAt": "2026-05-18",
+  "updatedAt": "2026-07-21"
+}

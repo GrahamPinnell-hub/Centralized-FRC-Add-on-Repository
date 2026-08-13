@@ -1,0 +1,89 @@
+{
+  "slug": "charged-up-frc-2023-medal-printables",
+  "title": "Charged Up FRC 2023 Medal",
+  "summary": "Beta import from Printables for a Charged Up themed FRC medal teams can print as a keepsake, award, or event-side accessory.",
+  "category": "pit-tools",
+  "categoryLabel": "Pit Tools",
+  "subsystem": "Team Accessory",
+  "creatorHandle": "arimb",
+  "featured": false,
+  "materials": [
+    "PLA+"
+  ],
+  "vendors": [
+    "Community"
+  ],
+  "products": [
+    "Team Medal"
+  ],
+  "seasons": [
+    "2023"
+  ],
+  "tags": [
+    "charged up",
+    "medal",
+    "award",
+    "team accessory",
+    "printables"
+  ],
+  "license": "CC BY-NC 4.0",
+  "rating": 4.7,
+  "views": 0,
+  "downloads": 0,
+  "uploadedAgo": "Imported from Printables",
+  "files": [
+    {
+      "label": "Printables download page",
+      "fileType": "STL",
+      "href": "https://www.printables.com/model/517717-charged-up-frc-2023-medal",
+      "note": "Use the original Printables listing to access the uploaded printable files."
+    },
+    {
+      "label": "Original Printables listing",
+      "fileType": "SOURCE",
+      "href": "https://www.printables.com/model/517717-charged-up-frc-2023-medal",
+      "note": "Reference link back to the original Printables page."
+    }
+  ],
+  "media": [
+    {
+      "kind": "image",
+      "title": "Pulley generator with hex hole and hub holes support (useful in FRC)",
+      "note": "Demo preview image for the imported Charged Up medal listing.",
+      "accent": "#d0a458",
+      "src": "/example-images/pulley-generator-support.png",
+      "framing": {
+        "cardFit": "contain",
+        "cardPosition": "center 50%",
+        "detailFit": "contain",
+        "detailPosition": "center 50%",
+        "galleryFit": "contain",
+        "galleryPosition": "center 50%",
+        "lightboxFit": "contain",
+        "lightboxPosition": "center 50%"
+      }
+    }
+  ],
+  "versions": [
+    {
+      "label": "beta import",
+      "date": "2026-08-13",
+      "summary": "Imported into the beta repository from a public Printables listing."
+    }
+  ],
+  "printProfile": {
+    "material": "PLA+",
+    "nozzle": "0.4 mm",
+    "layerHeight": "0.2 mm",
+    "infill": "15%",
+    "supports": "Check original listing",
+    "notes": "Great for fast single-color prints or simple multi-color swaps."
+  },
+  "installNotes": [
+    "Good fit for team awards, offseason keepsakes, or event table displays.",
+    "Review the original Printables listing for scaling and lanyard-hole details."
+  ],
+  "viewerNote": "This beta import currently links back to Printables for the downloadable geometry.",
+  "publishedAt": "2026-08-13",
+  "updatedAt": "2026-08-13"
+}

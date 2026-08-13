@@ -1,0 +1,89 @@
+{
+  "slug": "frc-radio-holder-printables",
+  "title": "FRC Radio holder",
+  "summary": "Beta import from Printables for a compact FRC radio holder teams can mount on a robot bellypan or electronics panel.",
+  "category": "electronics-mounts",
+  "categoryLabel": "Electronics Mounts",
+  "subsystem": "Electrical",
+  "creatorHandle": "black-unicorns-5135",
+  "featured": false,
+  "materials": [
+    "PETG"
+  ],
+  "vendors": [
+    "Community"
+  ],
+  "products": [
+    "Radio Holder"
+  ],
+  "seasons": [
+    "General"
+  ],
+  "tags": [
+    "radio",
+    "holder",
+    "electronics",
+    "mount",
+    "printables"
+  ],
+  "license": "CC BY-NC 4.0",
+  "rating": 4.8,
+  "views": 0,
+  "downloads": 0,
+  "uploadedAgo": "Imported from Printables",
+  "files": [
+    {
+      "label": "Printables download page",
+      "fileType": "STL",
+      "href": "https://www.printables.com/model/112526-frc-radio-holder",
+      "note": "Use the original Printables listing to access the uploaded printable files."
+    },
+    {
+      "label": "Original Printables listing",
+      "fileType": "SOURCE",
+      "href": "https://www.printables.com/model/112526-frc-radio-holder",
+      "note": "Reference link back to the original Printables page."
+    }
+  ],
+  "media": [
+    {
+      "kind": "image",
+      "title": "FRC Radio and RSL Mount",
+      "note": "Demo preview image for the imported radio holder listing.",
+      "accent": "#d0a458",
+      "src": "/example-images/frc-radio-and-rsl-mount.png",
+      "framing": {
+        "cardFit": "cover",
+        "cardPosition": "center 48%",
+        "detailFit": "contain",
+        "detailPosition": "center 50%",
+        "galleryFit": "contain",
+        "galleryPosition": "center 50%",
+        "lightboxFit": "contain",
+        "lightboxPosition": "center 50%"
+      }
+    }
+  ],
+  "versions": [
+    {
+      "label": "beta import",
+      "date": "2026-08-13",
+      "summary": "Imported into the beta repository from a public Printables listing."
+    }
+  ],
+  "printProfile": {
+    "material": "PETG",
+    "nozzle": "0.4 mm",
+    "layerHeight": "0.2 mm",
+    "infill": "25%",
+    "supports": "Check original listing",
+    "notes": "This beta entry points teams back to the original Printables files and documentation."
+  },
+  "installNotes": [
+    "Review the original Printables page for the exact hardware and mounting pattern.",
+    "Useful as a starting point for radio packaging on electronics trays or bellypans."
+  ],
+  "viewerNote": "This beta import currently links back to Printables for the downloadable geometry.",
+  "publishedAt": "2026-08-13",
+  "updatedAt": "2026-08-13"
+}

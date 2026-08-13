@@ -1,0 +1,99 @@
+{
+  "slug": "driver-station-cable-tray",
+  "title": "Vectored Intake Wheels for FRC",
+  "summary": "An example intake-wheel listing showing a vectored roller concept teams can reuse when prototyping FRC intakes.",
+  "category": "driver-station",
+  "categoryLabel": "Driver Station",
+  "subsystem": "Driver Station",
+  "creatorHandle": "team-5940",
+  "featured": false,
+  "materials": [
+    "PLA+",
+    "PETG"
+  ],
+  "vendors": [
+    "AndyMark"
+  ],
+  "products": [
+    "Intake Wheels"
+  ],
+  "seasons": [
+    "General"
+  ],
+  "tags": [
+    "intake",
+    "wheels",
+    "roller",
+    "vectored"
+  ],
+  "license": "CC BY-NC-SA 4.0",
+  "rating": 4.8,
+  "views": 1384,
+  "downloads": 412,
+  "uploadedAgo": "21 days ago",
+  "validated": true,
+  "files": [
+    {
+      "label": "Tray body",
+      "fileType": "STL",
+      "href": "#",
+      "note": "Main printable tray with cable slots and label strip."
+    },
+    {
+      "label": "Assembly CAD",
+      "fileType": "STEP",
+      "href": "#",
+      "note": "Reference for matching tray width to your shelf or board."
+    },
+    {
+      "label": "Source CAD",
+      "fileType": "SOURCE",
+      "href": "https://cad.onshape.com/",
+      "note": "Editable source slot for personalized layouts."
+    }
+  ],
+  "media": [
+    {
+      "kind": "image",
+      "title": "Vectored Intake Wheels for FRC",
+      "note": "Example product image used for the sample intake-wheel listing.",
+      "accent": "#8b5cf6",
+      "src": "/example-images/vectored-intake-wheels-for-frc.png",
+      "framing": {
+        "cardFit": "contain",
+        "cardPosition": "center 42%",
+        "cardZoom": 1.02,
+        "detailFit": "contain",
+        "detailPosition": "center 44%",
+        "thumbFit": "contain",
+        "thumbPosition": "center 44%",
+        "galleryFit": "contain",
+        "galleryPosition": "center 44%",
+        "lightboxFit": "contain",
+        "lightboxPosition": "center 44%"
+      }
+    }
+  ],
+  "versions": [
+    {
+      "label": "v1.3",
+      "date": "2026-07-14",
+      "summary": "Added larger hub pocket and a removable label insert."
+    }
+  ],
+  "printProfile": {
+    "material": "PLA+ or PETG",
+    "nozzle": "0.4 mm",
+    "layerHeight": "0.2 mm",
+    "infill": "20%",
+    "supports": "No",
+    "notes": "Print in two mirrored halves if your printer bed is narrow."
+  },
+  "installNotes": [
+    "Use countersunk wood screws or rivet nuts depending on your driver station frame.",
+    "Leave one spare lane for tether or emergency cable reroutes."
+  ],
+  "viewerNote": "This viewer slot can later support alternate tray layouts and driver station accessory kits.",
+  "publishedAt": "2026-05-11",
+  "updatedAt": "2026-07-14"
+}

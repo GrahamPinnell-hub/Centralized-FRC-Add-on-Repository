@@ -9,8 +9,10 @@ import {
   creatorHandles,
   creators as staticCreators,
   filterPartsList,
-  filterParts as filterStaticParts,
   sortPartsList,
+} from "@/lib/catalog";
+import {
+  filterParts as filterStaticParts,
   getCatalogStats as getStaticCatalogStats,
   getCategory as getStaticCategory,
   getCategorySummaries as getStaticCategorySummaries,
@@ -21,7 +23,7 @@ import {
   getSearchOptions as getStaticSearchOptions,
   getTrendingParts as getStaticTrendingParts,
   parts as staticParts
-} from "@/lib/catalog";
+} from "@/lib/catalog-source";
 
 const databasePartInclude = {
   category: true,

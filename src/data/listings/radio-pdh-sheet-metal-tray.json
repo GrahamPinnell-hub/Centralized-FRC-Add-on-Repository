@@ -1,0 +1,89 @@
+{
+  "slug": "radio-pdh-sheet-metal-tray",
+  "title": "FRC Radio and RSL Mount",
+  "summary": "A compact electronics bracket example that keeps a robot radio and status light in one clean, serviceable mount.",
+  "category": "electronics-mounts",
+  "categoryLabel": "Electronics Mounts",
+  "subsystem": "Electrical",
+  "creatorHandle": "team-6328",
+  "featured": true,
+  "materials": [
+    "5052 Aluminum"
+  ],
+  "vendors": [
+    "REV",
+    "CTR"
+  ],
+  "products": [
+    "PDH",
+    "CANivore",
+    "Radio"
+  ],
+  "seasons": [
+    "2026",
+    "General"
+  ],
+  "tags": [
+    "sheet metal",
+    "electronics",
+    "bellypan",
+    "dxf"
+  ],
+  "license": "CC BY 4.0",
+  "rating": 5,
+  "views": 1118,
+  "downloads": 297,
+  "uploadedAgo": "18 days ago",
+  "validated": true,
+  "files": [
+    {
+      "label": "Flat pattern",
+      "fileType": "DXF",
+      "href": "#",
+      "note": "Primary manufacturing output for sheet metal sponsors or in-house waterjet."
+    },
+    {
+      "label": "Assembly CAD",
+      "fileType": "STEP",
+      "href": "#",
+      "note": "Reference for packaging and cable routing in robot CAD."
+    },
+    {
+      "label": "Fabrication bundle",
+      "fileType": "ZIP",
+      "href": "#",
+      "note": "Contains bend notes, hole callouts, and sponsor-facing fabrication instructions."
+    }
+  ],
+  "media": [
+    {
+      "kind": "image",
+      "title": "FRC Radio and RSL Mount",
+      "note": "Example mounted electronics photo used in place of the old stock sheet-metal art.",
+      "accent": "#38bdf8",
+      "src": "/example-images/frc-radio-and-rsl-mount.png",
+      "framing": {
+        "cardFit": "cover",
+        "cardPosition": "center 46%",
+        "detailFit": "contain",
+        "detailPosition": "center 50%",
+        "galleryFit": "cover",
+        "galleryPosition": "center 46%"
+      }
+    }
+  ],
+  "versions": [
+    {
+      "label": "v1.1",
+      "date": "2026-07-05",
+      "summary": "Moved radio holes for stronger antenna clearance and better cable exits."
+    }
+  ],
+  "installNotes": [
+    "Assumes 0.090 in 5052 with two side bends and PEM nut hardware.",
+    "Leave 0.25 in clearance around radio ports if you plan to add strain relief clips later."
+  ],
+  "viewerNote": "The first DXF preview can be a 2D plate view, with 3D folded preview added later.",
+  "publishedAt": "2026-06-28",
+  "updatedAt": "2026-07-05"
+}

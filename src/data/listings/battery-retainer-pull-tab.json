@@ -1,0 +1,94 @@
+{
+  "slug": "battery-retainer-pull-tab",
+  "title": "Pulley generator with hex hole and hub holes support (useful in FRC)",
+  "summary": "An example drivetrain utility listing showing a configurable pulley generator concept for quick FRC mechanism iteration.",
+  "category": "battery-hardware",
+  "categoryLabel": "Battery Hardware",
+  "subsystem": "Electrical",
+  "creatorHandle": "team-5940",
+  "featured": false,
+  "materials": [
+    "PETG",
+    "Nylon"
+  ],
+  "vendors": [
+    "WCP"
+  ],
+  "products": [
+    "Pulley Generator"
+  ],
+  "seasons": [
+    "2025",
+    "2026",
+    "General"
+  ],
+  "tags": [
+    "pulley",
+    "hex bore",
+    "mechanism",
+    "generator"
+  ],
+  "license": "MIT",
+  "rating": 4.7,
+  "views": 907,
+  "downloads": 254,
+  "uploadedAgo": "35 days ago",
+  "files": [
+    {
+      "label": "Retainer body",
+      "fileType": "STL",
+      "href": "#",
+      "note": "Primary printable retainer component."
+    },
+    {
+      "label": "Pit-ready profile",
+      "fileType": "3MF",
+      "href": "#",
+      "note": "Slicer profile tuned for stronger pull-tab layers."
+    },
+    {
+      "label": "CAD reference",
+      "fileType": "STEP",
+      "href": "#",
+      "note": "Editable geometry for custom frame rail spacing."
+    }
+  ],
+  "media": [
+    {
+      "kind": "image",
+      "title": "Pulley generator with hex hole and hub holes support (useful in FRC)",
+      "note": "Example mechanism screenshot used as the sample image for the pulley-generator listing.",
+      "accent": "#f43f5e",
+      "src": "/example-images/pulley-generator-support.png",
+      "framing": {
+        "cardFit": "cover",
+        "cardPosition": "center 50%",
+        "detailFit": "contain",
+        "galleryFit": "cover",
+        "galleryPosition": "center 50%"
+      }
+    }
+  ],
+  "versions": [
+    {
+      "label": "v1.0",
+      "date": "2026-04-22",
+      "summary": "Initial release for low-profile battery pockets."
+    }
+  ],
+  "printProfile": {
+    "material": "Nylon if repeated impacts are expected",
+    "nozzle": "0.6 mm",
+    "layerHeight": "0.28 mm",
+    "infill": "40%",
+    "supports": "No",
+    "notes": "Orient the pull tab flat to maximize layer continuity."
+  },
+  "installNotes": [
+    "Pairs well with hook-and-loop strap systems for two-step retention.",
+    "Leave enough slack for battery lead routing before locking the retainer in place."
+  ],
+  "viewerNote": "Viewer supports the printable body and can later show flex zones or alternate tab lengths.",
+  "publishedAt": "2026-04-22",
+  "updatedAt": "2026-04-22"
+}

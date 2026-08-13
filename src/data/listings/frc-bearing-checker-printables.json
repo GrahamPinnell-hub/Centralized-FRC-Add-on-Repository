@@ -1,0 +1,89 @@
+{
+  "slug": "frc-bearing-checker-printables",
+  "title": "FRC Bearing Checker",
+  "summary": "Beta import from Printables for a simple FRC bearing checker that fits pit inspection and quick hardware sorting workflows.",
+  "category": "pit-tools",
+  "categoryLabel": "Pit Tools",
+  "subsystem": "Pit",
+  "creatorHandle": "printables-imports",
+  "featured": false,
+  "materials": [
+    "PLA+"
+  ],
+  "vendors": [
+    "Community"
+  ],
+  "products": [
+    "Bearing Checker"
+  ],
+  "seasons": [
+    "General"
+  ],
+  "tags": [
+    "bearing",
+    "checker",
+    "pit tool",
+    "inspection",
+    "printables"
+  ],
+  "license": "CC BY-NC 4.0",
+  "rating": 4.8,
+  "views": 0,
+  "downloads": 0,
+  "uploadedAgo": "Imported from Printables",
+  "files": [
+    {
+      "label": "Printables download page",
+      "fileType": "STL",
+      "href": "https://www.printables.com/model/531405-frc-bearing-checker",
+      "note": "Use the original Printables listing to access the uploaded printable files."
+    },
+    {
+      "label": "Original Printables listing",
+      "fileType": "SOURCE",
+      "href": "https://www.printables.com/model/531405-frc-bearing-checker",
+      "note": "Reference link back to the original Printables page."
+    }
+  ],
+  "media": [
+    {
+      "kind": "image",
+      "title": "Pulley generator with hex hole and hub holes support (useful in FRC)",
+      "note": "Demo preview image for the imported bearing checker listing.",
+      "accent": "#d0a458",
+      "src": "/example-images/pulley-generator-support.png",
+      "framing": {
+        "cardFit": "contain",
+        "cardPosition": "center 52%",
+        "detailFit": "contain",
+        "detailPosition": "center 52%",
+        "galleryFit": "contain",
+        "galleryPosition": "center 52%",
+        "lightboxFit": "contain",
+        "lightboxPosition": "center 52%"
+      }
+    }
+  ],
+  "versions": [
+    {
+      "label": "beta import",
+      "date": "2026-08-13",
+      "summary": "Imported into the beta repository from a public Printables listing."
+    }
+  ],
+  "printProfile": {
+    "material": "PLA+",
+    "nozzle": "0.4 mm",
+    "layerHeight": "0.2 mm",
+    "infill": "20%",
+    "supports": "No",
+    "notes": "Good candidate for fast pit prints and organizer boards."
+  },
+  "installNotes": [
+    "Keep it in the pit drawer or inspection cart for quick bearing checks.",
+    "Review the original Printables listing for fitment details and supported bearing sizes."
+  ],
+  "viewerNote": "This beta import currently links back to Printables for the downloadable geometry.",
+  "publishedAt": "2026-08-13",
+  "updatedAt": "2026-08-13"
+}
