@@ -72,6 +72,7 @@ export default async function PartDetailPage({
   const materialSummary = part.materials.join(" / ");
   const currentRelease = part.versions[0]?.label ?? "v1.0";
   const hasMedia = part.media.some((item) => item.src);
+  const mediaCount = part.media.length;
   const creatorCategories = creatorProfile
     ? countLabels(creatorProfile.parts.map((entry) => entry.categoryLabel), 4)
     : [];
@@ -122,6 +123,24 @@ export default async function PartDetailPage({
               ))}
               <span className="chip chip-accent">{part.license}</span>
             </div>
+            <div className="detail-at-a-glance">
+              <div className="detail-glance-card">
+                <span>primary output</span>
+                <strong>{deliverableTypes[0] ?? "Files"}</strong>
+              </div>
+              <div className="detail-glance-card">
+                <span>gallery items</span>
+                <strong>{mediaCount}</strong>
+              </div>
+              <div className="detail-glance-card">
+                <span>current release</span>
+                <strong>{currentRelease}</strong>
+              </div>
+              <div className="detail-glance-card">
+                <span>vendor fit</span>
+                <strong>{vendorSummary}</strong>
+              </div>
+            </div>
             <div className="detail-spec-grid">
               <div className="detail-spec-card">
                 <span>Compatible with</span>
@@ -141,77 +160,79 @@ export default async function PartDetailPage({
               </div>
             </div>
           </div>
-          <ViewerShell part={part} />
+          <div className="detail-showcase-grid">
+            <ViewerShell part={part} />
+            <aside className="panel detail-hero-aside">
+              <div className="detail-stat-inline-grid">
+                <div className="detail-stat-inline">
+                  <strong>{part.rating.toFixed(1)}</strong>
+                  <span>rating</span>
+                </div>
+                <div className="detail-stat-inline">
+                  <strong>{part.views}</strong>
+                  <span>views</span>
+                </div>
+                <div className="detail-stat-inline">
+                  <strong>{part.downloads}</strong>
+                  <span>downloads</span>
+                </div>
+              </div>
+              <div className="detail-action-stack">
+                {primaryDownload ? (
+                  <a href={primaryDownload.href} className="button-link" target="_blank" rel="noreferrer">
+                    Download {primaryDownload.fileType}
+                  </a>
+                ) : (
+                  <a href="#files" className="button-link">
+                    View files
+                  </a>
+                )}
+                {sourceFile ? (
+                  <a href={sourceFile.href} className="action-link" target="_blank" rel="noreferrer">
+                    Open source CAD
+                  </a>
+                ) : (
+                  <a href="#files" className="action-link">
+                    Browse files
+                  </a>
+                )}
+                {hasMedia ? (
+                  <a href="#media" className="action-link">
+                    Open gallery
+                  </a>
+                ) : null}
+                <a href="#related" className="action-link">
+                  Related parts
+                </a>
+                <Link href={`/report?part=${part.slug}`} className="ghost-link detail-report-link">
+                  Report listing
+                </Link>
+              </div>
+              <div className="detail-hero-facts">
+                <div className="detail-inline-block">
+                  <strong>Published by</strong>
+                  <span>{creatorName}</span>
+                </div>
+                <div className="detail-inline-block">
+                  <strong>Updated</strong>
+                  <span>{formatDateLabel(part.updatedAt)}</span>
+                </div>
+                <div className="detail-inline-block">
+                  <strong>Viewer note</strong>
+                  <span>{part.viewerNote}</span>
+                </div>
+              </div>
+            </aside>
+          </div>
         </div>
-        <aside className="panel detail-hero-aside">
-          <div className="detail-stat-inline-grid">
-            <div className="detail-stat-inline">
-              <strong>{part.rating.toFixed(1)}</strong>
-              <span>rating</span>
-            </div>
-            <div className="detail-stat-inline">
-              <strong>{part.views}</strong>
-              <span>views</span>
-            </div>
-            <div className="detail-stat-inline">
-              <strong>{part.downloads}</strong>
-              <span>downloads</span>
-            </div>
-          </div>
-          <div className="detail-action-stack">
-            {primaryDownload ? (
-              <a href={primaryDownload.href} className="button-link" target="_blank" rel="noreferrer">
-                Download {primaryDownload.fileType}
-              </a>
-            ) : (
-              <a href="#files" className="button-link">
-                View files
-              </a>
-            )}
-            {sourceFile ? (
-              <a href={sourceFile.href} className="action-link" target="_blank" rel="noreferrer">
-                Open source CAD
-              </a>
-            ) : (
-              <a href="#files" className="action-link">
-                Browse files
-              </a>
-            )}
-            {hasMedia ? (
-              <a href="#media" className="action-link">
-                Open gallery
-              </a>
-            ) : null}
-            <a href="#related" className="action-link">
-              Related parts
-            </a>
-            <Link href={`/report?part=${part.slug}`} className="ghost-link detail-report-link">
-              Report listing
-            </Link>
-          </div>
-          <div className="detail-hero-facts">
-            <div className="detail-inline-block">
-              <strong>Current release</strong>
-              <span>{currentRelease}</span>
-            </div>
-            <div className="detail-inline-block">
-              <strong>Published by</strong>
-              <span>{creatorName}</span>
-            </div>
-            <div className="detail-inline-block">
-              <strong>Vendor fit</strong>
-              <span>{vendorSummary}</span>
-            </div>
-          </div>
-        </aside>
       </section>
 
       <div className="detail-stage-grid">
         <section className="detail-stage-panel">
           <div className="section-title detail-section-title">
             <p className="eyebrow">Overview</p>
-            <h2>What another team gets from this listing</h2>
-            <p>Fit, files, install notes, and quick jumps without digging through extra filler.</p>
+            <h2>Repository overview</h2>
+            <p>Core fit, files, and install notes without burying the useful details.</p>
           </div>
           <div className="detail-summary-copy">
             <p>{part.summary}</p>
@@ -268,6 +289,10 @@ export default async function PartDetailPage({
           <div className="detail-stat-block">
             <strong>{part.subsystem}</strong>
             <span>robot subsystem</span>
+          </div>
+          <div className="detail-stat-block">
+            <strong>{formatDateLabel(part.publishedAt)}</strong>
+            <span>published date</span>
           </div>
           <div className="chip-row">
             {part.vendors.map((vendor) => (
@@ -334,8 +359,26 @@ export default async function PartDetailPage({
         <section className="panel">
           <div className="section-title detail-section-title">
             <p className="eyebrow">Metadata</p>
-            <h2>Materials and fabrication</h2>
-            <p>Materials, seasons, and search-facing metadata.</p>
+            <h2>Listing metadata</h2>
+            <p>Fabrication context, release metadata, and reuse-facing details.</p>
+          </div>
+          <div className="detail-meta-grid">
+            <div className="detail-meta-item">
+              <span>License</span>
+              <strong>{part.license}</strong>
+            </div>
+            <div className="detail-meta-item">
+              <span>Subsystem</span>
+              <strong>{part.subsystem}</strong>
+            </div>
+            <div className="detail-meta-item">
+              <span>Published</span>
+              <strong>{formatDateLabel(part.publishedAt)}</strong>
+            </div>
+            <div className="detail-meta-item">
+              <span>Source CAD</span>
+              <strong>{sourceFile ? "Included" : "Not listed"}</strong>
+            </div>
           </div>
           <div className="chip-row">
             {part.materials.map((material) => (

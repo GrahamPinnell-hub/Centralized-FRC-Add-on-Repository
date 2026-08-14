@@ -3538,14 +3538,21 @@ textarea {
 }
 
 .detail-hero-shell {
-  grid-template-columns: minmax(0, 1fr) 340px;
-  align-items: start;
+  grid-template-columns: 1fr;
+  align-items: stretch;
 }
 
 .detail-hero-main {
   display: grid;
   gap: 1rem;
   align-content: start;
+}
+
+.detail-showcase-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.18fr) minmax(300px, 0.82fr);
+  gap: 1rem;
+  align-items: start;
 }
 
 .detail-hero-copy {
@@ -3697,6 +3704,35 @@ textarea {
   margin-top: 0.15rem;
 }
 
+.detail-at-a-glance {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.detail-glance-card {
+  display: grid;
+  gap: 0.22rem;
+  padding: 0.9rem 0.95rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(31, 33, 33, 0.24);
+}
+
+.detail-glance-card span {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.detail-glance-card strong {
+  color: #fff;
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
 .detail-spec-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3817,6 +3853,36 @@ textarea {
   display: flex;
   flex-wrap: wrap;
   gap: 0.65rem;
+}
+
+.detail-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+}
+
+.detail-meta-item {
+  display: grid;
+  gap: 0.22rem;
+  padding: 0.9rem 0.95rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(31, 33, 33, 0.28);
+}
+
+.detail-meta-item span {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.detail-meta-item strong {
+  color: #fff;
+  font-size: 0.98rem;
+  line-height: 1.35;
 }
 
 .detail-team-cluster {
@@ -4139,6 +4205,7 @@ textarea {
   .hero-banner,
   .board-hero,
   .detail-hero-shell,
+  .detail-showcase-grid,
   .detail-stage-grid,
   .detail-overview-grid,
   .detail-assets-grid,
@@ -4167,6 +4234,11 @@ textarea {
 }
 
 @media (max-width: 980px) {
+  .detail-at-a-glance,
+  .detail-meta-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .discovery-grid-compact,
   .discovery-dual-lane {
     grid-template-columns: 1fr;
@@ -4241,6 +4313,13 @@ textarea {
 }
 
 @media (max-width: 720px) {
+  .detail-at-a-glance,
+  .detail-meta-grid,
+  .detail-spec-grid,
+  .detail-stat-inline-grid {
+    grid-template-columns: 1fr;
+  }
+
   .browse-search-hero {
     padding: 1rem;
   }
@@ -4267,10 +4346,6 @@ textarea {
 
   .browse-team-link {
     justify-content: space-between;
-  }
-
-  .detail-spec-grid {
-    grid-template-columns: 1fr;
   }
 
   .discovery-link-row {
