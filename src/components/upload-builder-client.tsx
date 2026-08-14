@@ -624,6 +624,18 @@ function mergeImportedMedia(currentMedia: DraftMedia[], importedMedia: ImportedM
   });
 }
 
+function draftFileKey(file: Pick<DraftFile, "href" | "label">) {
+  return `${file.href}|${file.label}`;
+}
+
+function draftMediaKey(media: Pick<DraftMedia, "kind" | "src" | "title">) {
+  return `${media.kind}|${media.src}|${media.title}`;
+}
+
+function isLocalMediaUpload(media: DraftMedia) {
+  return media.note.startsWith("Imported from local media drop:");
+}
+
 export function UploadBuilderClient({
   options,
   creators,
@@ -758,6 +770,19 @@ export function UploadBuilderClient({
     tagInput.trim().length > 0 &&
     !selectedTags.includes(tagInput.trim().toLowerCase()) &&
     !tagSuggestions.some((suggestion) => suggestion.label.toLowerCase() === tagInput.trim().toLowerCase());
+  const importedFileKeys = useMemo(
+    () => new Set((lastImport?.files ?? []).map((file) => draftFileKey({ href: file.href, label: file.label }))),
+    [lastImport]
+  );
+  const importedMediaKeys = useMemo(
+    () =>
+      new Set(
+        (lastImport?.media ?? []).map((item) =>
+          draftMediaKey({ kind: item.kind, src: item.src, title: item.title })
+        )
+      ),
+    [lastImport]
+  );
   const filesByLane = useMemo(
     () =>
       fileLaneDefinitions.map((lane) => ({
@@ -930,6 +955,10 @@ export function UploadBuilderClient({
       })
       .slice(0, 3);
   }, [parts, previewPart.slug, previewPart.title, sourceUrl]);
+  const importedFileCount = files.filter((file) => importedFileKeys.has(draftFileKey(file))).length;
+  const localFileCount = files.length - importedFileCount;
+  const importedMediaCount = media.filter((item) => importedMediaKeys.has(draftMediaKey(item))).length;
+  const localMediaCount = media.filter((item) => isLocalMediaUpload(item)).length;
 
   function normalizeOwnerHandle(handle: string) {
     return ownerChoices.some((owner) => owner.handle === handle)
@@ -1163,9 +1192,38 @@ export function UploadBuilderClient({
     setStagedMediaUploads((current) => current.filter((_, itemIndex) => itemIndex !== index));
   }
 
+  function promoteMedia(index: number) {
+    setMedia((current) => {
+      if (index <= 0 || index >= current.length) {
+        return current;
+      }
+
+      const next = [...current];
+      const [selected] = next.splice(index, 1);
+      next.unshift(selected);
+      return next;
+    });
+  }
+
   function removeFile(index: number) {
     setFiles((current) => current.filter((_, fileIndex) => fileIndex !== index));
     setStagedUploads((current) => current.filter((_, fileIndex) => fileIndex !== index));
+  }
+
+  function clearImportedSource() {
+    if (!lastImport) {
+      return;
+    }
+
+    setFiles((current) => current.filter((file) => !importedFileKeys.has(draftFileKey(file))));
+    setMedia((current) => current.filter((item) => !importedMediaKeys.has(draftMediaKey(item))));
+
+    if (sourceUrl.trim() === lastImport.sourceUrl.trim()) {
+      setSourceUrl("");
+    }
+
+    setLastImport(null);
+    setImportMessage("Cleared imported source metadata, links, and media. Local uploads stayed in place.");
   }
 
   function sortFilesAlphabetically() {
@@ -1621,15 +1679,30 @@ export function UploadBuilderClient({
             {importMessage ? <p className="upload-inline-note">{importMessage}</p> : null}
             {lastImport ? (
               <div className="upload-import-summary">
-                <div className="chip-row">
-                  <span className="chip chip-accent">{lastImport.sourceLabel}</span>
-                  {lastImport.author ? <span className="chip">By {lastImport.author}</span> : null}
-                  {lastImport.media.length > 0 ? (
-                    <span className="chip">{lastImport.media.length} media item{lastImport.media.length === 1 ? "" : "s"}</span>
-                  ) : null}
-                  {lastImport.files.length > 0 ? (
-                    <span className="chip">{lastImport.files.length} imported link{lastImport.files.length === 1 ? "" : "s"}</span>
-                  ) : null}
+                <div className="upload-slot-head">
+                  <div className="chip-row">
+                    <span className="chip chip-accent">{lastImport.sourceLabel}</span>
+                    {lastImport.author ? <span className="chip">By {lastImport.author}</span> : null}
+                    {lastImport.publisher ? <span className="chip">{lastImport.publisher}</span> : null}
+                    {lastImport.license ? <span className="chip">{lastImport.license}</span> : null}
+                  </div>
+                  <button type="button" className="action-link" onClick={clearImportedSource}>
+                    Clear import
+                  </button>
+                </div>
+                <div className="upload-import-stats">
+                  <div className="detail-stat-block">
+                    <strong>{lastImport.files.length}</strong>
+                    <span>imported links</span>
+                  </div>
+                  <div className="detail-stat-block">
+                    <strong>{lastImport.media.length}</strong>
+                    <span>imported media</span>
+                  </div>
+                  <div className="detail-stat-block">
+                    <strong>{tagEntries.length}</strong>
+                    <span>current tags</span>
+                  </div>
                 </div>
                 {lastImport.warnings.length > 0 ? (
                   <div className="page-stack upload-import-warnings">
@@ -1730,6 +1803,16 @@ export function UploadBuilderClient({
             </label>
             <label className="upload-tag-field">
               Search tags
+              <div className="upload-slot-head upload-tag-toolbar">
+                <span className="upload-field-support">
+                  {tagEntries.length} tag{tagEntries.length === 1 ? "" : "s"} selected
+                </span>
+                {tagEntries.length > 0 ? (
+                  <button type="button" className="action-link" onClick={() => setTags("")}>
+                    Clear tags
+                  </button>
+                ) : null}
+              </div>
               <div className="upload-tag-picker" onClick={() => tagInputRef.current?.focus()}>
                 {tagEntries.map((tag) => (
                   <span key={tag} className="upload-tag-chip">
@@ -1835,6 +1918,13 @@ export function UploadBuilderClient({
             <p className="eyebrow">Step 3</p>
             <h3>Photos and model files</h3>
           </div>
+          <div className="upload-submission-meta">
+            <span className="chip chip-accent">{media.length} gallery item{media.length === 1 ? "" : "s"}</span>
+            <span className="chip">{localMediaCount} local upload{localMediaCount === 1 ? "" : "s"}</span>
+            <span className="chip">{importedMediaCount} imported media{importedMediaCount === 1 ? "" : "s"}</span>
+            <span className="chip">{localFileCount} local file{localFileCount === 1 ? "" : "s"}</span>
+            <span className="chip">{importedFileCount} imported link{importedFileCount === 1 ? "" : "s"}</span>
+          </div>
           <input
             ref={mediaInputRef}
             type="file"
@@ -1870,15 +1960,30 @@ export function UploadBuilderClient({
             >
               {media.map((item, index) => (
                 <article key={`media-${index}`} className="upload-photo-tile">
-                  <button
-                    type="button"
-                    className="upload-photo-remove"
-                    aria-label={`Remove ${item.title || `media ${index + 1}`}`}
-                    onClick={() => removeMedia(index)}
-                  >
-                    <span aria-hidden="true">x</span>
-                  </button>
-                  <span className={`chip${item.kind === "video" ? " chip-accent" : ""}`}>{item.kind}</span>
+                  <div className="upload-photo-overlay">
+                    <span className={`chip${item.kind === "video" ? " chip-accent" : ""}`}>{item.kind}</span>
+                    <div className="upload-photo-actions">
+                      {index === 0 ? (
+                        <span className="chip chip-accent">Cover</span>
+                      ) : (
+                        <button
+                          type="button"
+                          className="upload-photo-inline-action"
+                          onClick={() => promoteMedia(index)}
+                        >
+                          Set cover
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        className="upload-photo-remove"
+                        aria-label={`Remove ${item.title || `media ${index + 1}`}`}
+                        onClick={() => removeMedia(index)}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
                   <div className="upload-photo-frame" style={mediaFrameStyle(item.src)}>
                     {item.src ? (
                       item.kind === "video" ? (
@@ -1891,6 +1996,13 @@ export function UploadBuilderClient({
                     )}
                   </div>
                   <strong>{item.title || `Photo ${index + 1}`}</strong>
+                  <span className="upload-photo-origin">
+                    {isLocalMediaUpload(item)
+                      ? "Local upload"
+                      : importedMediaKeys.has(draftMediaKey(item))
+                        ? "Imported source"
+                        : "Manual media"}
+                  </span>
                 </article>
               ))}
               <button type="button" className="upload-photo-add" onClick={() => mediaInputRef.current?.click()}>
@@ -2012,6 +2124,9 @@ export function UploadBuilderClient({
                           </div>
                           <div className="upload-file-row-actions">
                             <span className="chip">{file.fileType}</span>
+                            <span className={`chip${importedFileKeys.has(draftFileKey(file)) ? " chip-accent" : ""}`}>
+                              {importedFileKeys.has(draftFileKey(file)) ? "Imported link" : "Local file"}
+                            </span>
                             <button
                               type="button"
                               className="action-link"
@@ -2245,6 +2360,7 @@ export function UploadBuilderClient({
                 {lastImport.author ? <span className="chip">By {lastImport.author}</span> : null}
                 <span className="chip">{lastImport.files.length} links</span>
                 <span className="chip">{lastImport.media.length} media</span>
+                {lastImport.license ? <span className="chip">{lastImport.license}</span> : null}
               </div>
               <a href={lastImport.sourceUrl} target="_blank" rel="noreferrer" className="ghost-link">
                 Open imported source
