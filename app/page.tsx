@@ -48,44 +48,54 @@ export default async function HomePage() {
         pageSize={4}
       />
 
-      <section className="discovery-grid">
-        <section className="panel discovery-panel">
+      <section className="discovery-grid discovery-grid-compact">
+        <section className="panel discovery-panel discovery-panel-wide">
           <div className="page-stack discovery-panel-head">
-            <p className="eyebrow">Popular Searches</p>
-            <h3>Start from direct build-season intent.</h3>
-            <p>Jump straight into the exact accessory or deliverable teams usually need first.</p>
+            <p className="eyebrow">Browse Shortcuts</p>
+            <h3>Jump in fast, then narrow down.</h3>
+            <p>Start with common build-season searches or the exact tag language teams already use.</p>
           </div>
-          <div className="chip-row">
-            {quickSearches.map((item, index) => (
-              <Link key={`discover-${item.href}`} href={item.href} className={`chip${index === 0 ? " chip-accent" : ""}`}>
-                {item.label}
-              </Link>
-            ))}
+          <div className="discovery-dual-lane">
+            <section className="page-stack discovery-mini-lane">
+              <div className="discovery-lane-head">
+                <strong>Popular searches</strong>
+                <span>direct entry lanes</span>
+              </div>
+              <div className="chip-row">
+                {quickSearches.map((item, index) => (
+                  <Link
+                    key={`discover-${item.href}`}
+                    href={item.href}
+                    className={`chip${index === 0 ? " chip-accent" : ""}`}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            </section>
+            <section className="page-stack discovery-mini-lane">
+              <div className="discovery-lane-head">
+                <strong>Top tags</strong>
+                <span>shared search language</span>
+              </div>
+              <div className="chip-row">
+                {topTags.map((tag, index) => (
+                  <Link
+                    key={tag.label}
+                    href={`/parts?q=${encodeURIComponent(tag.label)}`}
+                    className={`chip${index === 0 ? " chip-accent" : ""}`}
+                  >
+                    {tag.label} <span className="chip-count">{tag.count}</span>
+                  </Link>
+                ))}
+              </div>
+            </section>
           </div>
         </section>
-        <section className="panel discovery-panel">
-          <div className="page-stack discovery-panel-head">
-            <p className="eyebrow">Top Tags</p>
-            <h3>Browse using the language teams actually use.</h3>
-            <p>Strong repositories let tags and search terms pull users deeper without extra clicks.</p>
-          </div>
-          <div className="chip-row">
-            {topTags.map((tag, index) => (
-              <Link
-                key={tag.label}
-                href={`/parts?q=${encodeURIComponent(tag.label)}`}
-                className={`chip${index === 0 ? " chip-accent" : ""}`}
-              >
-                {tag.label} <span className="chip-count">{tag.count}</span>
-              </Link>
-            ))}
-          </div>
-        </section>
-        <section className="panel discovery-panel">
+        <section className="panel discovery-panel discovery-panel-compact">
           <div className="page-stack discovery-panel-head">
             <p className="eyebrow">Team Libraries</p>
-            <h3>Scan active team-owned collections.</h3>
-            <p>Browse should surface who is sharing useful hardware, not just a pile of cards.</p>
+            <h3>See who is actively sharing.</h3>
           </div>
           <div className="discovery-link-list">
             {activeTeams.map((entry) => (
@@ -96,11 +106,10 @@ export default async function HomePage() {
             ))}
           </div>
         </section>
-        <section className="panel discovery-panel">
+        <section className="panel discovery-panel discovery-panel-compact">
           <div className="page-stack discovery-panel-head">
             <p className="eyebrow">Repository Formats</p>
-            <h3>Filter by what you need to fabricate.</h3>
-            <p>Print files, sheet metal, and source CAD all deserve equal weight in the browse flow.</p>
+            <h3>Filter by fabrication output.</h3>
           </div>
           <div className="chip-row">
             {topFormats.map((format, index) => (
@@ -112,6 +121,25 @@ export default async function HomePage() {
                 {format.label} <span className="chip-count">{format.count}</span>
               </Link>
             ))}
+          </div>
+        </section>
+        <section className="panel discovery-panel discovery-panel-compact">
+          <div className="page-stack discovery-panel-head">
+            <p className="eyebrow">Repository Snapshot</p>
+            <h3>{stats.partCount} listings across {stats.categoryCount} active lanes.</h3>
+          </div>
+          <div className="chip-row">
+            <span className="chip">{stats.supportedTypes.join(" / ")}</span>
+            <span className="chip">{stats.creatorCount} teams</span>
+            <span className="chip">Auto-publish demo mode</span>
+          </div>
+          <div className="hero-actions">
+            <Link href="/parts" className="button-link">
+              Browse listings
+            </Link>
+            <Link href="/upload" className="action-link">
+              Upload a part
+            </Link>
           </div>
         </section>
       </section>
@@ -131,24 +159,16 @@ export default async function HomePage() {
 
       <section className="home-columns">
         <section className="panel compact-panel homepage-note">
-          <p className="eyebrow">Repository Snapshot</p>
-          <h3>{stats.partCount} listings across {stats.categoryCount} active browse lanes.</h3>
+          <p className="eyebrow">Repository Flow</p>
+          <h3>The front page now reads like a feed first.</h3>
           <p>
-            The front page now behaves more like a repository: trending first, discovery lanes
-            second, and team-owned libraries close behind.
+            Teams hit trending listings, check the newest uploads, then use browse shortcuts or
+            categories only when they need to narrow the search.
           </p>
           <div className="chip-row">
-            <span className="chip">{stats.supportedTypes.join(" / ")}</span>
-            <span className="chip">{stats.creatorCount} teams</span>
-            <span className="chip">Auto-publish demo mode</span>
-          </div>
-          <div className="hero-actions">
-            <Link href="/parts" className="button-link">
-              Browse listings
-            </Link>
-            <Link href="/upload" className="action-link">
-              Upload a part
-            </Link>
+            <span className="chip">Trending first</span>
+            <span className="chip">Latest second</span>
+            <span className="chip">Browse rails after</span>
           </div>
         </section>
         <aside className="page-stack">
