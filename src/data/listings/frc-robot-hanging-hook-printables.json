@@ -53,7 +53,7 @@
       "accent": "#d0a458",
       "src": "/example-images/frc-camera-mount.png",
       "framing": {
-        "cardFit": "cover",
+        "cardFit": "contain",
         "cardPosition": "center 45%",
         "detailFit": "contain",
         "detailPosition": "center 48%",
