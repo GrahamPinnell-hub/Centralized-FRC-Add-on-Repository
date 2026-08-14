@@ -38,6 +38,16 @@ export default async function HomePage() {
     <>
       <FeedShelf title="Trending" items={trending} chips={quickSearches} pageSize={8} headingLevel={1} />
 
+      <FeedShelf
+        title="Latest"
+        items={latest}
+        chips={topTags.slice(0, 6).map((tag) => ({
+          href: `/parts?q=${encodeURIComponent(tag.label)}&sort=latest`,
+          label: tag.label
+        }))}
+        pageSize={4}
+      />
+
       <section className="discovery-grid">
         <section className="panel discovery-panel">
           <div className="page-stack discovery-panel-head">
@@ -105,16 +115,6 @@ export default async function HomePage() {
           </div>
         </section>
       </section>
-
-      <FeedShelf
-        title="Latest"
-        items={latest}
-        chips={topTags.slice(0, 6).map((tag) => ({
-          href: `/parts?q=${encodeURIComponent(tag.label)}&sort=latest`,
-          label: tag.label
-        }))}
-        pageSize={4}
-      />
 
       <section className="page-stack">
         <SectionTitle
