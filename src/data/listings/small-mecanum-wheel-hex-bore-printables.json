@@ -53,7 +53,7 @@
       "accent": "#d0a458",
       "src": "/example-images/vectored-intake-wheels-for-frc.png",
       "framing": {
-        "cardFit": "contain",
+        "cardFit": "scale-down",
         "cardPosition": "center 52%",
         "detailFit": "contain",
         "detailPosition": "center 50%",

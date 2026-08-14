@@ -14,7 +14,7 @@ export type CatalogFile = {
   note: string;
 };
 
-export type MediaSurfaceFit = "cover" | "contain";
+export type MediaSurfaceFit = "cover" | "contain" | "scale-down";
 
 export type MediaFraming = {
   position?: string;
